@@ -1,0 +1,191 @@
+<?php
+
+namespace App\Controllers;
+
+use App\Models\AttendanceModel;
+use App\Models\UserModel;
+use App\Models\SettingsModel;
+use CodeIgniter\Controller;
+
+class Admin extends Controller
+{
+    public function index()
+    {
+        if (!in_array(session()->get('u_role'), ['admin', 'head', 'director'])) {
+            return redirect()->to(base_url('/'))->with('error', 'คุณไม่มีสิทธิ์เข้าถึงหน้านี้');
+        }
+
+        helper('thai_date');
+        $atdModel = new AttendanceModel();
+        $sModel = new SettingsModel();
+        
+        $db      = \Config\Database::connect();
+        $builder = $db->table('Tb_Attendance');
+        $builder->select('Tb_Attendance.*, Tb_Users.u_fullname, Tb_Users.u_username');
+        $builder->join('Tb_Users', 'Tb_Users.u_id = Tb_Attendance.atd_user_id');
+        
+        // Date Filter
+        $filter_date = $this->request->getGet('date') ?: date('Y-m-d');
+        $builder->where('DATE(atd_timestamp)', $filter_date);
+        
+        $builder->orderBy('atd_timestamp', 'DESC');
+        $query = $builder->get();
+        
+        $data['all_attendance'] = $query->getResultArray();
+        $data['filter_date'] = $filter_date;
+        $data['fullname'] = session()->get('u_fullname');
+        $data['office_location'] = $sModel->where('s_key', 'office_location')->first()['s_value'] ?? '0,0';
+        $data['work_start_time'] = $sModel->where('s_key', 'work_start_time')->first()['s_value'] ?? '08:30';
+        $data['work_end_time'] = $sModel->where('s_key', 'work_end_time')->first()['s_value'] ?? '16:30';
+
+        $today = date('Y-m-d');
+        $data['stats'] = [
+            'total_filter' => count($data['all_attendance']),
+            'today_in' => $atdModel->where('atd_type', 'check_in')->where('DATE(atd_timestamp)', $filter_date)->countAllResults(),
+            'today_out' => $atdModel->where('atd_type', 'check_out')->where('DATE(atd_timestamp)', $filter_date)->countAllResults(),
+        ];
+                                 
+        return view('admin/index', $data);
+    }
+
+    // --------------------------------------------------------------------
+    // 👥 STAFF MANAGEMENT
+    // --------------------------------------------------------------------
+    public function users()
+    {
+        if (!in_array(session()->get('u_role'), ['admin', 'head', 'director'])) {
+            return redirect()->to(base_url('/'))->with('error', 'คุณไม่มีสิทธิ์เข้าถึงหน้านี้');
+        }
+
+        $model = new UserModel();
+        $data['users'] = $model->findAll();
+        $data['fullname'] = session()->get('u_fullname');
+        return view('admin/users/index', $data);
+    }
+
+    public function userSave()
+    {
+        $model = new UserModel();
+        $id = $this->request->getPost('u_id');
+
+        $data = [
+            'u_username' => $this->request->getPost('u_username'),
+            'u_email'    => $this->request->getPost('u_email'),
+            'u_fullname' => $this->request->getPost('u_fullname'),
+            'u_role'     => $this->request->getPost('u_role'),
+        ];
+
+        // If password is provided, hash it
+        $password = $this->request->getPost('u_password');
+        if (!empty($password)) {
+            $data['u_password'] = password_hash($password, PASSWORD_DEFAULT);
+        }
+
+        if ($id) {
+            $model->update($id, $data);
+            $msg = 'อัปเดตข้อมูลพนักงานเรียบร้อยแล้ว';
+        } else {
+            $model->insert($data);
+            $msg = 'เพิ่มพนักงานใหม่เรียบร้อยแล้ว';
+        }
+
+        return redirect()->to(base_url('admin/users'))->with('status', $msg);
+    }
+
+    public function userDelete($id)
+    {
+        $model = new UserModel();
+        $model->delete($id);
+        return redirect()->to(base_url('admin/users'))->with('status', 'ลบข้อมูลพนักงานเรียบร้อยแล้ว');
+    }
+
+    // --------------------------------------------------------------------
+    // ⚙️ SETTINGS
+    // --------------------------------------------------------------------
+    public function settings()
+    {
+        if (!in_array(session()->get('u_role'), ['admin', 'head', 'director'])) {
+            return redirect()->to(base_url('/'))->with('error', 'คุณไม่มีสิทธิ์เข้าถึงหน้านี้');
+        }
+
+        $model = new SettingsModel();
+        $settings = $model->findAll();
+        
+        // Convert to key-value
+        $data['settings'] = [];
+        foreach($settings as $s) {
+            $data['settings'][$s['s_key']] = $s['s_value'];
+        }
+
+        $data['fullname'] = session()->get('u_fullname');
+        return view('admin/settings', $data);
+    }
+
+    public function settingsUpdate()
+    {
+        $model = new SettingsModel();
+        $posts = $this->request->getPost();
+
+        foreach($posts as $key => $value) {
+            $exists = $model->where('s_key', $key)->first();
+            if ($exists) {
+                $model->update($exists['s_id'], ['s_value' => $value]);
+            } else {
+                $model->insert(['s_key' => $key, 's_value' => $value]);
+            }
+        }
+
+        return redirect()->to(base_url('admin/settings'))->with('status', 'บันทึกการตั้งค่าเรียบร้อยแล้ว');
+    }
+    public function exportExcel()
+    {
+        if (!in_array(session()->get('u_role'), ['admin', 'head', 'director'])) {
+            return redirect()->to(base_url('/'))->with('error', 'คุณไม่มีสิทธิ์เข้าถึงหน้านี้');
+        }
+
+        $date = $this->request->getGet('date') ?: date('Y-m-d');
+        
+        $db      = \Config\Database::connect();
+        $builder = $db->table('Tb_Attendance');
+        $builder->select('Tb_Attendance.*, Tb_Users.u_fullname, Tb_Users.u_username');
+        $builder->join('Tb_Users', 'Tb_Users.u_id = Tb_Attendance.atd_user_id');
+        $builder->where('DATE(atd_timestamp)', $date);
+        $builder->orderBy('atd_timestamp', 'ASC');
+        $query = $builder->get();
+        $results = $query->getResultArray();
+
+        $filename = "Attendance_Report_" . $date . ".csv";
+
+        // Headers for CSV download
+        header("Content-Description: File Transfer");
+        header("Content-Disposition: attachment; filename=$filename");
+        header("Content-Type: application/csv; charset=UTF-8");
+
+        $file = fopen('php://output', 'w');
+
+        // Add UTF-8 BOM for Excel to open in correct encoding
+        fputs($file, $bom = (chr(0xEF) . chr(0xBB) . chr(0xBF)));
+
+        // Column headers
+        $header = ['ลำดับ', 'ชื่อ-นามสกุล', 'Username', 'ประเภท', 'วันที่/เวลา', 'พิกัด', 'หมายเหตุ'];
+        fputcsv($file, $header);
+
+        $i = 1;
+        foreach ($results as $row) {
+            $type = ($row['atd_type'] == 'check_in') ? 'เข้างาน' : 'ออกงาน';
+            $line = [
+                $i++,
+                $row['u_fullname'],
+                $row['u_username'],
+                $type,
+                $row['atd_timestamp'],
+                $row['atd_location'],
+                $row['atd_note']
+            ];
+            fputcsv($file, $line);
+        }
+
+        fclose($file);
+        exit;
+    }
+}

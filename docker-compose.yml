@@ -1,0 +1,47 @@
+version: "3.8"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: paoerc_app
+    restart: always
+    ports:
+      - "9000:80" # http://localhost:9000
+      - "9443:443" # https://localhost:9443
+    volumes:
+      - .:/var/www/html:cached
+      - /var/www/html/vendor
+      - D:/librarie_skj:/domains/librarie_skj:cached
+    environment:
+      - CI_ENVIRONMENT=development
+    depends_on:
+      - db
+
+  db:
+    image: mariadb:10.6
+    container_name: paoerc_db
+    restart: always
+    environment:
+      MARIADB_ROOT_PASSWORD: rootpassword
+      MARIADB_DATABASE: DB_PAO_Erc
+      MARIADB_USER: user
+      MARIADB_PASSWORD: userpassword
+    ports:
+      - "9002:3306"
+    volumes:
+      - ./mysql_data:/var/lib/mysql
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: paoerc_pma
+    restart: always
+    environment:
+      PMA_HOST: db
+      PMA_USER: root
+      PMA_PASSWORD: rootpassword
+    ports:
+      - "9001:80" # http://localhost:9001
+    depends_on:
+      - db
