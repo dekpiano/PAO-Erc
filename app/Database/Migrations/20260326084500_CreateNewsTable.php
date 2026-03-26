@@ -62,8 +62,8 @@ class CreateNewsTable extends Migration
         ]);
         $this->forge->addKey('news_id', true);
         // Note: Tb_Users is the table name found in migrations
-        $this->forge->addForeignKey('news_created_by', 'Tb_Users', 'u_id', 'CASCADE', 'CASCADE');
-        $this->forge->createTable('Tb_News');
+        // $this->forge->addForeignKey('news_created_by', 'Tb_Users', 'u_id', 'CASCADE', 'CASCADE');
+        $this->forge->createTable('Tb_News', true);
     }
 
     public function down()

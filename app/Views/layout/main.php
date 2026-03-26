@@ -62,13 +62,13 @@
     <nav class="glass-nav fixed top-0 left-0 right-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-20">
-                <div class="flex items-center gap-3">
-                    <div class="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg">
-                        <i data-lucide="graduation-cap" class="w-7 h-7"></i>
+                <div class="flex items-center gap-2 sm:gap-3">
+                    <div class="w-10 h-10 sm:w-12 sm:h-12 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg">
+                        <i data-lucide="graduation-cap" class="w-6 h-6 sm:w-7 sm:h-7"></i>
                     </div>
                     <div>
-                        <h1 class="text-lg font-extrabold text-blue-900 leading-none">กองการศึกษา ศาสนา และวัฒนธรรม</h1>
-                        <p class="text-[10px] text-blue-600 font-semibold uppercase tracking-widest mt-1">อบจ.นครสวรรค์ | PAO NAKHONSAWAN</p>
+                        <h1 class="text-[13px] min-[375px]:text-sm sm:text-lg font-extrabold text-blue-900 leading-none whitespace-nowrap">กองการศึกษา ศาสนา และวัฒนธรรม</h1>
+                        <p class="text-[8px] sm:text-[10px] text-blue-600 font-semibold uppercase tracking-widest mt-1">อบจ.นครสวรรค์ | PAO NAKHONSAWAN</p>
                     </div>
                 </div>
 

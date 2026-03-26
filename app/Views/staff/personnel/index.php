@@ -124,7 +124,7 @@
             <p class="text-blue-200 text-xs font-bold uppercase tracking-widest mt-1">Personnel Registration</p>
         </div>
         
-        <form action="<?= base_url('staff/personnel/save') ?>" method="post" enctype="multipart/form-data" class="p-8">
+        <form id="personnel-form" action="<?= base_url('staff/personnel/save') ?>" method="post" enctype="multipart/form-data" class="p-8">
             <input type="hidden" name="u_id" id="u_id">
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
@@ -248,9 +248,18 @@
 
                 <!-- รูปภาพ -->
                 <div class="md:col-span-2">
-                    <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">รูปถ่ายบุคลากร</label>
-                    <input type="file" name="u_photo" id="u_photo_input" accept="image/*"
-                        class="w-full border border-slate-200 rounded-xl px-4 py-3 text-slate-700 font-bold focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-black file:bg-blue-600 file:text-white hover:file:bg-blue-700">
+                    <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">รูปถ่ายบุคลากร (ลากมาวางที่นี่ได้)</label>
+                    <div id="photo-dropzone" class="relative group">
+                        <input type="file" name="u_photo" id="u_photo_input" accept="image/*" onchange="previewUserPhoto(this)"
+                            class="w-full border border-slate-200 rounded-xl px-4 py-3 text-slate-700 font-bold focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-black file:bg-blue-600 file:text-white hover:file:bg-blue-700 bg-slate-50/30">
+                        <div id="photo-preview-container" class="mt-4 hidden items-center gap-4 p-2 bg-blue-50 rounded-2xl border border-blue-100 animate-[fadeIn_0.3s_ease-out]">
+                            <img id="photo-preview" src="" class="w-20 h-20 rounded-xl object-cover shadow-sm">
+                            <div>
+                                <p class="text-[10px] font-black text-blue-600 uppercase tracking-widest">รูปภาพที่เลือก</p>
+                                <p id="photo-filename" class="text-xs font-bold text-slate-600 truncate max-w-[200px]"></p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
             </div>
@@ -258,7 +267,7 @@
             <!-- Buttons -->
             <div class="mt-10 flex gap-4">
                 <button type="button" onclick="closeModal()" class="flex-1 bg-slate-100 text-slate-600 py-4 rounded-2xl font-black text-sm hover:bg-slate-200 transition-all">ยกเลิก</button>
-                <button type="submit" class="flex-1 bg-blue-600 text-white py-4 rounded-2xl font-black text-sm shadow-xl shadow-blue-600/20 hover:bg-blue-700 transition-all">บันทึกข้อมูล</button>
+                <button type="submit" id="submit-btn" class="flex-1 bg-blue-600 text-white py-4 rounded-2xl font-black text-sm shadow-xl shadow-blue-600/20 hover:bg-blue-700 transition-all disabled:opacity-50">บันทึกข้อมูล</button>
             </div>
         </form>
     </div>
@@ -283,6 +292,11 @@
         document.querySelectorAll('.role-checkbox').forEach(cb => {
             cb.checked = (cb.value === 'user');
         });
+        
+        // Reset Photo Preview
+        document.getElementById('photo-preview-container').classList.add('hidden');
+        document.getElementById('u_photo_input').value = '';
+        
         document.getElementById('userModal').classList.remove('hidden');
     }
 
@@ -308,6 +322,19 @@
             cb.checked = userRoles.includes(cb.value);
         });
 
+        // Current photo preview if exists
+        const previewContainer = document.getElementById('photo-preview-container');
+        const previewImg = document.getElementById('photo-preview');
+        const filenameLabel = document.getElementById('photo-filename');
+        
+        if (user.u_photo) {
+            previewImg.src = `<?= base_url('uploads/personnel/') ?>${user.u_photo}`;
+            filenameLabel.textContent = 'รูปโปรไฟล์เดิม';
+            previewContainer.classList.remove('hidden');
+        } else {
+            previewContainer.classList.add('hidden');
+        }
+
         document.getElementById('userModal').classList.remove('hidden');
     }
 
@@ -328,5 +355,169 @@
             }
         })
     }
+
+    // Form Submission with AJAX & Chunking
+    document.getElementById('personnel-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const form = this;
+        const btn = document.getElementById('submit-btn');
+        const originalBtnContent = btn.innerHTML;
+        
+        btn.disabled = true;
+        btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin inline mr-2"></i> กำลังเตรียมข้อมูล...`;
+        lucide.createIcons();
+
+        try {
+            // 1. Handle Photo Chunked Upload
+            let tempPhoto = null;
+            const photoInput = document.getElementById('u_photo_input');
+            if (photoInput.files && photoInput.files[0]) {
+                const photoFile = photoInput.files[0];
+                btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin inline mr-2"></i> กำลังอัปโหลดรูปถ่าย...`;
+                tempPhoto = await uploadFileInChunks(photoFile);
+            }
+
+            // 2. Final Submission
+            btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin inline mr-2"></i> กำลังบันทึก...`;
+            const formData = new FormData(form);
+            
+            if (tempPhoto) {
+                formData.delete('u_photo');
+                formData.append('temp_photo', tempPhoto);
+            }
+
+            const response = await fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+
+            const text = await response.text();
+            let data;
+            try {
+                data = JSON.parse(text);
+            } catch (e) {
+                console.error('Server responded with non-JSON format:', text);
+                throw new Error('NON_JSON');
+            }
+
+            if (data.status === 'success') {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'สำเร็จ!',
+                    text: data.message,
+                    timer: 2000,
+                    showConfirmButton: false,
+                    customClass: { popup: 'rounded-[1.5rem]' }
+                }).then(() => {
+                    window.location.href = data.redirect;
+                });
+            } else {
+                throw new Error(data.message || 'บันทึกข้อมูลไม่สำเร็จ');
+            }
+
+        } catch (error) {
+            console.error('Error:', error);
+            btn.disabled = false;
+            btn.innerHTML = originalBtnContent;
+            lucide.createIcons();
+            
+            let errorTitle = 'เกิดข้อผิดพลาด';
+            let errorMsg = 'ไม่สามารถติดต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้ง';
+
+            if (error.message === '413_TOO_LARGE') {
+                errorTitle = 'รูปภาพมีขนาดใหญ่เกินไป';
+                errorMsg = 'รูปถ่ายมีขนาดใหญ่เกินความสามารถของเซิร์ฟเวอร์ กรุณาย่อขนาดรูปภาพก่อนอัปโหลด';
+            }
+
+            Swal.fire({
+                icon: 'error',
+                title: errorTitle,
+                text: errorMsg,
+                customClass: { popup: 'rounded-[1.5rem]' }
+            });
+        }
+    });
+
+    async function uploadFileInChunks(file) {
+        const chunkSize = 1024 * 512; // 512KB per chunk (Further decreased to fix persistent 413)
+        const totalChunks = Math.ceil(file.size / chunkSize);
+        const fileId = Math.random().toString(36).substring(2, 11) + Date.now();
+        const extension = file.name.split('.').pop();
+        const filename = fileId + '.' + extension;
+
+        for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
+            const start = chunkIndex * chunkSize;
+            const end = Math.min(start + chunkSize, file.size);
+            const chunk = file.slice(start, end);
+
+            const formData = new FormData();
+            formData.append('file', chunk);
+            formData.append('filename', filename);
+            formData.append('chunkIndex', chunkIndex);
+            formData.append('totalChunks', totalChunks);
+            formData.append('fileId', fileId);
+
+            const response = await fetch('<?= base_url('staff/news/uploadChunk') ?>', {
+                method: 'POST',
+                body: formData,
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+
+            const result = await response.json();
+            if (result.status === 'error') {
+                throw new Error(result.message);
+            }
+            if (result.status === 'completed') {
+                return result.temp_file;
+            }
+        }
+    }
+
+    // Personnel Photo Preview & Drag and Drop
+    function previewUserPhoto(input) {
+        const container = document.getElementById('photo-preview-container');
+        const preview = document.getElementById('photo-preview');
+        const filename = document.getElementById('photo-filename');
+
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                filename.textContent = input.files[0].name;
+                container.classList.remove('hidden');
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    // Drag and Drop for Personnel Photo
+    const dropzone = document.getElementById('photo-dropzone');
+    const photoInput = document.getElementById('u_photo_input');
+
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropzone.addEventListener(eventName, e => {
+            e.preventDefault();
+            e.stopPropagation();
+        }, false);
+    });
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropzone.addEventListener(eventName, () => {
+             photoInput.classList.add('border-blue-400', 'bg-blue-50/50');
+        }, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropzone.addEventListener(eventName, () => {
+             photoInput.classList.remove('border-blue-400', 'bg-blue-50/50');
+        }, false);
+    });
+
+    dropzone.addEventListener('drop', e => {
+        photoInput.files = e.dataTransfer.files;
+        previewUserPhoto(photoInput);
+    }, false);
 </script>
 <?= $this->endSection() ?>

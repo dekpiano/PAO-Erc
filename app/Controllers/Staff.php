@@ -67,36 +67,83 @@ class Staff extends Controller
             $rules['cover'] = 'is_image[cover]|max_size[cover,2048]';
         }
 
-        if (!$this->validate($rules)) {
-            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+        if ($this->request->isAJAX()) {
+            if (!$this->validate($rules)) {
+                return $this->response->setJSON([
+                    'status' => 'error',
+                    'errors' => $this->validator->getErrors()
+                ]);
+            }
+        } else {
+            if (!$this->validate($rules)) {
+                return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+            }
         }
 
         $title = $this->request->getPost('title');
         $slug = $newsModel->generateSlug($title);
         
-        // Handle Cover Image
+        // Release session lock to prevent 504 during image processing
+        session_write_close();
+        
+        // Handle Cover Image (Normal or Chunked)
         $coverName = null;
-        if ($coverFile && $coverFile->isValid() && !$coverFile->hasMoved()) {
+        $tempCover = $this->request->getPost('temp_cover');
+        
+        if ($tempCover) {
+            $coverName = $tempCover;
+            $tempPath = WRITEPATH . 'uploads/temp/' . $tempCover;
+            if (file_exists($tempPath)) {
+                $targetDir = FCPATH . 'uploads/news/covers/';
+                if (!is_dir($targetDir)) mkdir($targetDir, 0777, true);
+                rename($tempPath, $targetDir . $coverName);
+            }
+        } elseif ($coverFile && $coverFile->isValid() && !$coverFile->hasMoved()) {
             $coverName = $coverFile->getRandomName();
             $coverFile->move(FCPATH . 'uploads/news/covers/', $coverName);
-
-            // Resize Cover Image
-            $this->processImage(FCPATH . 'uploads/news/covers/' . $coverName, 1200);
         }
 
         // Save Main News
-        $newsId = $newsModel->insert([
-            'news_title' => $title,
-            'news_slug' => $slug,
-            'news_content' => $this->request->getPost('content'),
-            'news_category' => $this->request->getPost('category'),
-            'news_cover' => $coverName,
-            'news_status' => $this->request->getPost('status') ?? 'published',
-            'news_created_by' => $userId,
-            'news_created_at' => $this->request->getPost('created_at') ?: date('Y-m-d H:i:s')
-        ]);
+        try {
+            $newsId = $newsModel->insert([
+                'news_title' => $title,
+                'news_slug' => $slug,
+                'news_content' => $this->request->getPost('content'),
+                'news_category' => $this->request->getPost('category'),
+                'news_cover' => $coverName,
+                'news_status' => $this->request->getPost('status') ?? 'published',
+                'news_created_by' => $userId,
+                'news_created_at' => $this->request->getPost('created_at') ?: date('Y-m-d H:i:s')
+            ]);
+        } catch (\Exception $e) {
+            // Error cleanup (optional)
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON([
+                    'status' => 'error',
+                    'message' => 'ไม่สามารถบันทึกข้อมูลได้: ' . $e->getMessage()
+                ]);
+            }
+            return redirect()->back()->withInput()->with('error', 'ไม่สามารถบันทึกข้อมูลได้: ' . $e->getMessage());
+        }
 
-        // Handle Gallery Images
+        // Handle Gallery Images (Normal or Chunked)
+        $tempGallery = $this->request->getPost('temp_gallery');
+        if ($tempGallery && is_array($tempGallery)) {
+            foreach ($tempGallery as $tempName) {
+                $tempPath = WRITEPATH . 'uploads/temp/' . $tempName;
+                if (file_exists($tempPath)) {
+                    $targetDir = FCPATH . 'uploads/news/gallery/';
+                    if (!is_dir($targetDir)) mkdir($targetDir, 0777, true);
+                    rename($tempPath, $targetDir . $tempName);
+                    
+                    $galleryModel->insert([
+                        'gal_news_id' => $newsId,
+                        'gal_image' => $tempName
+                    ]);
+                }
+            }
+        }
+        
         $imageFiles = $this->request->getFiles();
         if (isset($imageFiles['gallery'])) {
             foreach ($imageFiles['gallery'] as $img) {
@@ -104,15 +151,20 @@ class Staff extends Controller
                     $newName = $img->getRandomName();
                     $img->move(FCPATH . 'uploads/news/gallery/', $newName);
                     
-                    // Resize Gallery Image
-                    $this->processImage(FCPATH . 'uploads/news/gallery/' . $newName, 1000);
-                    
                     $galleryModel->insert([
                         'gal_news_id' => $newsId,
                         'gal_image' => $newName
                     ]);
                 }
             }
+        }
+
+        if ($this->request->isAJAX()) {
+            return $this->response->setJSON([
+                'status' => 'success',
+                'message' => 'บันทึกข่าวสารพร้อมรูปภาพแกลเลอรีเรียบร้อยแล้ว',
+                'redirect' => base_url('staff/news')
+            ]);
         }
 
         return redirect()->to(base_url('staff/news'))->with('success', 'บันทึกข่าวสารพร้อมรูปภาพแกลเลอรีเรียบร้อยแล้ว');
@@ -126,7 +178,7 @@ class Staff extends Controller
                   ->resize($maxWidth, $maxWidth, true, 'width')
                   ->save($path, 80);
         } catch (\Exception $e) {
-            // Log error or ignore if not supported
+            log_message('error', 'Image processing failed: ' . $e->getMessage());
         }
     }
 
@@ -173,8 +225,17 @@ class Staff extends Controller
             $rules['cover'] = 'is_image[cover]|max_size[cover,2048]';
         }
 
-        if (!$this->validate($rules)) {
-            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+        if ($this->request->isAJAX()) {
+            if (!$this->validate($rules)) {
+                return $this->response->setJSON([
+                    'status' => 'error',
+                    'errors' => $this->validator->getErrors()
+                ]);
+            }
+        } else {
+            if (!$this->validate($rules)) {
+                return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+            }
         }
 
         $updateData = [
@@ -185,23 +246,59 @@ class Staff extends Controller
             'news_created_at' => $this->request->getPost('created_at')
         ];
 
-        // Replace Cover if uploaded
-        if ($coverFile && $coverFile->isValid() && !$coverFile->hasMoved()) {
+        // Release session lock
+        session_write_close();
+
+        // Replace Cover (Normal or Chunked)
+        $tempCover = $this->request->getPost('temp_cover');
+        if ($tempCover) {
+            if ($news['news_cover']) {
+                @unlink(FCPATH . 'uploads/news/covers/' . $news['news_cover']);
+            }
+            $coverName = $tempCover;
+            $tempPath = WRITEPATH . 'uploads/temp/' . $tempCover;
+            if (file_exists($tempPath)) {
+                $targetDir = FCPATH . 'uploads/news/covers/';
+                if (!is_dir($targetDir)) mkdir($targetDir, 0777, true);
+                rename($tempPath, $targetDir . $coverName);
+                $updateData['news_cover'] = $coverName;
+            }
+        } elseif ($coverFile && $coverFile->isValid() && !$coverFile->hasMoved()) {
             if ($news['news_cover']) {
                 @unlink(FCPATH . 'uploads/news/covers/' . $news['news_cover']);
             }
             $coverName = $coverFile->getRandomName();
             $coverFile->move(FCPATH . 'uploads/news/covers/', $coverName);
-            
-            // Resize Cover Image
-            $this->processImage(FCPATH . 'uploads/news/covers/' . $coverName, 1200);
-            
             $updateData['news_cover'] = $coverName;
         }
 
-        $newsModel->update($id, $updateData);
+        try {
+            $newsModel->update($id, $updateData);
+        } catch (\Exception $e) {
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON([
+                    'status' => 'error',
+                    'message' => 'ไม่สามารถปรับปรุงข้อมูลได้: ' . $e->getMessage()
+                ]);
+            }
+            return redirect()->back()->withInput()->with('error', 'ไม่สามารถปรับปรุงข้อมูลได้: ' . $e->getMessage());
+        }
 
-        // Add more Gallery Images
+        // Add more Gallery Images (Normal or Chunked)
+        $tempGallery = $this->request->getPost('temp_gallery');
+        if ($tempGallery && is_array($tempGallery)) {
+            foreach ($tempGallery as $tempName) {
+                $tempPath = WRITEPATH . 'uploads/temp/' . $tempName;
+                if (file_exists($tempPath)) {
+                    $targetDir = FCPATH . 'uploads/news/gallery/';
+                    if (!is_dir($targetDir)) mkdir($targetDir, 0777, true);
+                    rename($tempPath, $targetDir . $tempName);
+                    
+                    $galleryModel->insert(['gal_news_id' => $id, 'gal_image' => $tempName]);
+                }
+            }
+        }
+
         $imageFiles = $this->request->getFiles();
         if (isset($imageFiles['gallery'])) {
             foreach ($imageFiles['gallery'] as $img) {
@@ -209,12 +306,17 @@ class Staff extends Controller
                     $newName = $img->getRandomName();
                     $img->move(FCPATH . 'uploads/news/gallery/', $newName);
                     
-                    // Resize Gallery Image
-                    $this->processImage(FCPATH . 'uploads/news/gallery/' . $newName, 1000);
-                    
                     $galleryModel->insert(['gal_news_id' => $id, 'gal_image' => $newName]);
                 }
             }
+        }
+
+        if ($this->request->isAJAX()) {
+            return $this->response->setJSON([
+                'status' => 'success',
+                'message' => 'ปรับปรุงข่าวสารเรียบร้อยแล้ว',
+                'redirect' => base_url('staff/news')
+            ]);
         }
 
         return redirect()->to(base_url('staff/news'))->with('success', 'ปรับปรุงข่าวสารเรียบร้อยแล้ว');
@@ -277,15 +379,7 @@ class Staff extends Controller
     public function personnelSave()
     {
         if (strpos(session()->get('u_role') ?? '', 'admin') === false) return redirect()->to(base_url('staff'))->with('error', 'ไม่มีสิทธิ์เข้าถึง');
-        // Auto-add u_level column if not exists (to prevent 1054 error)
-        try {
-            $db = \Config\Database::connect();
-            if (!$db->fieldExists('u_level', 'Tb_Users')) {
-                $db->query("ALTER TABLE Tb_Users ADD COLUMN u_level VARCHAR(100) NULL");
-            }
-            // Ensure u_role can handle multiple roles
-            $db->query("ALTER TABLE Tb_Users MODIFY u_role VARCHAR(255) NULL");
-        } catch (\Throwable $e) { }
+
 
         $model = new \App\Models\UserModel();
         $id = $this->request->getPost('u_id');
@@ -307,37 +401,139 @@ class Staff extends Controller
             'u_role'     => $roleStr,
         ];
 
+        // Release session lock to prevent 504 during image processing
+        session_write_close();
+
         // Ensure username exists and generates randomly if not set via Google yet
         if (!$id) {
             $data['u_username'] = uniqid('user_');
             $data['u_password'] = password_hash(uniqid(), PASSWORD_DEFAULT);
         }
 
-        // Handle Photo Upload
-        $photoFile = $this->request->getFile('u_photo');
-        if ($photoFile && $photoFile->isValid() && !$photoFile->hasMoved()) {
-            if ($id) {
-                $oldUser = $model->find($id);
-                if ($oldUser && !empty($oldUser['u_photo']) && file_exists(FCPATH . 'uploads/personnel/' . $oldUser['u_photo'])) {
-                    @unlink(FCPATH . 'uploads/personnel/' . $oldUser['u_photo']);
+        // Handle Photo Upload (Normal or Chunked)
+        $tempPhoto = $this->request->getPost('temp_photo');
+        if ($tempPhoto) {
+            $photoName = $tempPhoto;
+            $tempPath = WRITEPATH . 'uploads/temp/' . $tempPhoto;
+            if (file_exists($tempPath)) {
+                $targetDir = FCPATH . 'uploads/personnel/';
+                if (!is_dir($targetDir)) mkdir($targetDir, 0777, true);
+                
+                // Cleanup old photo if updating
+                if ($id) {
+                    $oldUser = $model->find($id);
+                    if ($oldUser && !empty($oldUser['u_photo'])) {
+                        @unlink(FCPATH . 'uploads/personnel/' . $oldUser['u_photo']);
+                    }
                 }
+
+                rename($tempPath, $targetDir . $photoName);
+                $data['u_photo'] = $photoName;
             }
-            $newName = $photoFile->getRandomName();
-            if (!is_dir(FCPATH . 'uploads/personnel')) {
-                mkdir(FCPATH . 'uploads/personnel', 0777, true);
+        } else {
+            $photoFile = $this->request->getFile('u_photo');
+            if ($photoFile && $photoFile->isValid() && !$photoFile->hasMoved()) {
+                if ($id) {
+                    $oldUser = $model->find($id);
+                    if ($oldUser && !empty($oldUser['u_photo'])) {
+                        @unlink(FCPATH . 'uploads/personnel/' . $oldUser['u_photo']);
+                    }
+                }
+                $newName = $photoFile->getRandomName();
+                $targetDir = FCPATH . 'uploads/personnel/';
+                if (!is_dir($targetDir)) mkdir($targetDir, 0777, true);
+                $photoFile->move($targetDir, $newName);
+                $data['u_photo'] = $newName;
             }
-            $photoFile->move(FCPATH . 'uploads/personnel/', $newName);
-            $this->processImage(FCPATH . 'uploads/personnel/' . $newName, 800);
-            $data['u_photo'] = $newName;
         }
 
-        if ($id) {
-            $model->update($id, $data);
-            return redirect()->to(base_url('staff/personnel'))->with('success', 'อัปเดตข้อมูลบุคลากรเรียบร้อยแล้ว');
-        } else {
-            $model->insert($data);
-            return redirect()->to(base_url('staff/personnel'))->with('success', 'เพิ่มบุคลากรใหม่เรียบร้อยแล้ว');
+        try {
+            if ($id) {
+                $model->update($id, $data);
+                $message = 'อัปเดตข้อมูลบุคลากรเรียบร้อยแล้ว';
+            } else {
+                $model->insert($data);
+                $message = 'เพิ่มบุคลากรใหม่เรียบร้อยแล้ว';
+            }
+
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON([
+                    'status' => 'success',
+                    'message' => $message,
+                    'redirect' => base_url('staff/personnel')
+                ]);
+            }
+
+            return redirect()->to(base_url('staff/personnel'))->with('success', $message);
+        } catch (\Exception $e) {
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON([
+                    'status' => 'error',
+                    'message' => 'ไม่สามารถบันทึกข้อมูลได้: ' . $e->getMessage()
+                ]);
+            }
+            return redirect()->back()->withInput()->with('error', 'ไม่สามารถบันทึกข้อมูลได้: ' . $e->getMessage());
         }
+    }
+
+    public function uploadChunk()
+    {
+        if ($this->request->getMethod() !== 'POST') {
+            return $this->response->setJSON(['status' => 'error', 'message' => 'This route requires a POST request. (Method: ' . $this->request->getMethod() . ')']);
+        }
+        
+        if (strpos(session()->get('u_role') ?? '', 'admin') === false) {
+            return $this->response->setJSON(['status' => 'error', 'message' => 'Unauthorized']);
+        }
+
+        $file = $this->request->getFile('file');
+        $filename = $this->request->getPost('filename');
+        $chunkIndex = (int)$this->request->getPost('chunkIndex');
+        $totalChunks = (int)$this->request->getPost('totalChunks');
+        $fileId = $this->request->getPost('fileId'); // Unique ID for this file upload session
+
+        if (!$file || !$file->isValid()) {
+            return $this->response->setJSON(['status' => 'error', 'message' => 'Invalid file chunk']);
+        }
+
+        $tempDir = WRITEPATH . 'uploads/chunks/' . $fileId;
+        if (!is_dir($tempDir)) {
+            mkdir($tempDir, 0777, true);
+        }
+
+        $file->move($tempDir, $chunkIndex);
+
+        // Check if all chunks are uploaded
+        $uploadedChunks = count(glob($tempDir . '/*'));
+        if ($uploadedChunks === $totalChunks) {
+            // Assemble file
+            $finalPath = WRITEPATH . 'uploads/temp/' . $filename;
+            if (!is_dir(dirname($finalPath))) {
+                mkdir(dirname($finalPath), 0777, true);
+            }
+
+            $out = fopen($finalPath, 'wb');
+            for ($i = 0; $i < $totalChunks; $i++) {
+                $chunkPath = $tempDir . '/' . $i;
+                $in = fopen($chunkPath, 'rb');
+                stream_copy_to_stream($in, $out);
+                fclose($in);
+                @unlink($chunkPath);
+            }
+            fclose($out);
+            @rmdir($tempDir);
+
+            return $this->response->setJSON([
+                'status' => 'completed',
+                'temp_file' => $filename
+            ]);
+        }
+
+        return $this->response->setJSON([
+            'status' => 'progress',
+            'uploaded' => $uploadedChunks,
+            'total' => $totalChunks
+        ]);
     }
 
     public function personnelDelete($id)

@@ -22,6 +22,8 @@ $routes->get('staff/news/edit/(:num)', 'Staff::newsEdit/$1');
 $routes->post('staff/news/update/(:num)', 'Staff::newsUpdate/$1');
 $routes->get('staff/news/delete/(:num)', 'Staff::newsDelete/$1');
 $routes->get('staff/news/deleteImage/(:num)', 'Staff::newsDeleteImage/$1');
+$routes->post('staff/news/uploadChunk', 'Staff::uploadChunk');
+$routes->get('staff/news/uploadChunk', 'Staff::uploadChunk');
 
 // Staff Personnel Management
 $routes->get('staff/personnel', 'Staff::personnel');

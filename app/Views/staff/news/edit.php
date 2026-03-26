@@ -17,7 +17,7 @@
 
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div class="lg:col-span-9" data-aos="fade-up" data-aos-delay="100">
-            <form action="<?= base_url('staff/news/update/' . $news['news_id']) ?>" method="post" enctype="multipart/form-data">
+            <form id="news-form" action="<?= base_url('staff/news/update/' . $news['news_id']) ?>" method="post" enctype="multipart/form-data">
                 <div class="bg-white rounded-[2.5rem] border border-slate-200 shadow-xl shadow-slate-100 overflow-hidden p-10 space-y-8">
                     
                     <div>
@@ -64,11 +64,11 @@
                             
                             <div class="relative">
                                 <input type="file" name="cover" id="cover" class=" hidden" onchange="previewImage(this)">
-                                <label for="cover" class="w-full flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-2xl p-8 hover:bg-slate-50 transition-colors cursor-pointer group">
+                                <label for="cover" id="cover-dropzone" class="w-full flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-2xl p-8 hover:bg-slate-50 transition-all cursor-pointer group">
                                     <div class="w-12 h-12 bg-blue-50 rounded-2xl text-blue-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                                         <i data-lucide="image" class="w-6 h-6"></i>
                                     </div>
-                                    <span class="text-xs font-black uppercase tracking-widest text-slate-500 mb-1 leading-tight text-center">คลิกเพื่อเปลี่ยนรูปหน้าปก</span>
+                                    <span class="text-xs font-black uppercase tracking-widest text-slate-500 mb-1 leading-tight text-center">ลากไฟล์รูปใหม่มาวาง หรือคลิกเพื่อเปลี่ยน</span>
                                     <span class="text-[10px] text-slate-400 font-medium uppercase tracking-tight">JPG, PNG, WEBP</span>
                                 </label>
                                 <div id="image-preview" class="mt-4 hidden p-2 bg-slate-50 border border-slate-100 rounded-2xl">
@@ -97,11 +97,11 @@
 
                         <div class="relative">
                             <input type="file" name="gallery[]" id="gallery" class="hidden" multiple onchange="previewGallery(this)">
-                            <label for="gallery" class="w-full flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-2xl p-6 hover:bg-slate-50 transition-colors cursor-pointer group">
+                            <label for="gallery" id="gallery-dropzone" class="w-full flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-2xl p-6 hover:bg-slate-50 transition-all cursor-pointer group">
                                 <div class="w-10 h-10 bg-emerald-50 rounded-xl text-emerald-600 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
                                     <i data-lucide="images" class="w-5 h-5"></i>
                                 </div>
-                                <span class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">เพิ่มรูปภาพประกอบเพิ่ม</span>
+                                <span class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">ลากรูปภาพมาวางเพิ่มเติม หรือคลิกเพื่อเลือก</span>
                             </label>
                             <div id="gallery-preview" class="mt-4 grid grid-cols-4 gap-3"></div>
                         </div>
@@ -147,13 +147,192 @@
 
 <?= $this->section('scripts') ?>
     <script>
-        // Form Loading State
-        document.querySelector('form').addEventListener('submit', function(e) {
+        // Form Submission with AJAX & Chunking
+        document.getElementById('news-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const form = this;
             const btn = document.getElementById('submit-btn');
+            const originalBtnContent = btn.innerHTML;
+            
             btn.disabled = true;
-            btn.innerHTML = `<i data-lucide="loader-2" class="w-6 h-6 animate-spin"></i> กำลังบันทึกข้อมูล...`;
+            btn.innerHTML = `<i data-lucide="loader-2" class="w-6 h-6 animate-spin inline mr-2"></i> กำลังเตรียมข้อมูล...`;
             lucide.createIcons();
+
+            try {
+                // 1. Handle Cover Chunked Upload
+                let tempCover = null;
+                const coverInput = document.getElementById('cover');
+                if (coverInput.files && coverInput.files[0]) {
+                    const coverFile = coverInput.files[0];
+                    btn.innerHTML = `<i data-lucide="loader-2" class="w-6 h-6 animate-spin inline mr-2"></i> กำลังเปลี่ยนหน้าปก...`;
+                    tempCover = await uploadFileInChunks(coverFile);
+                }
+
+                // 2. Handle Gallery Chunked Uploads
+                let tempGallery = [];
+                if (selectedGalleryFiles.length > 0) {
+                    for (let i = 0; i < selectedGalleryFiles.length; i++) {
+                        const file = selectedGalleryFiles[i];
+                        btn.innerHTML = `<i data-lucide="loader-2" class="w-6 h-6 animate-spin inline mr-2"></i> กำลังอัปโหลดรูปที่ ${i+1}/${selectedGalleryFiles.length}...`;
+                        const tempName = await uploadFileInChunks(file);
+                        tempGallery.push(tempName);
+                    }
+                }
+
+                // 3. Final Submission
+                btn.innerHTML = `<i data-lucide="loader-2" class="w-6 h-6 animate-spin inline mr-2"></i> กำลังอัปเดตข้อมูลข่าว...`;
+                const formData = new FormData(form);
+                
+                // Append temp names and remove raw files to keep request small
+                if (tempCover) {
+                    formData.delete('cover');
+                    formData.append('temp_cover', tempCover);
+                }
+                if (tempGallery.length > 0) {
+                    formData.delete('gallery[]');
+                    tempGallery.forEach(name => {
+                        formData.append('temp_gallery[]', name);
+                    });
+                }
+
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+
+                const text = await response.text();
+                let data;
+                try {
+                    data = JSON.parse(text);
+                } catch (e) {
+                    console.error('Server responded with non-JSON format:', text);
+                    throw new Error('NON_JSON');
+                }
+
+                if (data.status === 'success') {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'สำเร็จ!',
+                        text: data.message,
+                        timer: 2000,
+                        showConfirmButton: false,
+                        customClass: { popup: 'rounded-[1.5rem]' }
+                    }).then(() => {
+                        window.location.href = data.redirect;
+                    });
+                } else {
+                    throw new Error(data.message || 'Update failed');
+                }
+
+            } catch (error) {
+                console.error('Error:', error);
+                btn.disabled = false;
+                btn.innerHTML = originalBtnContent;
+                if(typeof lucide !== 'undefined') lucide.createIcons();
+                
+                let errorTitle = 'ไม่สามารถปรับปรุงข้อมูลได้';
+                let errorMsg = error.message;
+
+                if (error.message === 'NON_JSON') {
+                    errorMsg = 'เซิร์ฟเวอร์ตอบสนองผิดพลาด กรุณาตรวจสอบ Console';
+                }
+
+                Swal.fire({
+                    icon: 'error',
+                    title: errorTitle,
+                    text: errorMsg,
+                    customClass: { popup: 'rounded-[1.5rem]' }
+                });
+            }
         });
+
+        async function uploadFileInChunks(file) {
+            const chunkSize = 1024 * 512; // 512KB per chunk (Further decreased to fix persistent 413)
+            const totalChunks = Math.ceil(file.size / chunkSize);
+            const fileId = Math.random().toString(36).substring(2, 11) + Date.now();
+            const extension = file.name.split('.').pop();
+            const filename = fileId + '.' + extension;
+
+            for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
+                const start = chunkIndex * chunkSize;
+                const end = Math.min(start + chunkSize, file.size);
+                const chunk = file.slice(start, end);
+
+                const formData = new FormData();
+                formData.append('file', chunk);
+                formData.append('filename', filename);
+                formData.append('chunkIndex', chunkIndex);
+                formData.append('totalChunks', totalChunks);
+                formData.append('fileId', fileId);
+
+                const response = await fetch('<?= base_url('staff/news/uploadChunk') ?>', {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+
+                const result = await response.json();
+                if (result.status === 'error') {
+                    throw new Error(result.message);
+                }
+                if (result.status === 'completed') {
+                    return result.temp_file;
+                }
+            }
+        }
+
+        // ==========================================
+        // DRAG AND DROP HANDLERS
+        // ==========================================
+        function initDropzone(id, inputId, previewFn) {
+            const dropzone = document.getElementById(id);
+            const input = document.getElementById(inputId);
+
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropzone.addEventListener(eventName, preventDefaults, false);
+            });
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropzone.addEventListener(eventName, () => {
+                    dropzone.classList.add('bg-blue-50/50', 'border-blue-400', 'scale-[1.01]');
+                }, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropzone.addEventListener(eventName, () => {
+                    dropzone.classList.remove('bg-blue-50/50', 'border-blue-400', 'scale-[1.01]');
+                }, false);
+            });
+
+            dropzone.addEventListener('drop', (e) => {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                
+                if (inputId === 'gallery') {
+                    // Accumulate for gallery
+                    Array.from(files).forEach(file => {
+                        selectedGalleryFiles.push(file);
+                    });
+                    renderGalleryPreview();
+                } else {
+                    // Normal behavior for cover
+                    input.files = files;
+                    previewFn(input);
+                }
+            }, false);
+        }
+
+        initDropzone('cover-dropzone', 'cover', previewImage);
+        initDropzone('gallery-dropzone', 'gallery', previewGallery);
+
+        let selectedGalleryFiles = [];
 
         function previewImage(input) {
             const preview = document.getElementById('image-preview');
@@ -169,20 +348,40 @@
         }
 
         function previewGallery(input) {
-            const preview = document.getElementById('gallery-preview');
-            preview.innerHTML = '';
             if (input.files) {
                 Array.from(input.files).forEach(file => {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        const div = document.createElement('div');
-                        div.className = 'aspect-square rounded-xl overflow-hidden border border-slate-100 shadow-sm';
-                        div.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover">`;
-                        preview.appendChild(div);
-                    }
-                    reader.readAsDataURL(file);
+                    selectedGalleryFiles.push(file);
                 });
+                renderGalleryPreview();
+                input.value = ''; // Clear input to allow re-selecting same file
             }
+        }
+
+        function renderGalleryPreview() {
+            const preview = document.getElementById('gallery-preview');
+            preview.innerHTML = '';
+            
+            selectedGalleryFiles.forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const div = document.createElement('div');
+                    div.className = 'relative aspect-square rounded-xl overflow-hidden border border-slate-100 shadow-sm group';
+                    div.innerHTML = `
+                         <img src="${e.target.result}" class="w-full h-full object-cover">
+                         <button type="button" onclick="removeGalleryFile(${index})" class="absolute top-1 right-1 w-6 h-6 bg-rose-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                             <i data-lucide="x" class="w-4 h-4"></i>
+                         </button>
+                    `;
+                    preview.appendChild(div);
+                    lucide.createIcons();
+                }
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function removeGalleryFile(index) {
+            selectedGalleryFiles.splice(index, 1);
+            renderGalleryPreview();
         }
 
         function confirmDeleteImage(url) {

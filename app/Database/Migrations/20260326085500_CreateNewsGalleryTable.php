@@ -27,8 +27,8 @@ class CreateNewsGalleryTable extends Migration
             'gal_created_at datetime default current_timestamp',
         ]);
         $this->forge->addKey('gal_id', true);
-        $this->forge->addForeignKey('gal_news_id', 'Tb_News', 'news_id', 'CASCADE', 'CASCADE');
-        $this->forge->createTable('Tb_News_Gallery');
+        // $this->forge->addForeignKey('gal_news_id', 'Tb_News', 'news_id', 'CASCADE', 'CASCADE');
+        $this->forge->createTable('Tb_News_Gallery', true);
     }
 
     public function down()

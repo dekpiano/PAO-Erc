@@ -1,0 +1,372 @@
+DEBUG - 2026-03-26 01:20:22 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-03-26 01:20:22 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-03-26 01:21:30 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-03-26 01:21:30 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-03-26 01:23:00 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-03-26 01:23:00 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+ERROR - 2026-03-26 04:03:54 --> Error connecting to the database: ErrorException: mysqli::real_connect(): php_network_getaddresses: getaddrinfo for db failed: Temporary failure in name resolution in /var/www/html/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:201
+Stack trace:
+#0 [internal function]: CodeIgniter\Debug\Exceptions->errorHandler()
+#1 /var/www/html/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(201): mysqli->real_connect()
+#2 /var/www/html/vendor/codeigniter4/framework/system/Database/BaseConnection.php(419): CodeIgniter\Database\MySQLi\Connection->connect()
+#3 /var/www/html/vendor/codeigniter4/framework/system/Database/BaseConnection.php(1635): CodeIgniter\Database\BaseConnection->initialize()
+#4 /var/www/html/vendor/codeigniter4/framework/system/Database/BaseConnection.php(1674): CodeIgniter\Database\BaseConnection->getFieldNames()
+#5 /var/www/html/app/Controllers/Home.php(14): CodeIgniter\Database\BaseConnection->fieldExists()
+#6 /var/www/html/vendor/codeigniter4/framework/system/CodeIgniter.php(951): App\Controllers\Home->index()
+#7 /var/www/html/vendor/codeigniter4/framework/system/CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController()
+#8 /var/www/html/vendor/codeigniter4/framework/system/CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest()
+#9 /var/www/html/vendor/codeigniter4/framework/system/Boot.php(417): CodeIgniter\CodeIgniter->run()
+#10 /var/www/html/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter()
+#11 /var/www/html/index.php(59): CodeIgniter\Boot::bootWeb()
+#12 {main}
+
+Next mysqli_sql_exception: php_network_getaddresses: getaddrinfo for db failed: Temporary failure in name resolution in /var/www/html/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:201
+Stack trace:
+#0 /var/www/html/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(201): mysqli->real_connect()
+#1 /var/www/html/vendor/codeigniter4/framework/system/Database/BaseConnection.php(419): CodeIgniter\Database\MySQLi\Connection->connect()
+#2 /var/www/html/vendor/codeigniter4/framework/system/Database/BaseConnection.php(1635): CodeIgniter\Database\BaseConnection->initialize()
+#3 /var/www/html/vendor/codeigniter4/framework/system/Database/BaseConnection.php(1674): CodeIgniter\Database\BaseConnection->getFieldNames()
+#4 /var/www/html/app/Controllers/Home.php(14): CodeIgniter\Database\BaseConnection->fieldExists()
+#5 /var/www/html/vendor/codeigniter4/framework/system/CodeIgniter.php(951): App\Controllers\Home->index()
+#6 /var/www/html/vendor/codeigniter4/framework/system/CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController()
+#7 /var/www/html/vendor/codeigniter4/framework/system/CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest()
+#8 /var/www/html/vendor/codeigniter4/framework/system/Boot.php(417): CodeIgniter\CodeIgniter->run()
+#9 /var/www/html/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter()
+#10 /var/www/html/index.php(59): CodeIgniter\Boot::bootWeb()
+#11 {main}
+
+Next CodeIgniter\Database\Exceptions\DatabaseException: php_network_getaddresses: getaddrinfo for db failed: Temporary failure in name resolution in /var/www/html/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:231
+Stack trace:
+#0 /var/www/html/vendor/codeigniter4/framework/system/Database/BaseConnection.php(419): CodeIgniter\Database\MySQLi\Connection->connect()
+#1 /var/www/html/vendor/codeigniter4/framework/system/Database/BaseConnection.php(1635): CodeIgniter\Database\BaseConnection->initialize()
+#2 /var/www/html/vendor/codeigniter4/framework/system/Database/BaseConnection.php(1674): CodeIgniter\Database\BaseConnection->getFieldNames()
+#3 /var/www/html/app/Controllers/Home.php(14): CodeIgniter\Database\BaseConnection->fieldExists()
+#4 /var/www/html/vendor/codeigniter4/framework/system/CodeIgniter.php(951): App\Controllers\Home->index()
+#5 /var/www/html/vendor/codeigniter4/framework/system/CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController()
+#6 /var/www/html/vendor/codeigniter4/framework/system/CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest()
+#7 /var/www/html/vendor/codeigniter4/framework/system/Boot.php(417): CodeIgniter\CodeIgniter->run()
+#8 /var/www/html/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter()
+#9 /var/www/html/index.php(59): CodeIgniter\Boot::bootWeb()
+#10 {main}
+ERROR - 2026-03-26 04:03:54 --> Error connecting to the database: ErrorException: mysqli::real_connect(): php_network_getaddresses: getaddrinfo for db failed: Temporary failure in name resolution in /var/www/html/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:201
+Stack trace:
+#0 [internal function]: CodeIgniter\Debug\Exceptions->errorHandler()
+#1 /var/www/html/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(201): mysqli->real_connect()
+#2 /var/www/html/vendor/codeigniter4/framework/system/Database/BaseConnection.php(419): CodeIgniter\Database\MySQLi\Connection->connect()
+#3 /var/www/html/vendor/codeigniter4/framework/system/Database/BaseConnection.php(654): CodeIgniter\Database\BaseConnection->initialize()
+#4 /var/www/html/vendor/codeigniter4/framework/system/Database/BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query()
+#5 /var/www/html/vendor/codeigniter4/framework/system/Model.php(254): CodeIgniter\Database\BaseBuilder->get()
+#6 /var/www/html/vendor/codeigniter4/framework/system/BaseModel.php(675): CodeIgniter\Model->doFindAll()
+#7 /var/www/html/app/Controllers/Home.php(26): CodeIgniter\BaseModel->findAll()
+#8 /var/www/html/vendor/codeigniter4/framework/system/CodeIgniter.php(951): App\Controllers\Home->index()
+#9 /var/www/html/vendor/codeigniter4/framework/system/CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController()
+#10 /var/www/html/vendor/codeigniter4/framework/system/CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest()
+#11 /var/www/html/vendor/codeigniter4/framework/system/Boot.php(417): CodeIgniter\CodeIgniter->run()
+#12 /var/www/html/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter()
+#13 /var/www/html/index.php(59): CodeIgniter\Boot::bootWeb()
+#14 {main}
+
+Next mysqli_sql_exception: php_network_getaddresses: getaddrinfo for db failed: Temporary failure in name resolution in /var/www/html/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:201
+Stack trace:
+#0 /var/www/html/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(201): mysqli->real_connect()
+#1 /var/www/html/vendor/codeigniter4/framework/system/Database/BaseConnection.php(419): CodeIgniter\Database\MySQLi\Connection->connect()
+#2 /var/www/html/vendor/codeigniter4/framework/system/Database/BaseConnection.php(654): CodeIgniter\Database\BaseConnection->initialize()
+#3 /var/www/html/vendor/codeigniter4/framework/system/Database/BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query()
+#4 /var/www/html/vendor/codeigniter4/framework/system/Model.php(254): CodeIgniter\Database\BaseBuilder->get()
+#5 /var/www/html/vendor/codeigniter4/framework/system/BaseModel.php(675): CodeIgniter\Model->doFindAll()
+#6 /var/www/html/app/Controllers/Home.php(26): CodeIgniter\BaseModel->findAll()
+#7 /var/www/html/vendor/codeigniter4/framework/system/CodeIgniter.php(951): App\Controllers\Home->index()
+#8 /var/www/html/vendor/codeigniter4/framework/system/CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController()
+#9 /var/www/html/vendor/codeigniter4/framework/system/CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest()
+#10 /var/www/html/vendor/codeigniter4/framework/system/Boot.php(417): CodeIgniter\CodeIgniter->run()
+#11 /var/www/html/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter()
+#12 /var/www/html/index.php(59): CodeIgniter\Boot::bootWeb()
+#13 {main}
+
+Next CodeIgniter\Database\Exceptions\DatabaseException: php_network_getaddresses: getaddrinfo for db failed: Temporary failure in name resolution in /var/www/html/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:231
+Stack trace:
+#0 /var/www/html/vendor/codeigniter4/framework/system/Database/BaseConnection.php(419): CodeIgniter\Database\MySQLi\Connection->connect()
+#1 /var/www/html/vendor/codeigniter4/framework/system/Database/BaseConnection.php(654): CodeIgniter\Database\BaseConnection->initialize()
+#2 /var/www/html/vendor/codeigniter4/framework/system/Database/BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query()
+#3 /var/www/html/vendor/codeigniter4/framework/system/Model.php(254): CodeIgniter\Database\BaseBuilder->get()
+#4 /var/www/html/vendor/codeigniter4/framework/system/BaseModel.php(675): CodeIgniter\Model->doFindAll()
+#5 /var/www/html/app/Controllers/Home.php(26): CodeIgniter\BaseModel->findAll()
+#6 /var/www/html/vendor/codeigniter4/framework/system/CodeIgniter.php(951): App\Controllers\Home->index()
+#7 /var/www/html/vendor/codeigniter4/framework/system/CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController()
+#8 /var/www/html/vendor/codeigniter4/framework/system/CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest()
+#9 /var/www/html/vendor/codeigniter4/framework/system/Boot.php(417): CodeIgniter\CodeIgniter->run()
+#10 /var/www/html/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter()
+#11 /var/www/html/index.php(59): CodeIgniter\Boot::bootWeb()
+#12 {main}
+CRITICAL - 2026-03-26 04:03:54 --> CodeIgniter\Database\Exceptions\DatabaseException: Unable to connect to the database.
+Main connection [MySQLi]: php_network_getaddresses: getaddrinfo for db failed: Temporary failure in name resolution
+[Method: GET, Route: /]
+in SYSTEMPATH/Database/BaseConnection.php on line 465.
+ 1 SYSTEMPATH/Database/BaseConnection.php(654): CodeIgniter\Database\BaseConnection->initialize()
+ 2 SYSTEMPATH/Database/BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query()
+ 3 SYSTEMPATH/Model.php(254): CodeIgniter\Database\BaseBuilder->get()
+ 4 SYSTEMPATH/BaseModel.php(675): CodeIgniter\Model->doFindAll()
+ 5 APPPATH/Controllers/Home.php(26): CodeIgniter\BaseModel->findAll()
+ 6 SYSTEMPATH/CodeIgniter.php(951): App\Controllers\Home->index()
+ 7 SYSTEMPATH/CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController()
+ 8 SYSTEMPATH/CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest()
+ 9 SYSTEMPATH/Boot.php(417): CodeIgniter\CodeIgniter->run()
+10 SYSTEMPATH/Boot.php(68): CodeIgniter\Boot::runCodeIgniter()
+11 FCPATH/index.php(59): CodeIgniter\Boot::bootWeb()
+ERROR - 2026-03-26 04:03:55 --> Error connecting to the database: ErrorException: mysqli::real_connect(): php_network_getaddresses: getaddrinfo for db failed: Temporary failure in name resolution in /var/www/html/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:201
+Stack trace:
+#0 [internal function]: CodeIgniter\Debug\Exceptions->errorHandler()
+#1 /var/www/html/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(201): mysqli->real_connect()
+#2 /var/www/html/vendor/codeigniter4/framework/system/Database/BaseConnection.php(419): CodeIgniter\Database\MySQLi\Connection->connect()
+#3 /var/www/html/vendor/codeigniter4/framework/system/Database/BaseConnection.php(1635): CodeIgniter\Database\BaseConnection->initialize()
+#4 /var/www/html/vendor/codeigniter4/framework/system/Database/BaseConnection.php(1674): CodeIgniter\Database\BaseConnection->getFieldNames()
+#5 /var/www/html/app/Controllers/Home.php(14): CodeIgniter\Database\BaseConnection->fieldExists()
+#6 /var/www/html/vendor/codeigniter4/framework/system/CodeIgniter.php(951): App\Controllers\Home->index()
+#7 /var/www/html/vendor/codeigniter4/framework/system/CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController()
+#8 /var/www/html/vendor/codeigniter4/framework/system/CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest()
+#9 /var/www/html/vendor/codeigniter4/framework/system/Boot.php(417): CodeIgniter\CodeIgniter->run()
+#10 /var/www/html/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter()
+#11 /var/www/html/index.php(59): CodeIgniter\Boot::bootWeb()
+#12 {main}
+
+Next mysqli_sql_exception: php_network_getaddresses: getaddrinfo for db failed: Temporary failure in name resolution in /var/www/html/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:201
+Stack trace:
+#0 /var/www/html/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(201): mysqli->real_connect()
+#1 /var/www/html/vendor/codeigniter4/framework/system/Database/BaseConnection.php(419): CodeIgniter\Database\MySQLi\Connection->connect()
+#2 /var/www/html/vendor/codeigniter4/framework/system/Database/BaseConnection.php(1635): CodeIgniter\Database\BaseConnection->initialize()
+#3 /var/www/html/vendor/codeigniter4/framework/system/Database/BaseConnection.php(1674): CodeIgniter\Database\BaseConnection->getFieldNames()
+#4 /var/www/html/app/Controllers/Home.php(14): CodeIgniter\Database\BaseConnection->fieldExists()
+#5 /var/www/html/vendor/codeigniter4/framework/system/CodeIgniter.php(951): App\Controllers\Home->index()
+#6 /var/www/html/vendor/codeigniter4/framework/system/CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController()
+#7 /var/www/html/vendor/codeigniter4/framework/system/CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest()
+#8 /var/www/html/vendor/codeigniter4/framework/system/Boot.php(417): CodeIgniter\CodeIgniter->run()
+#9 /var/www/html/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter()
+#10 /var/www/html/index.php(59): CodeIgniter\Boot::bootWeb()
+#11 {main}
+
+Next CodeIgniter\Database\Exceptions\DatabaseException: php_network_getaddresses: getaddrinfo for db failed: Temporary failure in name resolution in /var/www/html/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:231
+Stack trace:
+#0 /var/www/html/vendor/codeigniter4/framework/system/Database/BaseConnection.php(419): CodeIgniter\Database\MySQLi\Connection->connect()
+#1 /var/www/html/vendor/codeigniter4/framework/system/Database/BaseConnection.php(1635): CodeIgniter\Database\BaseConnection->initialize()
+#2 /var/www/html/vendor/codeigniter4/framework/system/Database/BaseConnection.php(1674): CodeIgniter\Database\BaseConnection->getFieldNames()
+#3 /var/www/html/app/Controllers/Home.php(14): CodeIgniter\Database\BaseConnection->fieldExists()
+#4 /var/www/html/vendor/codeigniter4/framework/system/CodeIgniter.php(951): App\Controllers\Home->index()
+#5 /var/www/html/vendor/codeigniter4/framework/system/CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController()
+#6 /var/www/html/vendor/codeigniter4/framework/system/CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest()
+#7 /var/www/html/vendor/codeigniter4/framework/system/Boot.php(417): CodeIgniter\CodeIgniter->run()
+#8 /var/www/html/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter()
+#9 /var/www/html/index.php(59): CodeIgniter\Boot::bootWeb()
+#10 {main}
+ERROR - 2026-03-26 04:03:55 --> Error connecting to the database: ErrorException: mysqli::real_connect(): php_network_getaddresses: getaddrinfo for db failed: Temporary failure in name resolution in /var/www/html/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:201
+Stack trace:
+#0 [internal function]: CodeIgniter\Debug\Exceptions->errorHandler()
+#1 /var/www/html/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(201): mysqli->real_connect()
+#2 /var/www/html/vendor/codeigniter4/framework/system/Database/BaseConnection.php(419): CodeIgniter\Database\MySQLi\Connection->connect()
+#3 /var/www/html/vendor/codeigniter4/framework/system/Database/BaseConnection.php(654): CodeIgniter\Database\BaseConnection->initialize()
+#4 /var/www/html/vendor/codeigniter4/framework/system/Database/BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query()
+#5 /var/www/html/vendor/codeigniter4/framework/system/Model.php(254): CodeIgniter\Database\BaseBuilder->get()
+#6 /var/www/html/vendor/codeigniter4/framework/system/BaseModel.php(675): CodeIgniter\Model->doFindAll()
+#7 /var/www/html/app/Controllers/Home.php(26): CodeIgniter\BaseModel->findAll()
+#8 /var/www/html/vendor/codeigniter4/framework/system/CodeIgniter.php(951): App\Controllers\Home->index()
+#9 /var/www/html/vendor/codeigniter4/framework/system/CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController()
+#10 /var/www/html/vendor/codeigniter4/framework/system/CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest()
+#11 /var/www/html/vendor/codeigniter4/framework/system/Boot.php(417): CodeIgniter\CodeIgniter->run()
+#12 /var/www/html/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter()
+#13 /var/www/html/index.php(59): CodeIgniter\Boot::bootWeb()
+#14 {main}
+
+Next mysqli_sql_exception: php_network_getaddresses: getaddrinfo for db failed: Temporary failure in name resolution in /var/www/html/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:201
+Stack trace:
+#0 /var/www/html/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(201): mysqli->real_connect()
+#1 /var/www/html/vendor/codeigniter4/framework/system/Database/BaseConnection.php(419): CodeIgniter\Database\MySQLi\Connection->connect()
+#2 /var/www/html/vendor/codeigniter4/framework/system/Database/BaseConnection.php(654): CodeIgniter\Database\BaseConnection->initialize()
+#3 /var/www/html/vendor/codeigniter4/framework/system/Database/BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query()
+#4 /var/www/html/vendor/codeigniter4/framework/system/Model.php(254): CodeIgniter\Database\BaseBuilder->get()
+#5 /var/www/html/vendor/codeigniter4/framework/system/BaseModel.php(675): CodeIgniter\Model->doFindAll()
+#6 /var/www/html/app/Controllers/Home.php(26): CodeIgniter\BaseModel->findAll()
+#7 /var/www/html/vendor/codeigniter4/framework/system/CodeIgniter.php(951): App\Controllers\Home->index()
+#8 /var/www/html/vendor/codeigniter4/framework/system/CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController()
+#9 /var/www/html/vendor/codeigniter4/framework/system/CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest()
+#10 /var/www/html/vendor/codeigniter4/framework/system/Boot.php(417): CodeIgniter\CodeIgniter->run()
+#11 /var/www/html/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter()
+#12 /var/www/html/index.php(59): CodeIgniter\Boot::bootWeb()
+#13 {main}
+
+Next CodeIgniter\Database\Exceptions\DatabaseException: php_network_getaddresses: getaddrinfo for db failed: Temporary failure in name resolution in /var/www/html/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:231
+Stack trace:
+#0 /var/www/html/vendor/codeigniter4/framework/system/Database/BaseConnection.php(419): CodeIgniter\Database\MySQLi\Connection->connect()
+#1 /var/www/html/vendor/codeigniter4/framework/system/Database/BaseConnection.php(654): CodeIgniter\Database\BaseConnection->initialize()
+#2 /var/www/html/vendor/codeigniter4/framework/system/Database/BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query()
+#3 /var/www/html/vendor/codeigniter4/framework/system/Model.php(254): CodeIgniter\Database\BaseBuilder->get()
+#4 /var/www/html/vendor/codeigniter4/framework/system/BaseModel.php(675): CodeIgniter\Model->doFindAll()
+#5 /var/www/html/app/Controllers/Home.php(26): CodeIgniter\BaseModel->findAll()
+#6 /var/www/html/vendor/codeigniter4/framework/system/CodeIgniter.php(951): App\Controllers\Home->index()
+#7 /var/www/html/vendor/codeigniter4/framework/system/CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController()
+#8 /var/www/html/vendor/codeigniter4/framework/system/CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest()
+#9 /var/www/html/vendor/codeigniter4/framework/system/Boot.php(417): CodeIgniter\CodeIgniter->run()
+#10 /var/www/html/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter()
+#11 /var/www/html/index.php(59): CodeIgniter\Boot::bootWeb()
+#12 {main}
+CRITICAL - 2026-03-26 04:03:55 --> CodeIgniter\Database\Exceptions\DatabaseException: Unable to connect to the database.
+Main connection [MySQLi]: php_network_getaddresses: getaddrinfo for db failed: Temporary failure in name resolution
+[Method: GET, Route: /]
+in SYSTEMPATH/Database/BaseConnection.php on line 465.
+ 1 SYSTEMPATH/Database/BaseConnection.php(654): CodeIgniter\Database\BaseConnection->initialize()
+ 2 SYSTEMPATH/Database/BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query()
+ 3 SYSTEMPATH/Model.php(254): CodeIgniter\Database\BaseBuilder->get()
+ 4 SYSTEMPATH/BaseModel.php(675): CodeIgniter\Model->doFindAll()
+ 5 APPPATH/Controllers/Home.php(26): CodeIgniter\BaseModel->findAll()
+ 6 SYSTEMPATH/CodeIgniter.php(951): App\Controllers\Home->index()
+ 7 SYSTEMPATH/CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController()
+ 8 SYSTEMPATH/CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest()
+ 9 SYSTEMPATH/Boot.php(417): CodeIgniter\CodeIgniter->run()
+10 SYSTEMPATH/Boot.php(68): CodeIgniter\Boot::runCodeIgniter()
+11 FCPATH/index.php(59): CodeIgniter\Boot::bootWeb()
+ERROR - 2026-03-26 04:05:47 --> Error connecting to the database: ErrorException: mysqli::real_connect(): php_network_getaddresses: getaddrinfo for db failed: Temporary failure in name resolution in /var/www/html/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:201
+Stack trace:
+#0 [internal function]: CodeIgniter\Debug\Exceptions->errorHandler()
+#1 /var/www/html/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(201): mysqli->real_connect()
+#2 /var/www/html/vendor/codeigniter4/framework/system/Database/BaseConnection.php(419): CodeIgniter\Database\MySQLi\Connection->connect()
+#3 /var/www/html/vendor/codeigniter4/framework/system/Database/BaseConnection.php(1635): CodeIgniter\Database\BaseConnection->initialize()
+#4 /var/www/html/vendor/codeigniter4/framework/system/Database/BaseConnection.php(1674): CodeIgniter\Database\BaseConnection->getFieldNames()
+#5 /var/www/html/app/Controllers/Home.php(14): CodeIgniter\Database\BaseConnection->fieldExists()
+#6 /var/www/html/vendor/codeigniter4/framework/system/CodeIgniter.php(951): App\Controllers\Home->index()
+#7 /var/www/html/vendor/codeigniter4/framework/system/CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController()
+#8 /var/www/html/vendor/codeigniter4/framework/system/CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest()
+#9 /var/www/html/vendor/codeigniter4/framework/system/Boot.php(417): CodeIgniter\CodeIgniter->run()
+#10 /var/www/html/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter()
+#11 /var/www/html/index.php(59): CodeIgniter\Boot::bootWeb()
+#12 {main}
+
+Next mysqli_sql_exception: php_network_getaddresses: getaddrinfo for db failed: Temporary failure in name resolution in /var/www/html/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:201
+Stack trace:
+#0 /var/www/html/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(201): mysqli->real_connect()
+#1 /var/www/html/vendor/codeigniter4/framework/system/Database/BaseConnection.php(419): CodeIgniter\Database\MySQLi\Connection->connect()
+#2 /var/www/html/vendor/codeigniter4/framework/system/Database/BaseConnection.php(1635): CodeIgniter\Database\BaseConnection->initialize()
+#3 /var/www/html/vendor/codeigniter4/framework/system/Database/BaseConnection.php(1674): CodeIgniter\Database\BaseConnection->getFieldNames()
+#4 /var/www/html/app/Controllers/Home.php(14): CodeIgniter\Database\BaseConnection->fieldExists()
+#5 /var/www/html/vendor/codeigniter4/framework/system/CodeIgniter.php(951): App\Controllers\Home->index()
+#6 /var/www/html/vendor/codeigniter4/framework/system/CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController()
+#7 /var/www/html/vendor/codeigniter4/framework/system/CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest()
+#8 /var/www/html/vendor/codeigniter4/framework/system/Boot.php(417): CodeIgniter\CodeIgniter->run()
+#9 /var/www/html/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter()
+#10 /var/www/html/index.php(59): CodeIgniter\Boot::bootWeb()
+#11 {main}
+
+Next CodeIgniter\Database\Exceptions\DatabaseException: php_network_getaddresses: getaddrinfo for db failed: Temporary failure in name resolution in /var/www/html/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:231
+Stack trace:
+#0 /var/www/html/vendor/codeigniter4/framework/system/Database/BaseConnection.php(419): CodeIgniter\Database\MySQLi\Connection->connect()
+#1 /var/www/html/vendor/codeigniter4/framework/system/Database/BaseConnection.php(1635): CodeIgniter\Database\BaseConnection->initialize()
+#2 /var/www/html/vendor/codeigniter4/framework/system/Database/BaseConnection.php(1674): CodeIgniter\Database\BaseConnection->getFieldNames()
+#3 /var/www/html/app/Controllers/Home.php(14): CodeIgniter\Database\BaseConnection->fieldExists()
+#4 /var/www/html/vendor/codeigniter4/framework/system/CodeIgniter.php(951): App\Controllers\Home->index()
+#5 /var/www/html/vendor/codeigniter4/framework/system/CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController()
+#6 /var/www/html/vendor/codeigniter4/framework/system/CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest()
+#7 /var/www/html/vendor/codeigniter4/framework/system/Boot.php(417): CodeIgniter\CodeIgniter->run()
+#8 /var/www/html/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter()
+#9 /var/www/html/index.php(59): CodeIgniter\Boot::bootWeb()
+#10 {main}
+ERROR - 2026-03-26 04:05:47 --> Error connecting to the database: ErrorException: mysqli::real_connect(): php_network_getaddresses: getaddrinfo for db failed: Temporary failure in name resolution in /var/www/html/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:201
+Stack trace:
+#0 [internal function]: CodeIgniter\Debug\Exceptions->errorHandler()
+#1 /var/www/html/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(201): mysqli->real_connect()
+#2 /var/www/html/vendor/codeigniter4/framework/system/Database/BaseConnection.php(419): CodeIgniter\Database\MySQLi\Connection->connect()
+#3 /var/www/html/vendor/codeigniter4/framework/system/Database/BaseConnection.php(654): CodeIgniter\Database\BaseConnection->initialize()
+#4 /var/www/html/vendor/codeigniter4/framework/system/Database/BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query()
+#5 /var/www/html/vendor/codeigniter4/framework/system/Model.php(254): CodeIgniter\Database\BaseBuilder->get()
+#6 /var/www/html/vendor/codeigniter4/framework/system/BaseModel.php(675): CodeIgniter\Model->doFindAll()
+#7 /var/www/html/app/Controllers/Home.php(26): CodeIgniter\BaseModel->findAll()
+#8 /var/www/html/vendor/codeigniter4/framework/system/CodeIgniter.php(951): App\Controllers\Home->index()
+#9 /var/www/html/vendor/codeigniter4/framework/system/CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController()
+#10 /var/www/html/vendor/codeigniter4/framework/system/CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest()
+#11 /var/www/html/vendor/codeigniter4/framework/system/Boot.php(417): CodeIgniter\CodeIgniter->run()
+#12 /var/www/html/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter()
+#13 /var/www/html/index.php(59): CodeIgniter\Boot::bootWeb()
+#14 {main}
+
+Next mysqli_sql_exception: php_network_getaddresses: getaddrinfo for db failed: Temporary failure in name resolution in /var/www/html/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:201
+Stack trace:
+#0 /var/www/html/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php(201): mysqli->real_connect()
+#1 /var/www/html/vendor/codeigniter4/framework/system/Database/BaseConnection.php(419): CodeIgniter\Database\MySQLi\Connection->connect()
+#2 /var/www/html/vendor/codeigniter4/framework/system/Database/BaseConnection.php(654): CodeIgniter\Database\BaseConnection->initialize()
+#3 /var/www/html/vendor/codeigniter4/framework/system/Database/BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query()
+#4 /var/www/html/vendor/codeigniter4/framework/system/Model.php(254): CodeIgniter\Database\BaseBuilder->get()
+#5 /var/www/html/vendor/codeigniter4/framework/system/BaseModel.php(675): CodeIgniter\Model->doFindAll()
+#6 /var/www/html/app/Controllers/Home.php(26): CodeIgniter\BaseModel->findAll()
+#7 /var/www/html/vendor/codeigniter4/framework/system/CodeIgniter.php(951): App\Controllers\Home->index()
+#8 /var/www/html/vendor/codeigniter4/framework/system/CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController()
+#9 /var/www/html/vendor/codeigniter4/framework/system/CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest()
+#10 /var/www/html/vendor/codeigniter4/framework/system/Boot.php(417): CodeIgniter\CodeIgniter->run()
+#11 /var/www/html/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter()
+#12 /var/www/html/index.php(59): CodeIgniter\Boot::bootWeb()
+#13 {main}
+
+Next CodeIgniter\Database\Exceptions\DatabaseException: php_network_getaddresses: getaddrinfo for db failed: Temporary failure in name resolution in /var/www/html/vendor/codeigniter4/framework/system/Database/MySQLi/Connection.php:231
+Stack trace:
+#0 /var/www/html/vendor/codeigniter4/framework/system/Database/BaseConnection.php(419): CodeIgniter\Database\MySQLi\Connection->connect()
+#1 /var/www/html/vendor/codeigniter4/framework/system/Database/BaseConnection.php(654): CodeIgniter\Database\BaseConnection->initialize()
+#2 /var/www/html/vendor/codeigniter4/framework/system/Database/BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query()
+#3 /var/www/html/vendor/codeigniter4/framework/system/Model.php(254): CodeIgniter\Database\BaseBuilder->get()
+#4 /var/www/html/vendor/codeigniter4/framework/system/BaseModel.php(675): CodeIgniter\Model->doFindAll()
+#5 /var/www/html/app/Controllers/Home.php(26): CodeIgniter\BaseModel->findAll()
+#6 /var/www/html/vendor/codeigniter4/framework/system/CodeIgniter.php(951): App\Controllers\Home->index()
+#7 /var/www/html/vendor/codeigniter4/framework/system/CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController()
+#8 /var/www/html/vendor/codeigniter4/framework/system/CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest()
+#9 /var/www/html/vendor/codeigniter4/framework/system/Boot.php(417): CodeIgniter\CodeIgniter->run()
+#10 /var/www/html/vendor/codeigniter4/framework/system/Boot.php(68): CodeIgniter\Boot::runCodeIgniter()
+#11 /var/www/html/index.php(59): CodeIgniter\Boot::bootWeb()
+#12 {main}
+CRITICAL - 2026-03-26 04:05:47 --> CodeIgniter\Database\Exceptions\DatabaseException: Unable to connect to the database.
+Main connection [MySQLi]: php_network_getaddresses: getaddrinfo for db failed: Temporary failure in name resolution
+[Method: GET, Route: /]
+in SYSTEMPATH/Database/BaseConnection.php on line 465.
+ 1 SYSTEMPATH/Database/BaseConnection.php(654): CodeIgniter\Database\BaseConnection->initialize()
+ 2 SYSTEMPATH/Database/BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query()
+ 3 SYSTEMPATH/Model.php(254): CodeIgniter\Database\BaseBuilder->get()
+ 4 SYSTEMPATH/BaseModel.php(675): CodeIgniter\Model->doFindAll()
+ 5 APPPATH/Controllers/Home.php(26): CodeIgniter\BaseModel->findAll()
+ 6 SYSTEMPATH/CodeIgniter.php(951): App\Controllers\Home->index()
+ 7 SYSTEMPATH/CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController()
+ 8 SYSTEMPATH/CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest()
+ 9 SYSTEMPATH/Boot.php(417): CodeIgniter\CodeIgniter->run()
+10 SYSTEMPATH/Boot.php(68): CodeIgniter\Boot::runCodeIgniter()
+11 FCPATH/index.php(59): CodeIgniter\Boot::bootWeb()
+DEBUG - 2026-03-26 04:07:55 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-03-26 04:07:55 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-03-26 04:08:24 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-03-26 04:08:24 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-03-26 04:08:45 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-03-26 04:08:45 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-03-26 04:08:55 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-03-26 04:08:55 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-03-26 04:11:21 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-03-26 04:11:21 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-03-26 04:11:28 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-03-26 04:11:28 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-03-26 04:11:28 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-03-26 04:11:29 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-03-26 04:15:30 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-03-26 04:15:30 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-03-26 04:15:31 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-03-26 04:15:36 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-03-26 04:15:36 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-03-26 04:15:37 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-03-26 04:15:39 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-03-26 04:15:40 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-03-26 04:15:46 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-03-26 04:15:47 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-03-26 04:16:37 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-03-26 04:16:40 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-03-26 04:24:22 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-03-26 04:24:23 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-03-26 04:24:24 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-03-26 04:24:24 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-03-26 04:24:25 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-03-26 04:24:25 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-03-26 04:24:25 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-03-26 04:24:25 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-03-26 04:24:25 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-03-26 04:24:25 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-03-26 04:24:25 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-03-26 04:24:43 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2026-03-26 04:25:43 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.

@@ -3,18 +3,14 @@
 namespace App\Controllers;
 
 use CodeIgniter\Controller;
+use App\Models\UserModel;
+
 
 class Home extends Controller
 {
     public function index()
     {
-        // Auto-add column if not exists
-        try {
-            $db = \Config\Database::connect();
-            if (!$db->fieldExists('u_level', 'Tb_Users')) {
-                $db->query("ALTER TABLE Tb_Users ADD COLUMN u_level VARCHAR(100) NULL AFTER u_position");
-            }
-        } catch (\Throwable $e) { }
+
 
         $newsModel = new \App\Models\NewsModel();
         $data['title'] = 'กองการศึกษา ศาสนา และวัฒนธรรม - องค์การบริหารส่วนจังหวัดนครสวรรค์';
