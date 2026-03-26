@@ -11,7 +11,7 @@ class Admin extends Controller
 {
     public function index()
     {
-        if (!in_array(session()->get('u_role'), ['admin', 'head', 'director'])) {
+        if (strpos(session()->get('u_role') ?? '', 'superadmin') === false) {
             return redirect()->to(base_url('/'))->with('error', 'คุณไม่มีสิทธิ์เข้าถึงหน้านี้');
         }
 
@@ -53,7 +53,7 @@ class Admin extends Controller
     // --------------------------------------------------------------------
     public function users()
     {
-        if (!in_array(session()->get('u_role'), ['admin', 'head', 'director'])) {
+        if (strpos(session()->get('u_role') ?? '', 'superadmin') === false) {
             return redirect()->to(base_url('/'))->with('error', 'คุณไม่มีสิทธิ์เข้าถึงหน้านี้');
         }
 
@@ -65,6 +65,15 @@ class Admin extends Controller
 
     public function userSave()
     {
+        if (strpos(session()->get('u_role') ?? '', 'superadmin') === false) {
+            return redirect()->to(base_url('/'))->with('error', 'คุณไม่มีสิทธิ์เข้าถึงหน้านี้');
+        }
+
+        try {
+            $db = \Config\Database::connect();
+            $db->query("ALTER TABLE Tb_Users MODIFY u_role VARCHAR(255) NULL");
+        } catch (\Throwable $e) { }
+
         $model = new UserModel();
         $id = $this->request->getPost('u_id');
 
@@ -72,8 +81,41 @@ class Admin extends Controller
             'u_username' => $this->request->getPost('u_username'),
             'u_email'    => $this->request->getPost('u_email'),
             'u_fullname' => $this->request->getPost('u_fullname'),
-            'u_role'     => $this->request->getPost('u_role'),
+            'u_prefix'   => $this->request->getPost('u_prefix'),
+            'u_position' => $this->request->getPost('u_position'),
+            'u_division' => $this->request->getPost('u_division'),
+            'u_phone'    => $this->request->getPost('u_phone'),
+            'u_sort'     => $this->request->getPost('u_sort') ?: 99,
+            'u_status'   => $this->request->getPost('u_status') ?: 'active',
+            'u_role'     => is_array($this->request->getPost('u_role')) ? implode(',', $this->request->getPost('u_role')) : $this->request->getPost('u_role'),
         ];
+
+        // Handle Photo Upload
+        $photoFile = $this->request->getFile('u_photo');
+        if ($photoFile && $photoFile->isValid() && !$photoFile->hasMoved()) {
+            
+            // Delete old photo if exists
+            if ($id) {
+                $oldUser = $model->find($id);
+                if ($oldUser && $oldUser['u_photo'] && file_exists(FCPATH . 'uploads/personnel/' . $oldUser['u_photo'])) {
+                    @unlink(FCPATH . 'uploads/personnel/' . $oldUser['u_photo']);
+                }
+            }
+
+            $newName = $photoFile->getRandomName();
+            if (!is_dir(FCPATH . 'uploads/personnel')) {
+                mkdir(FCPATH . 'uploads/personnel', 0777, true);
+            }
+            $photoFile->move(FCPATH . 'uploads/personnel/', $newName);
+            
+            // Optimize image (Resize to 800px width max)
+            $image = \Config\Services::image()
+                ->withFile(FCPATH . 'uploads/personnel/' . $newName)
+                ->resize(800, 800, true, 'height')
+                ->save(FCPATH . 'uploads/personnel/' . $newName, 80);
+
+            $data['u_photo'] = $newName;
+        }
 
         // If password is provided, hash it
         $password = $this->request->getPost('u_password');
@@ -83,10 +125,10 @@ class Admin extends Controller
 
         if ($id) {
             $model->update($id, $data);
-            $msg = 'อัปเดตข้อมูลพนักงานเรียบร้อยแล้ว';
+            $msg = 'อัปเดตข้อมูลบุคลากรเรียบร้อยแล้ว';
         } else {
             $model->insert($data);
-            $msg = 'เพิ่มพนักงานใหม่เรียบร้อยแล้ว';
+            $msg = 'เพิ่มบุคลากรใหม่เรียบร้อยแล้ว';
         }
 
         return redirect()->to(base_url('admin/users'))->with('status', $msg);
@@ -104,7 +146,7 @@ class Admin extends Controller
     // --------------------------------------------------------------------
     public function settings()
     {
-        if (!in_array(session()->get('u_role'), ['admin', 'head', 'director'])) {
+        if (strpos(session()->get('u_role') ?? '', 'superadmin') === false) {
             return redirect()->to(base_url('/'))->with('error', 'คุณไม่มีสิทธิ์เข้าถึงหน้านี้');
         }
 
@@ -139,7 +181,7 @@ class Admin extends Controller
     }
     public function exportExcel()
     {
-        if (!in_array(session()->get('u_role'), ['admin', 'head', 'director'])) {
+        if (strpos(session()->get('u_role') ?? '', 'superadmin') === false) {
             return redirect()->to(base_url('/'))->with('error', 'คุณไม่มีสิทธิ์เข้าถึงหน้านี้');
         }
 

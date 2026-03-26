@@ -2,6 +2,8 @@
 
 <?= $this->section('content') ?>
 
+
+
     <!-- Hero Section with Parallax -->
     <!-- Hero Section with Modern Aesthetic & Parallax -->
     <style>
@@ -75,10 +77,10 @@
                 </p>
                 
                 <div class="flex flex-col sm:flex-row gap-5">
-                    <a href="<?= base_url('staff/attendance') ?>" class="group px-8 py-4 bg-white text-blue-700 rounded-2xl font-black text-lg shadow-2xl hover:-translate-y-1 transition-all duration-300 flex items-center justify-center gap-3">
+                    <!-- <a href="<?= base_url('staff/attendance') ?>" class="group px-8 py-4 bg-white text-blue-700 rounded-2xl font-black text-lg shadow-2xl hover:-translate-y-1 transition-all duration-300 flex items-center justify-center gap-3">
                         <i data-lucide="scan-eye" class="w-6 h-6 group-hover:rotate-12 transition-transform"></i>
                         ระบบลงชื่อเจ้าหน้าที่
-                    </a>
+                    </a> -->
                     <a href="#news" class="px-8 py-4 bg-white/10 text-white border border-white/20 rounded-2xl font-bold text-lg backdrop-blur-md hover:bg-white/20 transition-all flex items-center justify-center gap-3">
                         <i data-lucide="layers" class="w-6 h-6"></i>
                         ดูข่าวสารล่าสุด
@@ -137,6 +139,61 @@
             <svg class="w-full h-full fill-white" preserveAspectRatio="none" viewBox="0 0 1440 320">
                 <path d="M0,192L48,197.3C96,203,192,213,288,229.3C384,245,480,267,576,250.7C672,235,768,181,864,181.3C960,181,1056,235,1152,234.7C1248,235,1344,181,1392,154.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
             </svg>
+        </div>
+    </section>
+
+    <!-- News & PR Section -->
+    <section id="news" class="py-24 bg-white relative overflow-hidden">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between items-end mb-12 gap-6" data-aos="fade-up">
+                <div>
+                    <span class="text-blue-600 font-black tracking-widest uppercase text-xs mb-3 inline-block">ประกาศและข่าวสาร</span>
+                    <h3 class="text-4xl font-black text-slate-900 leading-tight">ข่าวประชาสัมพันธ์ล่าสุด</h3>
+                </div>
+                <a href="<?= base_url('news') ?>" class="px-6 py-3 border-2 border-slate-100 rounded-xl font-bold text-slate-600 hover:bg-slate-50 hover:border-blue-200 transition-all flex items-center gap-2">
+                    ดูข่าวทั้งหมด <i data-lucide="chevron-right" class="w-5 h-5"></i>
+                </a>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+                <?php if(!empty($latest_news)): ?>
+                    <?php foreach($latest_news as $news): ?>
+                        <a href="<?= base_url('news/' . $news['news_slug']) ?>" class="group block" data-aos="fade-up">
+                            <div class="relative rounded-[32px] overflow-hidden mb-6 aspect-video bg-slate-100 border border-slate-100 shadow-sm transition-transform group-hover:scale-[1.02] duration-500">
+                                <div class="absolute inset-0 bg-gradient-to-t from-slate-900/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-10"></div>
+                                <div class="absolute top-4 left-4 flex gap-2 z-20">
+                                    <span class="px-3 py-1 bg-blue-600 text-white text-[10px] font-bold rounded-lg uppercase tracking-wider">
+                                        <?= $news['news_category'] ?>
+                                    </span>
+                                </div>
+                                <?php if($news['news_cover']): ?>
+                                    <img src="<?= base_url('uploads/news/covers/' . $news['news_cover']) ?>" class="w-full h-full object-cover">
+                                <?php else: ?>
+                                    <div class="w-full h-full flex items-center justify-center text-slate-300">
+                                        <i data-lucide="image" class="w-12 h-12"></i>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                            <p class="text-sm text-slate-400 font-bold mb-3 flex items-center gap-2">
+                                <i data-lucide="calendar" class="w-4 h-4 text-blue-500"></i> <?= date('d/m/Y', strtotime($news['news_created_at'])) ?>
+                            </p>
+                            <h4 class="text-xl font-black text-slate-900 group-hover:text-blue-600 transition-colors leading-snug mb-3 line-clamp-2">
+                                <?= $news['news_title'] ?>
+                            </h4>
+                            <div class="text-slate-500 text-sm leading-relaxed line-clamp-2">
+                                <?= strip_tags($news['news_content']) ?>
+                            </div>
+                        </a>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <div class="col-span-full py-20 text-center">
+                        <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6 text-slate-200">
+                            <i data-lucide="newspaper" class="w-10 h-10"></i>
+                        </div>
+                        <p class="text-slate-400 font-bold">ไม่พบข้อมูลข่าวสารในขณะนี้</p>
+                    </div>
+                <?php endif; ?>
+            </div>
         </div>
     </section>
 
@@ -203,89 +260,7 @@
         </div>
     </section>
 
-    <!-- News & PR Section -->
-    <section class="py-24 bg-white relative overflow-hidden">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex flex-col md:flex-row justify-between items-end mb-12 gap-6" data-aos="fade-up">
-                <div>
-                    <span class="text-blue-600 font-black tracking-widest uppercase text-xs mb-3 inline-block">ประกาศและข่าวสาร</span>
-                    <h3 class="text-4xl font-black text-slate-900 leading-tight">ข่าวประชาสัมพันธ์ล่าสุด</h3>
-                </div>
-                <button class="px-6 py-3 border-2 border-slate-100 rounded-xl font-bold text-slate-600 hover:bg-slate-50 hover:border-blue-200 transition-all flex items-center gap-2">
-                    ดูข่าวทั้งหมด <i data-lucide="chevron-right" class="w-5 h-5"></i>
-                </button>
-            </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
-                <!-- News Card 1 -->
-                <div class="group cursor-pointer" data-aos="fade-up" data-aos-delay="100">
-                    <div class="relative rounded-[32px] overflow-hidden mb-6 aspect-video bg-slate-100 border border-slate-100 shadow-sm transition-transform group-hover:scale-[1.02] duration-500">
-                        <div class="absolute inset-0 bg-gradient-to-t from-slate-900/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                        <div class="absolute top-4 left-4 flex gap-2">
-                            <span class="px-3 py-1 bg-blue-600 text-white text-[10px] font-bold rounded-lg uppercase tracking-wider">ประกาศ</span>
-                        </div>
-                        <!-- Placeholder for News Image -->
-                        <div class="w-full h-full flex items-center justify-center text-slate-300">
-                            <i data-lucide="image" class="w-12 h-12"></i>
-                        </div>
-                    </div>
-                    <p class="text-sm text-slate-400 font-bold mb-3 flex items-center gap-2">
-                        <i data-lucide="calendar" class="w-4 h-4 text-blue-500"></i> 25 มีนาคม 2026
-                    </p>
-                    <h4 class="text-xl font-black text-slate-900 group-hover:text-blue-600 transition-colors leading-snug mb-3">
-                        อบจ. สรุปผลการจัดการศึกษา ประจำปีงบประมาณ 2568
-                    </h4>
-                    <p class="text-slate-500 text-sm leading-relaxed line-clamp-2">
-                        สรุปความสำเร็จในการดำเนินงานด้านการศึกษา พร้อมก้าวต่อในปีงบประมาณถัดไป...
-                    </p>
-                </div>
-
-                <!-- News Card 2 -->
-                <div class="group cursor-pointer" data-aos="fade-up" data-aos-delay="200">
-                    <div class="relative rounded-[32px] overflow-hidden mb-6 aspect-video bg-slate-100 border border-slate-100 shadow-sm transition-transform group-hover:scale-[1.02] duration-500">
-                        <div class="absolute inset-0 bg-gradient-to-t from-slate-900/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                        <div class="absolute top-4 left-4 flex gap-2">
-                            <span class="px-3 py-1 bg-emerald-500 text-white text-[10px] font-bold rounded-lg uppercase tracking-wider">กิจกรรม</span>
-                        </div>
-                        <div class="w-full h-full flex items-center justify-center text-slate-300">
-                            <i data-lucide="image" class="w-12 h-12"></i>
-                        </div>
-                    </div>
-                    <p class="text-sm text-slate-400 font-bold mb-3 flex items-center gap-2">
-                        <i data-lucide="calendar" class="w-4 h-4 text-blue-500"></i> 24 มีนาคม 2026
-                    </p>
-                    <h4 class="text-xl font-black text-slate-900 group-hover:text-blue-600 transition-colors leading-snug mb-3">
-                        กิจกรรมส่งเสริมวัฒนธรรมท้องถิ่น และวันสำคัญทางศาสนา
-                    </h4>
-                    <p class="text-slate-500 text-sm leading-relaxed line-clamp-2">
-                        ภาพบรรยากาศการจัดกิจกรรมที่ร่วมกับเยาวชนในพื้นที่ เพื่อสืบสานประเพณีอันดีงาม...
-                    </p>
-                </div>
-
-                <!-- News Card 3 -->
-                <div class="group cursor-pointer" data-aos="fade-up" data-aos-delay="300">
-                    <div class="relative rounded-[32px] overflow-hidden mb-6 aspect-video bg-slate-100 border border-slate-100 shadow-sm transition-transform group-hover:scale-[1.02] duration-500">
-                        <div class="absolute inset-0 bg-gradient-to-t from-slate-900/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                        <div class="absolute top-4 left-4 flex gap-2">
-                            <span class="px-3 py-1 bg-amber-500 text-white text-[10px] font-bold rounded-lg uppercase tracking-wider">ประชาสัมพันธ์</span>
-                        </div>
-                        <div class="w-full h-full flex items-center justify-center text-slate-300">
-                            <i data-lucide="image" class="w-12 h-12"></i>
-                        </div>
-                    </div>
-                    <p class="text-sm text-slate-400 font-bold mb-3 flex items-center gap-2">
-                        <i data-lucide="calendar" class="w-4 h-4 text-blue-500"></i> 22 มีนาคม 2026
-                    </p>
-                    <h4 class="text-xl font-black text-slate-900 group-hover:text-blue-600 transition-colors leading-snug mb-3">
-                        เปิดรับฟังความคิดเห็น "การศึกษาแบบใหม่ เพื่อคน อบจ."
-                    </h4>
-                    <p class="text-slate-500 text-sm leading-relaxed line-clamp-2">
-                        ขอเชิญผู้ปกครองและนักเรียนร่วมเสนอประเด็นการพัฒนาการศึกษาในพื้นที่...
-                    </p>
-                </div>
-            </div>
-        </div>
-    </section>
 
     <!-- Executive Team / About CTA -->
     <section class="py-24 bg-slate-50 overflow-hidden relative">

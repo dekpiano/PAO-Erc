@@ -73,8 +73,8 @@
                 </div>
 
                 <div class="hidden md:flex items-center gap-8">
-                    <a href="#" class="text-sm font-semibold text-slate-600 hover:text-blue-600 transition-colors">หน้าแรก</a>
-                    <a href="#" class="text-sm font-semibold text-slate-600 hover:text-blue-600 transition-colors">ข่าวสาร</a>
+                    <a href="<?= base_url('/') ?>" class="text-sm font-semibold text-slate-600 hover:text-blue-600 transition-colors">หน้าแรก</a>
+                    <a href="<?= base_url('news') ?>" class="text-sm font-semibold text-slate-600 hover:text-blue-600 transition-colors">ข่าวสาร</a>
                     <a href="#" class="text-sm font-semibold text-slate-600 hover:text-blue-600 transition-colors">เกี่ยวกับเรา</a>
                     <a href="#" class="text-sm font-semibold text-slate-600 hover:text-blue-600 transition-colors">ดาวน์โหลด</a>
                     <a href="<?= base_url('staff/attendance') ?>" class="px-5 py-2.5 bg-blue-600 text-white rounded-full text-sm font-bold premium-btn">
@@ -84,13 +84,34 @@
 
                 <!-- Mobile Menu Button -->
                 <div class="md:hidden">
-                    <button class="p-2 text-slate-600">
+                    <button id="mobile-menu-btn" class="p-2 text-slate-600">
                         <i data-lucide="menu" class="w-6 h-6"></i>
                     </button>
                 </div>
             </div>
         </div>
     </nav>
+    
+    <!-- Mobile Menu -->
+    <div id="mobile-menu" class="hidden fixed inset-0 z-[60] bg-white pt-24 px-6 overflow-y-auto">
+        <div class="flex flex-col gap-6 animate-[fadeIn_0.3s_ease-out]">
+            <a href="<?= base_url('/') ?>" class="text-xl font-bold text-slate-800 border-b border-slate-50 pb-4 flex items-center justify-between">
+                หน้าแรก <i data-lucide="chevron-right" class="w-5 h-5 text-slate-300"></i>
+            </a>
+            <a href="<?= base_url('news') ?>" class="text-xl font-bold text-slate-800 border-b border-slate-50 pb-4 flex items-center justify-between">
+                ข่าวสาร <i data-lucide="chevron-right" class="w-5 h-5 text-slate-300"></i>
+            </a>
+            <a href="#" class="text-xl font-bold text-slate-800 border-b border-slate-50 pb-4 flex items-center justify-between">
+                เกี่ยวกับเรา <i data-lucide="chevron-right" class="w-5 h-5 text-slate-300"></i>
+            </a>
+            <a href="#" class="text-xl font-bold text-slate-800 border-b border-slate-50 pb-4 flex items-center justify-between">
+                ดาวน์โหลด <i data-lucide="chevron-right" class="w-5 h-5 text-slate-300"></i>
+            </a>
+            <a href="<?= base_url('staff/attendance') ?>" class="w-full py-5 bg-blue-600 text-white rounded-[2rem] text-center font-black shadow-xl shadow-blue-100 flex items-center justify-center gap-3 mt-4">
+                <i data-lucide="user" class="w-6 h-6"></i> สำหรับบุคลากร
+            </a>
+        </div>
+    </div>
 
     <!-- Main Content -->
     <main class="pt-20">
@@ -113,7 +134,7 @@
                 <div>
                     <h3 class="text-sm font-bold uppercase tracking-wider mb-6 text-slate-200">เข้าถึงข้อมูล</h3>
                     <ul class="space-y-4 text-sm text-slate-400">
-                        <li><a href="#" class="hover:text-white transition-colors">ข่าวประชาสัมพันธ์</a></li>
+                        <li><a href="<?= base_url('news?category=ข่าวประชาสัมพันธ์') ?>" class="hover:text-white transition-colors">ข่าวประชาสัมพันธ์</a></li>
                         <li><a href="#" class="hover:text-white transition-colors">ผลการจัดการศึกษา</a></li>
                         <li><a href="#" class="hover:text-white transition-colors">ดาวน์โหลดแบบฟอร์ม</a></li>
                         <li><a href="#" class="hover:text-white transition-colors">ติดต่อเรา</a></li>
@@ -141,6 +162,28 @@
             once: true,
             offset: 100
         });
+
+        // Mobile Menu Toggle
+        const menuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        if (menuBtn && mobileMenu) {
+            const menuBtnIcon = menuBtn.querySelector('i');
+            
+            menuBtn.addEventListener('click', () => {
+                const isHidden = mobileMenu.classList.toggle('hidden');
+                document.body.classList.toggle('overflow-hidden'); // Prevent scrolling
+                
+                if (menuBtnIcon) {
+                    if (isHidden) {
+                        menuBtnIcon.setAttribute('data-lucide', 'menu');
+                    } else {
+                        menuBtnIcon.setAttribute('data-lucide', 'x');
+                    }
+                    lucide.createIcons();
+                }
+            });
+        }
     </script>
 </body>
 </html>

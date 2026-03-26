@@ -32,14 +32,15 @@ class Auth extends Controller
                 'u_id'       => $user['u_id'],
                 'u_username' => $user['u_username'],
                 'u_fullname' => $user['u_fullname'],
+                'u_photo'    => $user['u_photo'] ?? null,
                 'u_role'     => $user['u_role'],
                 'isLoggedIn' => true,
             ];
             session()->set($sessionData);
             
             // Redirect based on role
-            if ($user['u_role'] === 'admin') {
-                return redirect()->to(base_url('admin'));
+            if (strpos($user['u_role'] ?? '', 'superadmin') !== false) {
+                return redirect()->to(base_url('auth/select'));
             }
             return redirect()->to(base_url('staff'));
         } else {
@@ -100,17 +101,32 @@ class Auth extends Controller
                 'u_id'       => $user['u_id'],
                 'u_username' => $user['u_username'],
                 'u_fullname' => $user['u_fullname'],
+                'u_photo'    => $user['u_photo'] ?? null,
                 'u_role'     => $user['u_role'],
                 'isLoggedIn' => true,
             ];
             session()->set($sessionData);
             
-            if ($user['u_role'] === 'admin') {
-                return redirect()->to(base_url('admin'));
+            if (strpos($user['u_role'] ?? '', 'superadmin') !== false) {
+                return redirect()->to(base_url('auth/select'));
             }
             return redirect()->to(base_url('staff'));
         } else {
             return redirect()->to(base_url('auth/login'))->with('error', "ไม่พบพนักงานที่เชื่อมต่อกับอีเมล $email ในระบบ โปรดแจ้งทางแอดมิน");
         }
+    }
+
+    public function select()
+    {
+        if (!session()->get('isLoggedIn')) {
+            return redirect()->to(base_url('auth/login'));
+        }
+        
+        // If not superadmin, no need to select, just go to staff
+        if (strpos(session()->get('u_role') ?? '', 'superadmin') === false) {
+            return redirect()->to(base_url('staff'));
+        }
+
+        return view('auth/select');
     }
 }

@@ -14,12 +14,21 @@
         <!-- Welcome/Profile Card -->
         <div class="lg:col-span-1 p-8 bg-blue-600 rounded-[2.5rem] text-white shadow-xl shadow-blue-200 relative overflow-hidden flex flex-col justify-between">
             <div class="absolute -right-8 -top-8 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
-            <div class="relative z-10">
-                <p class="text-blue-100 font-bold text-xs uppercase tracking-widest mb-4">โปรไฟล์บุคลากร</p>
-                <h3 class="text-2xl font-black mb-1"><?= $fullname ?></h3>
-                <span class="px-3 py-1 bg-white/20 rounded-lg text-[10px] font-black uppercase tracking-wider backdrop-blur-md">
-                    <?= session()->get('u_role') === 'admin' ? 'Administrator' : 'Personnel' ?>
-                </span>
+            <div class="relative z-10 flex items-center gap-5">
+                <?php if(session()->get('u_photo')): ?>
+                    <img src="<?= base_url('uploads/personnel/' . session()->get('u_photo')) ?>" alt="Profile" class="w-20 h-20 rounded-2xl object-cover border-2 border-white/20 shadow-xl shrink-0">
+                <?php else: ?>
+                    <div class="w-20 h-20 rounded-2xl bg-white/20 border-2 border-white/20 shadow-xl shrink-0 flex items-center justify-center">
+                        <i data-lucide="user" class="w-8 h-8 text-white"></i>
+                    </div>
+                <?php endif; ?>
+                <div>
+                    <p class="text-blue-100 font-bold text-xs uppercase tracking-widest mb-1">โปรไฟล์บุคลากร</p>
+                    <h3 class="text-2xl font-black mb-1"><?= $fullname ?></h3>
+                    <span class="px-2 py-0.5 bg-white/20 rounded-lg text-[9px] font-black uppercase tracking-wider backdrop-blur-md">
+                        <?= strpos(session()->get('u_role'), 'superadmin') !== false ? 'Super Administrator' : 'Personnel' ?>
+                    </span>
+                </div>
             </div>
             <div class="mt-12">
                 <a href="#" class="text-xs font-bold text-blue-100 flex items-center gap-2 hover:translate-x-1 transition-transform">
@@ -98,19 +107,45 @@
         </div>
 
         <!-- Shortcuts -->
-        <div class="grid grid-cols-2 gap-6">
-            <a href="<?= base_url('staff/attendance') ?>" class="p-8 bg-emerald-50 hover:bg-emerald-600 hover:text-white rounded-[2.5rem] border border-emerald-100 group transition-all duration-300 flex flex-col items-center justify-center text-center gap-4 shadow-sm shadow-emerald-100">
-                <div class="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                    <i data-lucide="map-pin" class="w-8 h-8 text-emerald-600"></i>
+        <div class="space-y-6">
+            <!-- User Shortcuts -->
+            <div>
+                <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                    <i data-lucide="user" class="w-4 h-4"></i> เมนูพนักงานทั่วไป
+                </h3>
+                <div class="grid grid-cols-2 gap-4">
+                    <a href="<?= base_url('staff/attendance') ?>" class="p-6 bg-emerald-50 hover:bg-emerald-600 hover:text-white rounded-[2rem] border border-emerald-100 group transition-all duration-300 flex flex-col items-center justify-center text-center gap-3 shadow-sm shadow-emerald-100">
+                        <div class="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                            <i data-lucide="map-pin" class="w-6 h-6 text-emerald-600"></i>
+                        </div>
+                        <span class="text-xs font-black uppercase tracking-wider">ลงชื่อปฏิบัติงาน</span>
+                    </a>
                 </div>
-                <span class="text-sm font-black uppercase tracking-wider">ลงชื่อปฏิบัติงาน</span>
-            </a>
-            <a href="#" class="p-8 bg-blue-50 hover:bg-blue-600 hover:text-white rounded-[2.5rem] border border-blue-100 group transition-all duration-300 flex flex-col items-center justify-center text-center gap-4 shadow-sm shadow-blue-100">
-                <div class="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                    <i data-lucide="file-text" class="w-8 h-8 text-blue-600"></i>
+            </div>
+
+            <?php if(strpos(session()->get('u_role'), 'admin') !== false): ?>
+            <!-- Admin Shortcuts -->
+            <div>
+                <h3 class="text-xs font-black text-rose-400 uppercase tracking-widest mb-4 mt-6 flex items-center gap-2">
+                    <i data-lucide="shield-check" class="w-4 h-4"></i> เมนูการจัดการ (แอดมิน)
+                </h3>
+                <div class="grid grid-cols-2 gap-4">
+                    <a href="<?= base_url('staff/news') ?>" class="p-6 bg-amber-50 hover:bg-amber-600 hover:text-white rounded-[2rem] border border-amber-100 group transition-all duration-300 flex flex-col items-center justify-center text-center gap-3 shadow-sm shadow-amber-100">
+                        <div class="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                            <i data-lucide="newspaper" class="w-6 h-6 text-amber-600"></i>
+                        </div>
+                        <span class="text-xs font-black uppercase tracking-wider">จัดการข่าวสาร</span>
+                    </a>
+                    
+                    <a href="<?= base_url('staff/personnel') ?>" class="p-6 bg-blue-50 hover:bg-blue-600 hover:text-white rounded-[2rem] border border-blue-100 group transition-all duration-300 flex flex-col items-center justify-center text-center gap-3 shadow-sm shadow-blue-100">
+                        <div class="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                            <i data-lucide="users" class="w-6 h-6 text-blue-600"></i>
+                        </div>
+                        <span class="text-xs font-black uppercase tracking-wider">จัดการบุคลากร</span>
+                    </a>
                 </div>
-                <span class="text-sm font-black uppercase tracking-wider">ส่งใบลาออนไลน์</span>
-            </a>
+            </div>
+            <?php endif; ?>
         </div>
     </div>
 

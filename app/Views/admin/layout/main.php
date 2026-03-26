@@ -44,11 +44,19 @@
                     <p class="text-[10px] text-white/30 uppercase tracking-wider mb-0.5"><?= $role_thai[$u_role] ?? 'พนักงาน' ?></p>
                     <p class="text-sm font-bold text-blue-400"><?= $fullname ?? 'Administrator' ?></p>
                 </div>
-                <div class="flex items-center gap-2">
-                    <a href="<?= base_url('attendance') ?>" 
-                       class="p-2 text-white/20 hover:text-blue-400 transition-colors" title="หน้าลงเวลา">
-                        <i data-lucide="clock-4" class="w-6 h-6"></i>
-                    </a>
+                <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-full border border-white/20 overflow-hidden shrink-0 bg-white/5 flex items-center justify-center">
+                        <?php if(session()->get('u_photo')): ?>
+                            <img src="<?= base_url('uploads/personnel/' . session()->get('u_photo')) ?>" alt="Profile" class="w-full h-full object-cover">
+                        <?php else: ?>
+                            <i data-lucide="user" class="w-5 h-5 text-white/40"></i>
+                        <?php endif; ?>
+                    </div>
+                    <div class="flex items-center gap-2 border-l border-white/10 pl-4">
+                        <a href="<?= base_url('staff/attendance') ?>" 
+                           class="p-2 text-white/20 hover:text-blue-400 transition-colors" title="หน้าลงเวลา">
+                            <i data-lucide="clock-4" class="w-6 h-6"></i>
+                        </a>
                     <a href="<?= base_url('auth/logout') ?>" 
                        class="p-2 text-white/20 hover:text-red-400 transition-colors" title="ออกจากระบบ">
                         <i data-lucide="log-out" class="w-6 h-6"></i>

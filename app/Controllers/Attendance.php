@@ -11,10 +11,6 @@ class Attendance extends Controller
     public function index()
     {
         helper('thai_date');
-        // If user is admin, redirect to admin dashboard
-        if (session()->get('u_role') === 'admin') {
-            return redirect()->to(base_url('admin'));
-        }
 
         $model = new AttendanceModel();
         $sModel = new SettingsModel();

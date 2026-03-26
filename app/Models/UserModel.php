@@ -18,6 +18,14 @@ class UserModel extends Model
         'u_google_sub',
         'u_password', 
         'u_fullname', 
+        'u_prefix',
+        'u_position',
+        'u_level',
+        'u_division',
+        'u_photo',
+        'u_phone',
+        'u_sort',
+        'u_status',
         'u_role'
     ];
 

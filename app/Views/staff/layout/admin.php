@@ -23,6 +23,31 @@
             background: #f8fafc;
         }
 
+        /* Sidebar Collapse Transitions */
+        #sidebar-menu {
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .sidebar-collapsed {
+            width: 88px !important;
+        }
+
+        .sidebar-collapsed .sidebar-text,
+        .sidebar-collapsed .sidebar-header-text,
+        .sidebar-collapsed .sidebar-category-text {
+            display: none;
+        }
+
+        .sidebar-collapsed .sidebar-item {
+            justify-content: center;
+            padding-left: 0;
+            padding-right: 0;
+        }
+
+        .sidebar-collapsed .sidebar-item i {
+            margin-right: 0;
+        }
+
         .sidebar-item {
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
@@ -45,13 +70,13 @@
     <div class="flex h-screen overflow-hidden">
         
         <!-- Sidebar -->
-        <aside class="hidden lg:flex w-72 bg-white border-r border-slate-200 flex-col shrink-0">
+        <aside id="sidebar-menu" class="hidden lg:flex flex-col w-72 bg-white border-r border-slate-200 shrink-0 fixed inset-y-0 left-0 z-[60] lg:static">
             <!-- Sidebar Header -->
-            <div class="h-20 flex items-center px-8 border-b border-slate-100 gap-3">
-                <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg">
+            <div class="h-20 flex items-center px-6 border-b border-slate-100 gap-3 shrink-0 overflow-hidden">
+                <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg shrink-0">
                     <i data-lucide="graduation-cap" class="w-6 h-6"></i>
                 </div>
-                <div>
+                <div class="sidebar-header-text">
                     <h2 class="text-sm font-black text-slate-900 leading-none">STAFF PORTAL</h2>
                     <p class="text-[9px] text-blue-600 font-bold uppercase tracking-widest mt-1">Nakhon Sawan PAO</p>
                 </div>
@@ -59,52 +84,62 @@
 
             <!-- Navigation Menu -->
             <nav class="flex-1 overflow-y-auto p-6 space-y-2">
-                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-4 mb-4">เมนูหลัก</div>
+                <div class="sidebar-category-text text-[10px] font-bold text-slate-400 uppercase tracking-widest px-4 mb-4">เมนูหลัก</div>
                 
                 <a href="<?= base_url('staff') ?>" class="sidebar-item <?= uri_string() == 'staff' ? 'active shadow-lg shadow-blue-100 bg-blue-50/50' : 'text-slate-500 hover:text-blue-600' ?> flex items-center gap-4 px-4 py-3.5 rounded-2xl font-bold text-sm">
                     <i data-lucide="layout-grid" class="w-5 h-5"></i>
-                    หน้าแดชบอร์ด
+                    <span class="sidebar-text">หน้าแดชบอร์ด</span>
                 </a>
 
-                <div class="pt-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest px-4 mb-4">ระบบบริหารงาน</div>
+                <div class="sidebar-category-text pt-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest px-4 mb-4">ระบบบริหารงาน</div>
                 
                 <a href="<?= base_url('staff/attendance') ?>" class="sidebar-item <?= uri_string() == 'staff/attendance' ? 'active shadow-lg shadow-blue-100 bg-blue-50/50' : 'text-slate-500 hover:text-blue-600' ?> flex items-center gap-4 px-4 py-3.5 rounded-2xl font-bold text-sm">
                     <i data-lucide="clock" class="w-5 h-5"></i>
-                    บันทึกเวลาปฏิบัติราชการ
+                    <span class="sidebar-text">บันทึกเวลาปฏิบัติราชการ</span>
                 </a>
 
-                <a href="#" class="sidebar-item flex items-center gap-4 px-4 py-3.5 rounded-2xl font-bold text-sm text-slate-500">
-                    <i data-lucide="file-text" class="w-5 h-5"></i>
-                    ส่งคำขออนุมัติลางาน
+                <?php if(strpos(session()->get('u_role'), 'admin') !== false): ?>
+                <div class="sidebar-category-text pt-8 text-[10px] font-bold text-rose-400 uppercase tracking-widest px-4 mb-4 flex items-center gap-2">
+                    <i data-lucide="shield-check" class="w-3.5 h-3.5"></i> การจัดการ (แอดมิน)
+                </div>
+                <a href="<?= base_url('staff/news') ?>" class="sidebar-item <?= strpos(uri_string(), 'staff/news') === 0 ? 'active shadow-lg shadow-blue-100 bg-blue-50/50' : 'text-slate-500 hover:text-blue-600' ?> flex items-center gap-4 px-4 py-3.5 rounded-2xl font-bold text-sm">
+                    <i data-lucide="newspaper" class="w-5 h-5"></i>
+                    <span class="sidebar-text">จัดการข่าวสาร</span>
                 </a>
+                <?php endif; ?>
 
-                <a href="#" class="sidebar-item flex items-center gap-4 px-4 py-3.5 rounded-2xl font-bold text-sm text-slate-500">
+                <?php if(strpos(session()->get('u_role'), 'admin') !== false): ?>
+                <a href="<?= base_url('staff/personnel') ?>" class="sidebar-item <?= strpos(uri_string(), 'staff/personnel') === 0 ? 'active shadow-lg shadow-blue-100 bg-blue-50/50' : 'text-slate-500 hover:text-blue-600' ?> flex items-center gap-4 px-4 py-3.5 rounded-2xl font-bold text-sm">
                     <i data-lucide="users" class="w-5 h-5"></i>
-                    ทำเนียบบุคลากร
+                    <span class="sidebar-text">จัดการบุคลากร</span>
                 </a>
 
                 <a href="#" class="sidebar-item flex items-center gap-4 px-4 py-3.5 rounded-2xl font-bold text-sm text-slate-500">
                     <i data-lucide="book-open" class="w-5 h-5"></i>
-                    เอกสารดาวน์โหลด
+                    <span class="sidebar-text">เอกสารดาวน์โหลด</span>
                 </a>
+                <?php endif; ?>
 
-                <?php if(session()->get('u_role') === 'admin'): ?>
-                    <div class="pt-8 text-[10px] font-bold text-slate-400 uppercase tracking-widest px-4 mb-4">ผู้ดูแลระบบ</div>
+                <?php if(strpos(session()->get('u_role'), 'superadmin') !== false): ?>
+                    <div class="sidebar-category-text pt-8 text-[10px] font-bold text-slate-400 uppercase tracking-widest px-4 mb-4">ผู้ดูแลระบบ</div>
                     <a href="<?= base_url('admin') ?>" class="sidebar-item flex items-center gap-4 px-4 py-3.5 rounded-2xl font-bold text-sm text-slate-500">
                         <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
-                        Dashboard แอดมิน
+                        <span class="sidebar-text">Dashboard แอดมิน</span>
                     </a>
                 <?php endif; ?>
             </nav>
 
             <!-- Sidebar Footer -->
-            <div class="p-6 border-t border-slate-100">
-                <a href="<?= base_url('auth/logout') ?>" class="flex items-center gap-4 px-4 py-3.5 rounded-2xl font-bold text-sm text-rose-500 hover:bg-rose-50 transition-colors">
+            <div class="p-6 border-t border-slate-100 overflow-hidden">
+                <a href="<?= base_url('auth/logout') ?>" class="sidebar-item flex items-center gap-4 px-4 py-3.5 rounded-2xl font-bold text-sm text-rose-500 hover:bg-rose-50 transition-colors">
                     <i data-lucide="log-out" class="w-5 h-5"></i>
-                    ออกจากระบบ
+                    <span class="sidebar-text">ออกจากระบบ</span>
                 </a>
             </div>
         </aside>
+
+        <!-- Sidebar Overlay (Mobile) -->
+        <div id="sidebar-overlay" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 lg:hidden"></div>
 
         <!-- Main Content Area -->
         <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
@@ -112,8 +147,11 @@
             <!-- Navbar -->
             <header class="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-8 shrink-0 z-20">
                 <div class="flex items-center gap-4">
-                    <button class="lg:hidden p-2 text-slate-400">
+                    <button id="mobile-sidebar-btn" class="lg:hidden p-2 text-slate-400">
                         <i data-lucide="menu" class="w-6 h-6"></i>
+                    </button>
+                    <button id="sidebar-collapse-btn" class="hidden lg:flex p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all rounded-lg">
+                        <i data-lucide="chevrons-left" class="w-6 h-6"></i>
                     </button>
                     <h1 class="text-xl font-black text-slate-900 leading-none">ยินดีต้อนรับ, <?= session()->get('u_fullname') ?></h1>
                 </div>
@@ -121,17 +159,21 @@
                 <div class="flex items-center gap-6">
                     <div class="hidden md:flex flex-col items-end text-right">
                         <span class="text-sm font-extrabold text-slate-900 leading-none"><?= session()->get('u_fullname') ?></span>
-                        <span class="text-[10px] font-bold text-blue-600 uppercase tracking-widest mt-1"><?= session()->get('u_role') === 'admin' ? 'Administrator' : 'Personnel' ?></span>
+                        <span class="text-[10px] font-bold text-blue-600 uppercase tracking-widest mt-1"><?= strpos(session()->get('u_role'), 'superadmin') !== false ? 'Super Administrator' : 'Personnel' ?></span>
                     </div>
-                    <div class="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center border border-slate-200 shadow-sm overflow-hidden">
-                        <i data-lucide="user" class="w-5 h-5 text-slate-400"></i>
+                    <div class="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center border border-slate-200 shadow-sm overflow-hidden shrink-0">
+                        <?php if(session()->get('u_photo')): ?>
+                            <img src="<?= base_url('uploads/personnel/' . session()->get('u_photo')) ?>" alt="Profile" class="w-full h-full object-cover">
+                        <?php else: ?>
+                            <i data-lucide="user" class="w-5 h-5 text-slate-400"></i>
+                        <?php endif; ?>
                     </div>
                 </div>
             </header>
 
             <!-- Dashboard Content -->
             <main class="flex-1 overflow-y-auto p-8 relative">
-                <div class="max-w-5xl mx-auto animate-[fadeIn_0.5s_ease-out]">
+                <div class="max-w-7xl mx-auto animate-[fadeIn_0.5s_ease-out]">
                     <?= $this->renderSection('content') ?>
                 </div>
             </main>
@@ -140,6 +182,62 @@
 
     <script>
         lucide.createIcons();
+
+        // Mobile Sidebar Toggle
+        const sidebarBtn = document.getElementById('mobile-sidebar-btn');
+        const sidebarMenu = document.getElementById('sidebar-menu');
+        const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+        if (sidebarBtn && sidebarMenu && sidebarOverlay) {
+            const toggleSidebar = () => {
+                sidebarMenu.classList.toggle('hidden');
+                sidebarOverlay.classList.toggle('hidden');
+                document.body.classList.toggle('overflow-hidden');
+            };
+
+            sidebarBtn.addEventListener('click', toggleSidebar);
+            sidebarOverlay.addEventListener('click', toggleSidebar);
+        }
+
+        // Desktop Sidebar Collapse Toggle
+        const collapseBtn = document.getElementById('sidebar-collapse-btn');
+        if (collapseBtn) {
+            collapseBtn.addEventListener('click', () => {
+                const isCollapsed = sidebarMenu.classList.toggle('sidebar-collapsed');
+                const icon = collapseBtn.querySelector('i');
+                if (isCollapsed) {
+                    icon.setAttribute('data-lucide', 'chevrons-right');
+                } else {
+                    icon.setAttribute('data-lucide', 'chevrons-left');
+                }
+                lucide.createIcons();
+            });
+        }
+
+        // Global SweetAlert2 Notifications
+        <?php if (session()->getFlashdata('success')): ?>
+            Swal.fire({
+                icon: 'success',
+                title: 'สำเร็จ!',
+                text: '<?= session()->getFlashdata('success') ?>',
+                timer: 3000,
+                showConfirmButton: false,
+                customClass: {
+                    popup: 'rounded-[2rem]',
+                }
+            });
+        <?php endif; ?>
+
+        <?php if (session()->getFlashdata('error')): ?>
+            Swal.fire({
+                icon: 'error',
+                title: 'เกิดข้อผิดพลาด',
+                text: '<?= session()->getFlashdata('error') ?>',
+                customClass: {
+                    popup: 'rounded-[2rem]',
+                }
+            });
+        <?php endif; ?>
     </script>
     <?= $this->renderSection('scripts') ?>
     

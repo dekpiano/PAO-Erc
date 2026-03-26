@@ -1,0 +1,332 @@
+<?= $this->extend('staff/layout/admin') ?>
+
+<?= $this->section('content') ?>
+
+<!-- Page Header -->
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
+    <div>
+        <h2 class="text-3xl font-black text-slate-900 tracking-tight">จัดการบุคลากร</h2>
+        <p class="text-sm text-slate-400 mt-1 font-medium">จัดการข้อมูลบุคลากร กองการศึกษา ศาสนาและวัฒนธรรม</p>
+    </div>
+    <button onclick="openModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-2xl font-black text-sm shadow-xl shadow-blue-600/20 hover:-translate-y-0.5 transition-all flex items-center gap-3">
+        <i data-lucide="plus-circle" class="w-5 h-5"></i> เพิ่มบุคลากรใหม่
+    </button>
+</div>
+
+<!-- Stats -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10">
+    <div class="glass-card rounded-2xl p-6 text-center">
+        <p class="text-3xl font-black text-blue-600"><?= count($users) ?></p>
+        <p class="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">ทั้งหมด</p>
+    </div>
+    <div class="glass-card rounded-2xl p-6 text-center">
+        <p class="text-3xl font-black text-purple-600"><?= count(array_filter($users, fn($u) => $u['u_division'] == 'ผู้บริหาร')) ?></p>
+        <p class="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">ผู้บริหาร</p>
+    </div>
+    <div class="glass-card rounded-2xl p-6 text-center">
+        <p class="text-3xl font-black text-emerald-600"><?= count(array_filter($users, fn($u) => $u['u_division'] == 'ฝ่ายบริหาร')) ?></p>
+        <p class="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">ฝ่ายบริหาร</p>
+    </div>
+    <div class="glass-card rounded-2xl p-6 text-center">
+        <p class="text-3xl font-black text-amber-600"><?= count(array_filter($users, fn($u) => $u['u_division'] == 'ฝ่ายส่งเสริม')) ?></p>
+        <p class="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">ฝ่ายส่งเสริม</p>
+    </div>
+</div>
+
+<!-- Personnel Table -->
+<div class="glass-card rounded-[2rem] overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left">
+            <thead>
+                <tr class="border-b border-slate-100">
+                    <th class="p-5 text-[10px] font-black uppercase tracking-widest text-slate-400">ลำดับ</th>
+                    <th class="p-5 text-[10px] font-black uppercase tracking-widest text-slate-400">บุคลากร</th>
+                    <th class="p-5 text-[10px] font-black uppercase tracking-widest text-slate-400">สังกัด/ฝ่าย</th>
+                    <th class="p-5 text-[10px] font-black uppercase tracking-widest text-slate-400">ข้อมูลระบบ</th>
+                    <th class="p-5 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">จัดการ</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-50">
+                <?php foreach($users as $user): ?>
+                <tr class="hover:bg-blue-50/30 transition-all <?= ($user['u_status'] ?? 'active') == 'inactive' ? 'opacity-40' : '' ?>">
+                    <td class="p-5 text-slate-300 font-mono text-xs font-black"><?= $user['u_sort'] ?? 99 ?></td>
+                    <td class="p-5">
+                        <div class="flex items-center gap-4">
+                            <div class="w-14 h-14 rounded-2xl bg-slate-100 overflow-hidden flex items-center justify-center shrink-0 border-2 border-slate-50">
+                                <?php if(!empty($user['u_photo'])): ?>
+                                    <img src="<?= base_url('uploads/personnel/' . $user['u_photo']) ?>" class="w-full h-full object-cover">
+                                <?php else: ?>
+                                    <i data-lucide="user" class="w-7 h-7 text-slate-300"></i>
+                                <?php endif; ?>
+                            </div>
+                            <div>
+                                <p class="font-black text-slate-800 leading-tight"><?= $user['u_prefix'] ?? '' ?><?= $user['u_fullname'] ?></p>
+                                <p class="text-[11px] text-blue-600 font-bold mt-1">
+                                    <?= $user['u_position'] ?: 'ไม่ระบุตำแหน่ง' ?> 
+                                    <?php if(!empty($user['u_level']) && $user['u_level'] !== 'ไม่มีระดับ'): ?>
+                                        <span class="text-slate-400 font-medium">(<?= $user['u_level'] ?>)</span>
+                                    <?php endif; ?>
+                                </p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="p-5">
+                        <?php 
+                            $divColor = match($user['u_division'] ?? '') {
+                                'ผู้บริหาร' => 'bg-purple-50 text-purple-600 border-purple-100',
+                                'ฝ่ายบริหาร' => 'bg-emerald-50 text-emerald-600 border-emerald-100',
+                                'ฝ่ายส่งเสริม' => 'bg-amber-50 text-amber-600 border-amber-100',
+                                default => 'bg-slate-50 text-slate-500 border-slate-100'
+                            };
+                        ?>
+                        <span class="text-[10px] font-black px-3 py-1.5 rounded-full border <?= $divColor ?>">
+                            <?= $user['u_division'] ?: 'ยังไม่ระบุ' ?>
+                        </span>
+                        <?php if(!empty($user['u_phone'])): ?>
+                            <p class="text-[10px] text-slate-400 mt-2"><i data-lucide="phone" class="w-3 h-3 inline"></i> <?= $user['u_phone'] ?></p>
+                        <?php endif; ?>
+                    </td>
+                    <td class="p-5">
+                        <code class="text-[10px] bg-slate-100 px-2 py-1 rounded-lg text-slate-500 font-mono"><?= $user['u_email'] ?: 'No Email' ?></code>
+                        <div class="flex flex-wrap gap-1 mt-2">
+                            <?php foreach(explode(',', $user['u_role']) as $role): ?>
+                                <span class="bg-blue-50 text-blue-600 border border-blue-100 text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md">
+                                    <?= trim($role) ?>
+                                </span>
+                            <?php endforeach; ?>
+                        </div>
+                    </td>
+                    <td class="p-5 text-right">
+                        <div class="flex justify-end gap-2">
+                            <button onclick='editUser(<?= json_encode($user) ?>)' class="w-10 h-10 flex items-center justify-center bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-xl transition-all" title="แก้ไข">
+                                <i data-lucide="edit-3" class="w-4 h-4"></i>
+                            </button>
+                            <?php if($user['u_username'] !== 'admin'): ?>
+                            <button onclick="confirmDelete(<?= $user['u_id'] ?>)" class="w-10 h-10 flex items-center justify-center bg-red-50 text-red-500 hover:bg-red-600 hover:text-white rounded-xl transition-all" title="ลบ">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                            <?php endif; ?>
+                        </div>
+                    </td>
+                </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal -->
+<div id="userModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[70] hidden flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-3xl rounded-[2.5rem] overflow-hidden shadow-2xl animate-[fadeIn_0.3s_ease-out]">
+        <!-- Modal Header -->
+        <div class="bg-gradient-to-r from-blue-600 to-indigo-700 p-8 text-white">
+            <h3 id="modalTitle" class="text-2xl font-black">เพิ่มบุคลากรใหม่</h3>
+            <p class="text-blue-200 text-xs font-bold uppercase tracking-widest mt-1">Personnel Registration</p>
+        </div>
+        
+        <form action="<?= base_url('staff/personnel/save') ?>" method="post" enctype="multipart/form-data" class="p-8">
+            <input type="hidden" name="u_id" id="u_id">
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                
+                <!-- ชื่อ -->
+                <div class="md:col-span-2 grid grid-cols-4 gap-4">
+                    <div class="col-span-1">
+                        <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">คำนำหน้า</label>
+                        <select name="u_prefix" id="u_prefix" class="w-full border border-slate-200 rounded-xl px-4 py-3 text-slate-700 font-bold focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all">
+                            <option value="นาย">นาย</option>
+                            <option value="นาง">นาง</option>
+                            <option value="นางสาว">นางสาว</option>
+                            <option value="ดร.">ดร.</option>
+                            <option value="ว่าที่ ร.ต.">ว่าที่ ร.ต.</option>
+                        </select>
+                    </div>
+                    <div class="col-span-3">
+                        <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">ชื่อ-นามสกุล</label>
+                        <input type="text" name="u_fullname" id="u_fullname" required placeholder="ชื่อ นามสกุล"
+                            class="w-full border border-slate-200 rounded-xl px-4 py-3 text-slate-700 font-bold focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all">
+                    </div>
+                </div>
+
+                <!-- ตำแหน่ง -->
+                <div>
+                    <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">ตำแหน่ง</label>
+                    <input type="text" name="u_position" id="u_position" placeholder="เช่น ผู้อำนวยการกองการศึกษา"
+                        class="w-full border border-slate-200 rounded-xl px-4 py-3 text-slate-700 font-bold focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all">
+                </div>
+
+                <!-- ฝ่าย -->
+                <div>
+                    <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">สังกัด / ฝ่าย</label>
+                    <select name="u_division" id="u_division" class="w-full border border-slate-200 rounded-xl px-4 py-3 text-slate-700 font-bold focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all">
+                        <option value="ผู้บริหาร">ผู้บริหารกอง</option>
+                        <option value="ฝ่ายบริหาร">ฝ่ายบริหารงานทั่วไป</option>
+                        <option value="ฝ่ายส่งเสริม">ฝ่ายส่งเสริมการศึกษาฯ</option>
+                    </select>
+                </div>
+
+                <!-- ระดับตำแหน่ง -->
+                <div>
+                    <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">ระดับ / วิทยฐานะ</label>
+                    <select name="u_level" id="u_level" class="w-full border border-slate-200 rounded-xl px-4 py-3 text-slate-700 font-bold focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all">
+                        <option value="ไม่มีระดับ">- ไม่มีระดับ -</option>
+                        <option value="ปฏิบัติงาน">ปฏิบัติงาน (ปง.)</option>
+                        <option value="ชำนาญงาน">ชำนาญงาน (ชง.)</option>
+                        <option value="อาวุธโส">อาวุโส</option>
+                        <option value="ทักษะพิเศษ">ทักษะพิเศษ</option>
+                        <option value="ปฏิบัติการ">ปฏิบัติการ (ปก.)</option>
+                        <option value="ชำนาญการ">ชำนาญการ (ชก.)</option>
+                        <option value="ชำนาญการพิเศษ">ชำนาญการพิเศษ (ชพ.)</option>
+                        <option value="เชี่ยวชาญ">เชี่ยวชาญ (ชช.)</option>
+                        <option value="ทรงคุณวุฒิ">ทรงคุณวุฒิ</option>
+                        <option value="ลูกจ้างประจำ">ลูกจ้างประจำ</option>
+                        <option value="พนักงานจ้างตามภารกิจ">พนักงานจ้างตามภารกิจ</option>
+                        <option value="พนักงานจ้างทั่วไป">พนักงานจ้างทั่วไป</option>
+                    </select>
+                </div>
+
+                <!-- Email (ใช้สำหรับ Google Login) -->
+                <div>
+                    <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Email (สำหรับล็อกอิน Google)</label>
+                    <input type="email" name="u_email" id="u_email" required placeholder="example@erc.go.th"
+                        class="w-full border border-slate-200 rounded-xl px-4 py-3 text-blue-600 font-black focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all">
+                </div>
+
+
+
+                <!-- เบอร์โทร -->
+                <div>
+                    <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">เบอร์โทรศัพท์</label>
+                    <input type="text" name="u_phone" id="u_phone" placeholder="0x-xxx-xxxx"
+                        class="w-full border border-slate-200 rounded-xl px-4 py-3 text-slate-700 font-bold focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all">
+                </div>
+
+                <!-- สิทธิ์ -->
+                <div>
+                    <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">สิทธิ์ระบบ (เลือกได้มากกว่า 1)</label>
+                    <div class="grid grid-cols-2 gap-3 mt-2">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" name="u_role[]" value="user" class="role-checkbox w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500">
+                            <span class="text-xs font-bold text-slate-700">พนักงาน (User)</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" name="u_role[]" value="head" class="role-checkbox w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500">
+                            <span class="text-xs font-bold text-slate-700">หัวหน้า (Head)</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" name="u_role[]" value="director" class="role-checkbox w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500">
+                            <span class="text-xs font-bold text-slate-700">ผอ. (Director)</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" name="u_role[]" value="admin" class="role-checkbox w-4 h-4 text-red-500 rounded border-slate-300 focus:ring-red-500">
+                            <span class="text-xs font-bold text-red-600">แอดมิน (Admin)</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer col-span-2">
+                            <input type="checkbox" name="u_role[]" value="superadmin" class="role-checkbox w-4 h-4 text-purple-600 rounded border-slate-300 focus:ring-purple-600">
+                            <span class="text-xs font-bold text-purple-700">ผู้ดูแลระบบสูงสุด (Super Admin)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- ลำดับ + สถานะ -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">ลำดับแสดงผล</label>
+                        <input type="number" name="u_sort" id="u_sort" value="99"
+                            class="w-full border border-slate-200 rounded-xl px-4 py-3 text-slate-700 font-bold focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">สถานะ</label>
+                        <select name="u_status" id="u_status" class="w-full border border-slate-200 rounded-xl px-4 py-3 text-slate-700 font-bold focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all">
+                            <option value="active">ปฏิบัติงาน</option>
+                            <option value="inactive">พ้นสภาพ</option>
+                        </select>
+                    </div>
+                </div>
+
+
+
+                <!-- รูปภาพ -->
+                <div class="md:col-span-2">
+                    <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">รูปถ่ายบุคลากร</label>
+                    <input type="file" name="u_photo" id="u_photo_input" accept="image/*"
+                        class="w-full border border-slate-200 rounded-xl px-4 py-3 text-slate-700 font-bold focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-black file:bg-blue-600 file:text-white hover:file:bg-blue-700">
+                </div>
+
+            </div>
+
+            <!-- Buttons -->
+            <div class="mt-10 flex gap-4">
+                <button type="button" onclick="closeModal()" class="flex-1 bg-slate-100 text-slate-600 py-4 rounded-2xl font-black text-sm hover:bg-slate-200 transition-all">ยกเลิก</button>
+                <button type="submit" class="flex-1 bg-blue-600 text-white py-4 rounded-2xl font-black text-sm shadow-xl shadow-blue-600/20 hover:bg-blue-700 transition-all">บันทึกข้อมูล</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<?= $this->endSection() ?>
+
+<?= $this->section('scripts') ?>
+<script>
+    function openModal() {
+        document.getElementById('modalTitle').textContent = 'เพิ่มบุคลากรใหม่';
+        document.getElementById('u_id').value = '';
+        document.getElementById('u_email').value = '';
+        document.getElementById('u_fullname').value = '';
+        document.getElementById('u_prefix').value = 'นาย';
+        document.getElementById('u_position').value = '';
+        document.getElementById('u_level').value = 'ไม่มีระดับ';
+        document.getElementById('u_division').value = 'ฝ่ายบริหาร';
+        document.getElementById('u_phone').value = '';
+        document.getElementById('u_sort').value = '99';
+        document.getElementById('u_status').value = 'active';
+        document.querySelectorAll('.role-checkbox').forEach(cb => {
+            cb.checked = (cb.value === 'user');
+        });
+        document.getElementById('userModal').classList.remove('hidden');
+    }
+
+    function closeModal() {
+        document.getElementById('userModal').classList.add('hidden');
+    }
+
+    function editUser(user) {
+        document.getElementById('modalTitle').textContent = 'แก้ไขข้อมูลบุคลากร';
+        document.getElementById('u_id').value = user.u_id;
+        document.getElementById('u_email').value = user.u_email || '';
+        document.getElementById('u_fullname').value = user.u_fullname;
+        document.getElementById('u_prefix').value = user.u_prefix || 'นาย';
+        document.getElementById('u_position').value = user.u_position || '';
+        document.getElementById('u_level').value = user.u_level || 'ไม่มีระดับ';
+        document.getElementById('u_division').value = user.u_division || 'ฝ่ายบริหาร';
+        document.getElementById('u_phone').value = user.u_phone || '';
+        document.getElementById('u_sort').value = user.u_sort || '99';
+        document.getElementById('u_status').value = user.u_status || 'active';
+        
+        const userRoles = (user.u_role || '').split(',').map(r => r.trim());
+        document.querySelectorAll('.role-checkbox').forEach(cb => {
+            cb.checked = userRoles.includes(cb.value);
+        });
+
+        document.getElementById('userModal').classList.remove('hidden');
+    }
+
+    function confirmDelete(id) {
+        Swal.fire({
+            title: 'ยืนยันการลบ?',
+            text: "คุณต้องการลบบุคลากรคนนี้ออกจากระบบใช่หรือไม่?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#94a3b8',
+            confirmButtonText: 'ใช่, ลบเลย!',
+            cancelButtonText: 'ยกเลิก',
+            customClass: { popup: 'rounded-[2rem]' }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = `<?= base_url('staff/personnel/delete/') ?>${id}`;
+            }
+        })
+    }
+</script>
+<?= $this->endSection() ?>
