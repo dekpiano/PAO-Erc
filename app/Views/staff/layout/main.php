@@ -169,7 +169,9 @@
                 <div class="flex items-center gap-6">
                     <div class="hidden md:flex flex-col items-end text-right">
                         <span class="text-sm font-extrabold text-slate-900 leading-none"><?= session()->get('u_fullname') ?></span>
-                        <span class="text-[10px] font-bold text-blue-600 uppercase tracking-widest mt-1"><?= strpos(session()->get('u_role'), 'superadmin') !== false ? 'Super Administrator' : 'Personnel' ?></span>
+                        <span class="text-[10px] font-bold text-blue-600 uppercase tracking-widest mt-1">
+                            <?= session()->get('u_position') ?>
+                        </span>
                     </div>
                     <div class="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center border border-slate-200 shadow-sm overflow-hidden shrink-0">
                         <?php if(session()->get('u_photo')): ?>

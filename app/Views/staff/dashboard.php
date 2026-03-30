@@ -26,7 +26,7 @@
                     <p class="text-blue-100 font-bold text-xs uppercase tracking-widest mb-1">โปรไฟล์บุคลากร</p>
                     <h3 class="text-2xl font-black mb-1"><?= $fullname ?></h3>
                     <span class="px-2 py-0.5 bg-white/20 rounded-lg text-[9px] font-black uppercase tracking-wider backdrop-blur-md">
-                        <?= strpos(session()->get('u_role'), 'superadmin') !== false ? 'Super Administrator' : 'Personnel' ?>
+                        <?= session()->get('u_position') ?>
                     </span>
                 </div>
             </div>

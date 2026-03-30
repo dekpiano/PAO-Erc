@@ -21,7 +21,7 @@ class Admin extends Controller
         
         $db      = \Config\Database::connect();
         $builder = $db->table('Tb_Attendance');
-        $builder->select('Tb_Attendance.*, Tb_Users.u_fullname, Tb_Users.u_username');
+        $builder->select('Tb_Attendance.*, Tb_Users.u_fullname, Tb_Users.u_username, Tb_Users.u_position');
         $builder->join('Tb_Users', 'Tb_Users.u_id = Tb_Attendance.atd_user_id');
         
         // Date Filter
@@ -209,7 +209,7 @@ class Admin extends Controller
         fputs($file, $bom = (chr(0xEF) . chr(0xBB) . chr(0xBF)));
 
         // Column headers
-        $header = ['ลำดับ', 'ชื่อ-นามสกุล', 'Username', 'ประเภท', 'วันที่/เวลา', 'พิกัด', 'หมายเหตุ'];
+        $header = ['ลำดับ', 'ชื่อ-นามสกุล', 'Username', 'ตำแหน่ง', 'ประเภท', 'วันที่/เวลา', 'พิกัด', 'หมายเหตุ'];
         fputcsv($file, $header);
 
         $i = 1;
@@ -219,6 +219,7 @@ class Admin extends Controller
                 $i++,
                 $row['u_fullname'],
                 $row['u_username'],
+                $row['u_position'] ?: 'บุคลากร',
                 $type,
                 $row['atd_timestamp'],
                 $row['atd_location'],

@@ -16,10 +16,11 @@
                 <div id="location-status" class="flex items-center justify-center gap-2 mb-8 text-[11px] font-black uppercase tracking-[0.2em]">
                     <span id="gps-dot" class="w-2.5 h-2.5 rounded-full bg-slate-300 shadow-[0_0_10px_rgba(0,0,0,0.1)] transition-all duration-300"></span>
                     <span id="gps-text" class="text-slate-400">กำลังตรวจสอบตำแหน่ง (GPS)</span>
-                    <a href="javascript:void(0)" onclick="getGPS()" class="text-blue-600 underline ml-2 hover:text-blue-500">ขอสิทธิ์ใหม่</a>
+                    <a href="javascript:void(0)" onclick="getGPS(true)" class="text-blue-600 underline ml-2 hover:text-blue-500">ขอสิทธิ์ใหม่</a>
                 </div>
 
                 <div class="mb-10">
+                    <p class="text-[10px] text-blue-600 font-bold uppercase tracking-[0.3em] mb-2"><?= session()->get('u_position') ?></p>
                     <h1 id="live-clock" class="text-6xl md:text-8xl font-black text-slate-900 tracking-tighter mb-4 drop-shadow-sm">
                         00:00:00
                     </h1>
@@ -61,15 +62,22 @@
                     <?php else: ?>
                         <?php foreach($history as $item): ?>
                             <div class="group flex items-center justify-between p-5 bg-slate-50 border border-slate-100 rounded-[1.5rem] hover:bg-slate-100 transition-all">
-                                <div class="flex flex-col gap-1">
+                                <div class="flex flex-col gap-1 flex-1">
                                     <span class="text-[10px] uppercase font-black px-2 py-0.5 rounded-full w-max <?= $item['atd_type'] == 'check_in' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600' ?>">
                                         <?= $item['atd_type'] == 'check_in' ? 'เข้างาน' : 'ออกงาน' ?>
                                     </span>
                                     <span class="text-xl font-black text-slate-900 leading-tight">
                                         <?= date('H:i:s', strtotime($item['atd_timestamp'])) ?>
                                     </span>
+                                    <?php if($item['atd_location']): ?>
+                                        <a href="https://www.google.com/maps?q=<?= $item['atd_location'] ?>" target="_blank" class="text-[10px] text-blue-500 font-black hover:underline flex items-center gap-1 mt-1 uppercase tracking-widest">
+                                            <i data-lucide="map-pin" class="w-3 h-3"></i> คลิกดูแผนที่
+                                        </a>
+                                    <?php endif; ?>
                                 </div>
-                                <p class="text-[11px] text-slate-400 font-bold"><?= thai_date($item['atd_timestamp']) ?></p>
+                                <div class="text-right">
+                                    <p class="text-[11px] text-slate-400 font-bold"><?= thai_date($item['atd_timestamp']) ?></p>
+                                </div>
                             </div>
                         <?php endforeach; ?>
                     <?php endif; ?>
@@ -97,17 +105,38 @@
 
     let userLocation = null;
 
-    function getGPS() {
+    let watchId = null;
+
+    function getGPS(isManual = false) {
         const dot = document.getElementById('gps-dot');
         const text = document.getElementById('gps-text');
         
+        // Reset Visuals
+        dot.classList.remove('bg-emerald-500', 'bg-red-500', 'shadow-emerald-500/80');
+        dot.classList.add('bg-slate-300', 'animate-pulse');
+        text.innerHTML = '<span class="animate-pulse">กำลังตรวจสอบพิกัดล่าสุด...</span>';
+        
+        if (isManual) {
+            Swal.fire({
+                title: 'กำลังเชื่อมต่อ GPS...',
+                text: 'กรุณาสังเกตแถบแจ้งเตือนของเบราว์เซอร์เพื่ออนุญาตการเข้าถึง',
+                allowOutsideClick: false,
+                showConfirmButton: false,
+                didOpen: () => { Swal.showLoading(); }
+            });
+        }
+
         if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition((position) => {
+            if (watchId) navigator.geolocation.clearWatch(watchId);
+
+            watchId = navigator.geolocation.watchPosition((position) => {
+                if (isManual) Swal.close();
+                
                 const lat = position.coords.latitude;
                 const lng = position.coords.longitude;
+                const accuracy = position.coords.accuracy;
                 userLocation = `${lat},${lng}`;
                 
-                // --- Geofencing ---
                 const officePos = "<?= $office_location ?>".split(',');
                 const officeLat = parseFloat(officePos[0]);
                 const officeLng = parseFloat(officePos[1]);
@@ -115,28 +144,50 @@
                 
                 const dist = getDistance(lat, lng, officeLat, officeLng);
                 
-                dot.classList.remove('bg-red-500', 'shadow-red-500/50');
+                dot.classList.remove('bg-red-500', 'shadow-red-500/50', 'bg-slate-300', 'animate-pulse');
                 dot.classList.add('bg-emerald-500', 'shadow-emerald-500/80');
                 
+                let accuracyColor = accuracy > 100 ? 'text-rose-400' : (accuracy > 30 ? 'text-amber-400' : 'text-emerald-400');
+                let accuracyText = `ความแม่นยำ: <span class="${accuracyColor} font-bold">±${accuracy.toFixed(0)} ม.</span>`;
+
                 if (dist > maxDist) {
-                    text.innerHTML = `ระยะห่าง: <span class="text-rose-400 font-bold">${dist.toFixed(0)} ม.</span> (เกินรัศมี ${maxDist} ม.)`;
-                    text.classList.remove('text-white/40');
+                    text.innerHTML = `พิกัด <a href="https://www.google.com/maps?q=${userLocation}" target="_blank" class="text-blue-600 font-black underline decoration-dotted hover:text-blue-700 transition-colors uppercase tracking-widest text-[10px]">คลิกดูพิกัด</a><br>ระยะห่าง: <span class="text-rose-400 font-bold">${dist.toFixed(0)} ม.</span> (เกินรัศมี ${maxDist} ม.)<br>${accuracyText}`;
+                    text.classList.remove('text-rose-400');
                     text.classList.add('text-rose-400');
                     userLocation = "too_far"; 
                 } else {
-                    text.innerHTML = `ระยะห่าง: <span class="text-emerald-400 font-bold">${dist.toFixed(0)} ม.</span> (อยู่ในรัศมี)`;
-                    text.classList.remove('text-white/40', 'text-rose-400');
+                    text.innerHTML = `พิกัด <a href="https://www.google.com/maps?q=${userLocation}" target="_blank" class="text-blue-600 font-black underline decoration-dotted hover:text-blue-700 transition-colors uppercase tracking-widest text-[10px]">คลิกดูพิกัด</a><br>ระยะห่าง: <span class="text-emerald-400 font-bold">${dist.toFixed(0)} ม.</span> (อยู่ในรัศมี)<br>${accuracyText}`;
+                    text.classList.remove('text-rose-400');
                     text.classList.add('text-emerald-400');
                 }
                 
                 document.getElementById('attendance-location').value = userLocation;
             }, (error) => {
+                if (isManual) Swal.close();
+                dot.classList.remove('animate-pulse');
                 dot.classList.add('bg-red-500');
-                text.textContent = 'กรุณาอนุญาตพิกัดก่อนลงเวลา';
+                
+                let errorMsg = 'กรุณาอนุญาตพิกัดก่อนลงเวลา';
+                if (error.code === 1) { // PERMISSION_DENIED
+                    errorMsg = 'ถูกปฏิเสธการเข้าถึง GPS โปรดแก้ไขการตั้งค่าในเบราว์เซอร์';
+                    if (isManual) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'เข้าถึงตำแหน่งไม่ได้',
+                            html: '<p class="text-sm">คุณได้ปิดกั้นการเข้าถึงพิกัดไว้<br><b>วิธีแก้ไข:</b> คลิกไอคอนรูปกุญแจ 🔒 ที่แถบที่อยู่เว็บด้านบน แล้วกดเปิด "ตำแหน่ง" (Location)</p>',
+                            confirmButtonText: 'เข้าใจแล้ว',
+                            confirmButtonColor: '#3b82f6'
+                        });
+                    }
+                } else if (error.code === 3) {
+                    errorMsg = 'ค้นหาตำแหน่งนานเกินไป กรุณาลองใหม่';
+                }
+                
+                text.innerHTML = `<span class="text-rose-500">${errorMsg}</span>`;
                 console.error("GPS Error:", error);
             }, {
                 enableHighAccuracy: true,
-                timeout: 10000,
+                timeout: 20000,
                 maximumAge: 0
             });
         }

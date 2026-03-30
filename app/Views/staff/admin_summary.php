@@ -115,7 +115,11 @@
                                     </div>
                                     <div>
                                         <p class="font-black text-slate-800 leading-none mb-1.5"><?= $atd['u_fullname'] ?></p>
-                                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-none">ID: #<?= $atd['u_username'] ?></p>
+                                        <div class="flex items-center gap-2">
+                                            <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest leading-none">ID: #<?= $atd['u_username'] ?></p>
+                                            <span class="w-1 h-1 bg-slate-200 rounded-full"></span>
+                                            <p class="text-[9px] text-blue-500 font-black uppercase tracking-widest leading-none"><?= $atd['u_position'] ?: 'บุคลากร' ?></p>
+                                        </div>
                                     </div>
                                 </div>
                             </td>
@@ -170,7 +174,10 @@
                                         <i data-lucide="map-pin" class="w-4 h-4"></i>
                                     </div>
                                     <div class="max-w-[150px]">
-                                        <p class="text-[11px] font-bold text-slate-700 truncate mb-0.5" title="<?= $atd['atd_location'] ?>"><?= $atd['atd_location'] ?></p>
+                                        <a href="https://www.google.com/maps?q=<?= $atd['atd_location'] ?>" target="_blank" 
+                                           class="text-[10px] font-black text-blue-600 hover:text-blue-700 transition-colors flex items-center gap-1 uppercase tracking-widest" title="<?= $atd['atd_location'] ?>">
+                                            <i data-lucide="map-pin" class="w-3 h-3"></i> คลิกดูแผนที่
+                                        </a>
                                         <p class="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">IP: <?= $atd['atd_ip'] ?></p>
                                     </div>
                                 </div>
