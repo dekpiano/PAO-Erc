@@ -25,6 +25,7 @@
                         <th class="px-8 py-5 text-xs font-black uppercase tracking-wider text-slate-400">หมวดหมู่</th>
                         <th class="px-8 py-5 text-xs font-black uppercase tracking-wider text-slate-400">สถานะ</th>
                         <th class="px-8 py-5 text-xs font-black uppercase tracking-wider text-slate-400">วันที่สร้าง</th>
+                        <th class="px-8 py-5 text-xs font-black uppercase tracking-wider text-slate-400">ผู้ลงข่าว</th>
                         <th class="px-8 py-5 text-xs font-black uppercase tracking-wider text-slate-400">ยอดชม</th>
                         <th class="px-8 py-5 text-xs font-black uppercase tracking-wider text-slate-400 text-right">จัดการ</th>
                     </tr>
@@ -32,8 +33,8 @@
                 <tbody class="divide-y divide-slate-100">
                     <?php if(empty($news)): ?>
                         <tr>
-                            <td colspan="6" class="px-8 py-12 text-center text-slate-400 font-medium">
-                                ไม่พบข้อมูลข่าวสารที่คุณเพิ่มไว้
+                            <td colspan="7" class="px-8 py-12 text-center text-slate-400 font-medium">
+                                ไม่พบข้อมูลข่าวสารในระบบ
                             </td>
                         </tr>
                     <?php else: ?>
@@ -76,18 +77,26 @@
                                         </span>
                                     <?php endif; ?>
                                 </td>
-                                <td class="px-8 py-6 text-sm text-slate-500 font-medium">
+                                <td class="px-8 py-6 text-sm text-slate-500 font-medium whitespace-nowrap">
                                     <?= date('d/m/Y', strtotime($item['news_created_at'])) ?>
+                                </td>
+                                <td class="px-8 py-6">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-6 h-6 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 text-[10px] font-black uppercase shadow-sm">
+                                            <?= strtoupper(substr($item['author_name'] ?? 'U', 0, 1)) ?>
+                                        </div>
+                                        <span class="text-xs font-bold text-slate-600"><?= $item['author_name'] ?? 'Unknown' ?></span>
+                                    </div>
                                 </td>
                                 <td class="px-8 py-6 text-sm text-slate-800 font-black">
                                     <?= number_format($item['news_view_count']) ?>
                                 </td>
                                 <td class="px-8 py-6 text-right">
                                     <div class="flex items-center justify-end gap-2">
-                                        <a href="<?= base_url('staff/news/edit/' . $item['news_id']) ?>" class="w-9 h-9 bg-slate-100 text-slate-600 rounded-xl flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all">
+                                        <a href="<?= base_url('staff/news/edit/' . $item['news_id']) ?>" class="w-9 h-9 bg-slate-100 text-slate-600 rounded-xl flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all shadow-sm">
                                             <i data-lucide="edit-3" class="w-4.5 h-4.5"></i>
                                         </a>
-                                        <button onclick="confirmDelete('<?= base_url('staff/news/delete/' . $item['news_id']) ?>')" class="w-9 h-9 bg-slate-100 text-slate-400 rounded-xl flex items-center justify-center hover:bg-rose-600 hover:text-white transition-all">
+                                        <button onclick="confirmDelete('<?= base_url('staff/news/delete/' . $item['news_id']) ?>')" class="w-9 h-9 bg-slate-100 text-slate-400 rounded-xl flex items-center justify-center hover:bg-rose-600 hover:text-white transition-all shadow-sm">
                                             <i data-lucide="trash-2" class="w-4.5 h-4.5"></i>
                                         </button>
                                     </div>

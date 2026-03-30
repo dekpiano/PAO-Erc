@@ -28,12 +28,13 @@ class Staff extends Controller
     public function news()
     {
         if (strpos(session()->get('u_role') ?? '', 'admin') === false) return redirect()->to(base_url('staff'))->with('error', 'ไม่มีสิทธิ์เข้าถึง');
-        $userId = session()->get('u_id');
+        
         $newsModel = new \App\Models\NewsModel();
         
         $data['title'] = "จัดการข่าวสาร | อบจ.นครสวรรค์";
         $data['fullname'] = session()->get('u_fullname');
-        $data['news'] = $newsModel->where('news_created_by', $userId)
+        $data['news'] = $newsModel->select('Tb_News.*, Tb_Users.u_fullname as author_name')
+                                 ->join('Tb_Users', 'Tb_Users.u_id = Tb_News.news_created_by', 'left')
                                  ->orderBy('news_created_at', 'DESC')
                                  ->findAll();
                                  
@@ -189,7 +190,7 @@ class Staff extends Controller
         $newsModel = new \App\Models\NewsModel();
         $galleryModel = new \App\Models\NewsGalleryModel();
         
-        $news = $newsModel->where('news_id', $id)->where('news_created_by', $userId)->first();
+        $news = $newsModel->where('news_id', $id)->first();
         if (!$news) {
             return redirect()->to(base_url('staff/news'))->with('error', 'ไม่พบข้อมูลที่ต้องการแก้ไข');
         }
@@ -209,7 +210,7 @@ class Staff extends Controller
         $galleryModel = new \App\Models\NewsGalleryModel();
         $userId = session()->get('u_id');
         
-        $news = $newsModel->where('news_id', $id)->where('news_created_by', $userId)->first();
+        $news = $newsModel->where('news_id', $id)->first();
         if (!$news) {
             return redirect()->to(base_url('staff/news'))->with('error', 'ไม่พบข้อมูลที่ต้องการแก้ไข');
         }
@@ -341,7 +342,7 @@ class Staff extends Controller
         $galleryModel = new \App\Models\NewsGalleryModel();
         $userId = session()->get('u_id');
         
-        $news = $newsModel->where('news_id', $id)->where('news_created_by', $userId)->first();
+        $news = $newsModel->where('news_id', $id)->first();
         if ($news) {
             // Delete Cover
             if ($news['news_cover']) {
