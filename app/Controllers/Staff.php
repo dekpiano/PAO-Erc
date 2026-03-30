@@ -364,6 +364,485 @@ class Staff extends Controller
     }
 
     // ================================================================
+    // 🎓 SCHOLARSHIP MANAGEMENT
+    // ================================================================
+
+    public function scholarships()
+    {
+        if (strpos(session()->get('u_role') ?? '', 'admin') === false) return redirect()->to(base_url('staff'))->with('error', 'ไม่มีสิทธิ์เข้าถึง');
+        $schModel = new \App\Models\ScholarshipModel();
+        
+        $data['title'] = "จัดการทุนการศึกษา | อบจ.นครสวรรค์";
+        $data['fullname'] = session()->get('u_fullname');
+        $data['scholarships'] = $schModel->orderBy('sch_created_at', 'DESC')->findAll();
+        
+        return view('staff/scholarships/staff_sch_index', $data);
+    }
+
+    public function scholarshipBookingIndex()
+    {
+        if (strpos(session()->get('u_role') ?? '', 'admin') === false) return redirect()->to(base_url('staff'))->with('error', 'ไม่มีสิทธิ์เข้าถึง');
+        
+        $model = new \App\Models\ScholarshipModel();
+        $bookingModel = new \App\Models\ScholarshipBookingModel();
+        
+        // Show only active scholarships for booking management
+        $scholarships = $model->where('sch_status', 'published')->orderBy('sch_created_at', 'DESC')->findAll();
+        
+        foreach ($scholarships as &$sch) {
+            // นับจำนวนการจอง (ทั้งหมด) สำหรับทุนนี้
+            $sch['total_bookings'] = $bookingModel->join('Tb_Scholarship_Slots as s', 's.slot_id = bk_slot_id')
+                                                 ->where('s.slot_scholarship_id', $sch['sch_id'])
+                                                 ->countAllResults();
+
+            // นับจำนวนการจองที่ค้างอยู่ (Pending) สำหรับทุนนี้
+            $sch['pending_bookings'] = $bookingModel->join('Tb_Scholarship_Slots as s2', 's2.slot_id = bk_slot_id')
+                                                   ->where(['s2.slot_scholarship_id' => $sch['sch_id'], 'bk_status' => 'pending'])
+                                                   ->countAllResults();
+        }
+
+        $data['scholarships'] = $scholarships;
+        $data['title'] = 'จัดการคิวจองทุน';
+        $data['fullname'] = session()->get('u_fullname');
+        return view('staff/scholarships/staff_sch_booking_index', $data);
+    }
+
+    public function scholarshipCreate()
+    {
+        if (strpos(session()->get('u_role') ?? '', 'admin') === false) return redirect()->to(base_url('staff'))->with('error', 'ไม่มีสิทธิ์เข้าถึง');
+        $data['title'] = "เพิ่มทุนการศึกษาใหม่ | อบจ.นครสวรรค์";
+        $data['fullname'] = session()->get('u_fullname');
+        return view('staff/scholarships/staff_sch_create', $data);
+    }
+
+    public function scholarshipStore()
+    {
+        if (strpos(session()->get('u_role') ?? '', 'admin') === false) return redirect()->to(base_url('staff'))->with('error', 'ไม่มีสิทธิ์เข้าถึง');
+        $schModel = new \App\Models\ScholarshipModel();
+        $userId = session()->get('u_id');
+        
+        $rules = [
+            'sch_title' => 'required|min_length[5]',
+            'sch_content' => 'required',
+        ];
+
+        $coverFile = $this->request->getFile('sch_cover');
+        if ($coverFile && $coverFile->isValid()) {
+            $rules['sch_cover'] = 'is_image[sch_cover]|max_size[sch_cover,2048]';
+        }
+        
+        $attachmentFile = $this->request->getFile('sch_attachment');
+        if ($attachmentFile && $attachmentFile->isValid()) {
+            $rules['sch_attachment'] = 'uploaded[sch_attachment]|max_size[sch_attachment,5120]|ext_in[sch_attachment,pdf,doc,docx,xls,xlsx,ppt,pptx,zip]';
+        }
+
+        if (!$this->validate($rules)) {
+            log_message('error', 'Scholarship Store Validation Failed: ' . json_encode($this->request->getPost()));
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON(['status' => 'error', 'errors' => $this->validator->getErrors()]);
+            }
+            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+        }
+
+        $title = $this->request->getPost('sch_title');
+        $slug = $this->generateSlug($title, 'Tb_Scholarships', 'sch_slug');
+        
+        session_write_close();
+
+        $coverName = null;
+        $attachmentName = null;
+        $targetDirCovers = FCPATH . 'uploads/scholarships/covers/';
+        $targetDirAttach = FCPATH . 'uploads/scholarships/attachments/';
+        
+        if (!is_dir($targetDirCovers)) mkdir($targetDirCovers, 0777, true);
+        if (!is_dir($targetDirAttach)) mkdir($targetDirAttach, 0777, true);
+        
+        // Handle Cover
+        $tempCover = $this->request->getPost('temp_cover');
+        if ($tempCover) {
+            $coverName = $tempCover;
+            $tempPath = WRITEPATH . 'uploads/temp/' . $tempCover;
+            if (file_exists($tempPath)) rename($tempPath, $targetDirCovers . $coverName);
+        } elseif ($coverFile && $coverFile->isValid() && !$coverFile->hasMoved()) {
+            $coverName = $coverFile->getRandomName();
+            $coverFile->move($targetDirCovers, $coverName);
+        }
+
+        // Handle Attachment
+        if ($attachmentFile && $attachmentFile->isValid() && !$attachmentFile->hasMoved()) {
+            $attachmentName = $attachmentFile->getRandomName();
+            $attachmentFile->move($targetDirAttach, $attachmentName);
+        }
+
+        try {
+            $schModel->insert([
+                'sch_title' => $title,
+                'sch_slug' => $slug,
+                'sch_content' => $this->request->getPost('sch_content'),
+                'sch_amount' => $this->request->getPost('sch_amount') ?: null,
+                'sch_deadline' => $this->request->getPost('sch_deadline') ?: null,
+                'sch_cover' => $coverName,
+                'sch_attachment' => $attachmentName,
+                'sch_status' => $this->request->getPost('sch_status') ?: 'published',
+                'sch_created_by' => $userId,
+            ]);
+
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON(['status' => 'success', 'message' => 'บันทึกทุนการศึกษาเรียบร้อยแล้ว', 'redirect' => base_url('staff/scholarships')]);
+            }
+            return redirect()->to(base_url('staff/scholarships'))->with('success', 'บันทึกทุนการศึกษาเรียบร้อยแล้ว');
+        } catch (\Exception $e) {
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON(['status' => 'error', 'message' => 'ไม่สามารถบันทึกข้อมูลได้: ' . $e->getMessage()]);
+            }
+            return redirect()->back()->withInput()->with('error', 'ไม่สามารถบันทึกข้อมูลได้: ' . $e->getMessage());
+        }
+    }
+
+    public function scholarshipEdit($id)
+    {
+        if (strpos(session()->get('u_role') ?? '', 'admin') === false) return redirect()->to(base_url('staff'))->with('error', 'ไม่มีสิทธิ์เข้าถึง');
+        $schModel = new \App\Models\ScholarshipModel();
+        $scholarship = $schModel->find($id);
+        
+        if (!$scholarship) {
+            return redirect()->to(base_url('staff/scholarships'))->with('error', 'ไม่พบข้อมูลที่ต้องการแก้ไข');
+        }
+
+        $data['title'] = "แก้ไขทุนการศึกษา | อบจ.นครสวรรค์";
+        $data['fullname'] = session()->get('u_fullname');
+        $data['sch'] = $scholarship;
+
+        return view('staff/scholarships/staff_sch_edit', $data);
+    }
+
+    public function scholarshipUpdate($id)
+    {
+        if (strpos(session()->get('u_role') ?? '', 'admin') === false) return redirect()->to(base_url('staff'))->with('error', 'ไม่มีสิทธิ์เข้าถึง');
+        $schModel = new \App\Models\ScholarshipModel();
+        $scholarship = $schModel->find($id);
+        
+        if (!$scholarship) {
+            return redirect()->to(base_url('staff/scholarships'))->with('error', 'ไม่พบข้อมูล');
+        }
+
+        $rules = [
+            'sch_title' => 'required|min_length[5]',
+            'sch_content' => 'required',
+        ];
+
+        $coverFile = $this->request->getFile('sch_cover');
+        if ($coverFile && $coverFile->isValid()) {
+            $rules['sch_cover'] = 'is_image[sch_cover]|max_size[sch_cover,2048]';
+        }
+
+        if (!$this->validate($rules)) {
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON(['status' => 'error', 'errors' => $this->validator->getErrors()]);
+            }
+            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+        }
+
+        $updateData = [
+            'sch_title' => $this->request->getPost('sch_title'),
+            'sch_content' => $this->request->getPost('sch_content'),
+            'sch_amount' => $this->request->getPost('sch_amount'),
+            'sch_deadline' => $this->request->getPost('sch_deadline') ?: null,
+            'sch_status' => $this->request->getPost('sch_status') ?? 'published',
+        ];
+
+        session_write_close();
+
+        $targetDirCovers = FCPATH . 'uploads/scholarships/covers/';
+        $targetDirAttach = FCPATH . 'uploads/scholarships/attachments/';
+        if (!is_dir($targetDirCovers)) mkdir($targetDirCovers, 0777, true);
+        if (!is_dir($targetDirAttach)) mkdir($targetDirAttach, 0777, true);
+
+        // Handle Cover Update
+        $tempCover = $this->request->getPost('temp_cover');
+        if ($tempCover) {
+            if ($scholarship['sch_cover'] && file_exists($targetDirCovers . $scholarship['sch_cover'])) @unlink($targetDirCovers . $scholarship['sch_cover']);
+            $coverName = $tempCover;
+            $tempPath = WRITEPATH . 'uploads/temp/' . $tempCover;
+            if (file_exists($tempPath)) {
+                rename($tempPath, $targetDirCovers . $coverName);
+                $updateData['sch_cover'] = $coverName;
+            }
+        } elseif ($coverFile && $coverFile->isValid() && !$coverFile->hasMoved()) {
+            if ($scholarship['sch_cover'] && file_exists($targetDirCovers . $scholarship['sch_cover'])) @unlink($targetDirCovers . $scholarship['sch_cover']);
+            $coverName = $coverFile->getRandomName();
+            $coverFile->move($targetDirCovers, $coverName);
+            $updateData['sch_cover'] = $coverName;
+        }
+
+        // Handle Attachment Update
+        $attachmentFile = $this->request->getFile('sch_attachment');
+        if ($attachmentFile && $attachmentFile->isValid() && !$attachmentFile->hasMoved()) {
+            if ($scholarship['sch_attachment'] && file_exists($targetDirAttach . $scholarship['sch_attachment'])) @unlink($targetDirAttach . $scholarship['sch_attachment']);
+            $attachmentName = $attachmentFile->getRandomName();
+            $attachmentFile->move($targetDirAttach, $attachmentName);
+            $updateData['sch_attachment'] = $attachmentName;
+        }
+
+        try {
+            $schModel->update($id, $updateData);
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON(['status' => 'success', 'message' => 'ปรับปรุงทุนการศึกษาเรียบร้อยแล้ว', 'redirect' => base_url('staff/scholarships')]);
+            }
+            return redirect()->to(base_url('staff/scholarships'))->with('success', 'ปรับปรุงทุนการศึกษาเรียบร้อยแล้ว');
+        } catch (\Exception $e) {
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON(['status' => 'error', 'message' => $e->getMessage()]);
+            }
+            return redirect()->back()->withInput()->with('error', $e->getMessage());
+        }
+    }
+
+    public function scholarshipDelete($id)
+    {
+        if (strpos(session()->get('u_role') ?? '', 'admin') === false) return redirect()->to(base_url('staff'))->with('error', 'ไม่มีสิทธิ์เข้าถึง');
+        $schModel = new \App\Models\ScholarshipModel();
+        $scholarship = $schModel->find($id);
+        
+        if ($scholarship) {
+            // ลบคิวจองและสล็อต
+            $slotModel = new \App\Models\ScholarshipSlotModel();
+            $bookingModel = new \App\Models\ScholarshipBookingModel();
+            $slots = $slotModel->where('slot_scholarship_id', $id)->findAll();
+            foreach ($slots as $s) {
+                $bookingModel->where('bk_slot_id', $s['slot_id'])->delete();
+            }
+            $slotModel->where('slot_scholarship_id', $id)->delete();
+
+            // ลบไฟล์
+            if ($scholarship['sch_cover'] && file_exists(FCPATH . 'uploads/scholarships/covers/' . $scholarship['sch_cover'])) {
+                @unlink(FCPATH . 'uploads/scholarships/covers/' . $scholarship['sch_cover']);
+            }
+            if ($scholarship['sch_attachment'] && file_exists(FCPATH . 'uploads/scholarships/attachments/' . $scholarship['sch_attachment'])) {
+                @unlink(FCPATH . 'uploads/scholarships/attachments/' . $scholarship['sch_attachment']);
+            }
+
+            $schModel->delete($id);
+        }
+        return redirect()->to(base_url('staff/scholarships'))->with('success', 'ลบทุนการศึกษาเรียบร้อยแล้ว');
+    }
+
+    // ================================================================
+    // 📅 SCHOLARSHIP BOOKING / SLOT MANAGEMENT
+    // ================================================================
+
+    /**
+     * หน้าจัดการตารางเวลา (Slot Management)
+     */
+    public function scholarshipSlots($schId)
+    {
+        if (strpos(session()->get('u_role') ?? '', 'admin') === false) return redirect()->to(base_url('staff'))->with('error', 'ไม่มีสิทธิ์เข้าถึง');
+        
+        $schModel  = new \App\Models\ScholarshipModel();
+        $slotModel = new \App\Models\ScholarshipSlotModel();
+        
+        $scholarship = $schModel->find($schId);
+        if (!$scholarship) {
+            return redirect()->to(base_url('staff/scholarships'))->with('error', 'ไม่พบข้อมูลทุนการศึกษา');
+        }
+
+        $filterDate = $this->request->getGet('date');
+
+        $data['title'] = "ตารางจองคิว - {$scholarship['sch_title']} | อบจ.นครสวรรค์";
+        $data['fullname'] = session()->get('u_fullname');
+        $data['scholarship'] = $scholarship;
+        $data['slots'] = $slotModel->getSlotsWithBookingCount($schId, $filterDate);
+        $data['available_dates'] = $slotModel->getAvailableDates($schId);
+        $data['filter_date'] = $filterDate;
+
+        return view('staff/scholarships/staff_sch_slots', $data);
+    }
+
+    /**
+     * สร้างสล็อตเวลาอัตโนมัติ (Batch Generate)
+     */
+    public function scholarshipSlotGenerate($schId)
+    {
+        if (strpos(session()->get('u_role') ?? '', 'admin') === false) return redirect()->to(base_url('staff'))->with('error', 'ไม่มีสิทธิ์เข้าถึง');
+
+        $schModel  = new \App\Models\ScholarshipModel();
+        $slotModel = new \App\Models\ScholarshipSlotModel();
+
+        $scholarship = $schModel->find($schId);
+        if (!$scholarship) {
+            return redirect()->to(base_url('staff/scholarships'))->with('error', 'ไม่พบข้อมูลทุนการศึกษา');
+        }
+
+        $rules = [
+            'slot_date'     => 'required|valid_date',
+            'start_time'    => 'required',
+            'end_time'      => 'required',
+            'duration'      => 'required|integer|greater_than[0]',
+            'max_per_slot'  => 'required|integer|greater_than[0]',
+        ];
+
+        if (!$this->validate($rules)) {
+            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+        }
+
+        $slotDate    = $this->request->getPost('slot_date');
+        $startTime   = strtotime($this->request->getPost('start_time'));
+        $endTime     = strtotime($this->request->getPost('end_time'));
+        $duration    = (int) $this->request->getPost('duration');
+        $maxPerSlot  = (int) $this->request->getPost('max_per_slot');
+
+        if ($startTime >= $endTime) {
+            return redirect()->back()->withInput()->with('error', 'เวลาเริ่มต้นต้องน้อยกว่าเวลาสิ้นสุด');
+        }
+
+        $count = 0;
+        $current = $startTime;
+        while ($current < $endTime) {
+            $slotStart = date('H:i:s', $current);
+            $current += ($duration * 60);
+            if ($current > $endTime) break;
+            $slotEnd = date('H:i:s', $current);
+
+            $slotModel->insert([
+                'slot_scholarship_id' => $schId,
+                'slot_date'           => $slotDate,
+                'slot_start_time'     => $slotStart,
+                'slot_end_time'       => $slotEnd,
+                'slot_max'            => $maxPerSlot,
+                'slot_is_active'      => 1,
+                'slot_created_at'     => date('Y-m-d H:i:s'),
+            ]);
+            $count++;
+        }
+
+        return redirect()->to(base_url("staff/scholarship/{$schId}/slots?date={$slotDate}"))
+            ->with('success', "สร้างสล็อตเรียบร้อย จำนวน {$count} รอบ");
+    }
+
+    /**
+     * เปิด/ปิดสล็อต (Toggle Active)
+     */
+    public function scholarshipSlotToggle($slotId)
+    {
+        if (strpos(session()->get('u_role') ?? '', 'admin') === false) return redirect()->to(base_url('staff'))->with('error', 'ไม่มีสิทธิ์เข้าถึง');
+
+        $slotModel = new \App\Models\ScholarshipSlotModel();
+        $slot = $slotModel->find($slotId);
+
+        if ($slot) {
+            $slotModel->update($slotId, [
+                'slot_is_active' => $slot['slot_is_active'] ? 0 : 1
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'อัปเดตสถานะสล็อตเรียบร้อยแล้ว');
+    }
+
+    /**
+     * ลบสล็อตทั้งวัน
+     */
+    public function scholarshipSlotDeleteDay($schId)
+    {
+        if (strpos(session()->get('u_role') ?? '', 'admin') === false) return redirect()->to(base_url('staff'))->with('error', 'ไม่มีสิทธิ์เข้าถึง');
+
+        $date = $this->request->getGet('date');
+        if (!$date) {
+            return redirect()->back()->with('error', 'กรุณาระบุวันที่');
+        }
+
+        $slotModel = new \App\Models\ScholarshipSlotModel();
+        $bookingModel = new \App\Models\ScholarshipBookingModel();
+
+        // หา slot_ids ที่ต้องการลบ
+        $slots = $slotModel->where('slot_scholarship_id', $schId)->where('slot_date', $date)->findAll();
+        foreach ($slots as $s) {
+            // ลบ bookings ที่เกี่ยวข้อง
+            $bookingModel->where('bk_slot_id', $s['slot_id'])->delete();
+        }
+        // ลบ slots
+        $slotModel->where('slot_scholarship_id', $schId)->where('slot_date', $date)->delete();
+
+        return redirect()->to(base_url("staff/scholarship/{$schId}/slots"))
+            ->with('success', "ลบสล็อตวันที่ {$date} เรียบร้อยแล้ว");
+    }
+
+    /**
+     * หน้าดูรายชื่อผู้จอง (Booking Tracker)
+     */
+    public function scholarshipBookings($schId)
+    {
+        if (strpos(session()->get('u_role') ?? '', 'admin') === false) return redirect()->to(base_url('staff'))->with('error', 'ไม่มีสิทธิ์เข้าถึง');
+
+        $schModel     = new \App\Models\ScholarshipModel();
+        $bookingModel = new \App\Models\ScholarshipBookingModel();
+        $slotModel    = new \App\Models\ScholarshipSlotModel();
+
+        $scholarship = $schModel->find($schId);
+        if (!$scholarship) {
+            return redirect()->to(base_url('staff/scholarships'))->with('error', 'ไม่พบข้อมูลทุนการศึกษา');
+        }
+
+        $filterDate = $this->request->getGet('date') ?: date('Y-m-d');
+
+        $data['title'] = "รายชื่อผู้จอง - {$scholarship['sch_title']} | อบจ.นครสวรรค์";
+        $data['fullname'] = session()->get('u_fullname');
+        $data['scholarship'] = $scholarship;
+        $data['bookings'] = $bookingModel->getBookingsWithDetails($schId, $filterDate);
+        $data['available_dates'] = $slotModel->getAvailableDates($schId);
+        $data['filter_date'] = $filterDate;
+
+        // สถิติ
+        $allBookings = $bookingModel->getBookingsWithDetails($schId, $filterDate);
+        $data['stats'] = [
+            'total'      => count($allBookings),
+            'pending'    => count(array_filter($allBookings, fn($b) => $b['bk_status'] === 'pending')),
+            'confirmed'  => count(array_filter($allBookings, fn($b) => $b['bk_status'] === 'confirmed')),
+            'checked_in' => count(array_filter($allBookings, fn($b) => $b['bk_status'] === 'checked_in')),
+            'cancelled'  => count(array_filter($allBookings, fn($b) => $b['bk_status'] === 'cancelled')),
+        ];
+
+        return view('staff/scholarships/staff_sch_bookings', $data);
+    }
+
+    /**
+     * อัปเดตสถานะการจอง (check-in / confirm)
+     */
+    public function scholarshipBookingStatus($bkId)
+    {
+        if (strpos(session()->get('u_role') ?? '', 'admin') === false) return redirect()->to(base_url('staff'))->with('error', 'ไม่มีสิทธิ์เข้าถึง');
+
+        $bookingModel = new \App\Models\ScholarshipBookingModel();
+        $status = $this->request->getGet('status');
+
+        if (in_array($status, ['pending', 'confirmed', 'checked_in', 'cancelled'])) {
+            $bookingModel->update($bkId, ['bk_status' => $status]);
+        }
+
+        return redirect()->back()->with('success', 'อัปเดตสถานะเรียบร้อยแล้ว');
+    }
+
+    /**
+     * AJAX: อัปเดตการเปิดรับระดับชั้น (Settings)
+     */
+    public function scholarshipUpdateGrades()
+    {
+        if (strpos(session()->get('u_role') ?? '', 'admin') === false) {
+            return $this->response->setJSON(['status' => 'error', 'message' => 'ไม่มีสิทธิ์เข้าถึง']);
+        }
+
+        $schId = $this->request->getPost('sch_id');
+        $grades = $this->request->getPost('grades'); // Array of values
+        $gradeStr = is_array($grades) ? implode(',', $grades) : '';
+
+        $schModel = new \App\Models\ScholarshipModel();
+        if ($schModel->update($schId, ['sch_allowed_grades' => $gradeStr])) {
+            return $this->response->setJSON(['status' => 'success', 'message' => 'บันทึกการตั้งค่าระดับชั้นเรียบร้อยแล้ว']);
+        }
+
+        return $this->response->setJSON(['status' => 'error', 'message' => 'ไม่สามารถบันทึกข้อมูลได้']);
+    }
+
+    // ================================================================
     // 👥 PERSONNEL MANAGEMENT
     // ================================================================
     

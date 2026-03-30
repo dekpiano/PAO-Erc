@@ -1,4 +1,4 @@
-<?= $this->extend('staff/layout/admin') ?>
+<?= $this->extend('staff/layout/main') ?>
 
 <?= $this->section('content') ?>
     <div class="mb-12 flex items-center gap-6" data-aos="fade-up">

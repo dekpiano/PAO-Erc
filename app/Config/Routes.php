@@ -9,12 +9,17 @@ $routes->get('/', 'Home::index');
 $routes->get('news', 'Home::newsAll');
 $routes->get('news/(:segment)', 'Home::newsDetail/$1');
 $routes->get('personnel', 'Home::personnel');
+$routes->get('booking/slots/(:num)', 'Home::scholarshipBookingSlots/$1');
+$routes->get('booking/check-slot/(:num)', 'Home::scholarshipBookingCheckSlot/$1');
+$routes->post('booking/store', 'Home::scholarshipBookingStore');
+$routes->get('booking/success/(:num)', 'Home::scholarshipBookingSuccess/$1');
+$routes->get('booking/(:segment)', 'Home::scholarshipBooking/$1');
 $routes->get('migrate', 'Home::migrate');
 $routes->get('staff', 'Staff::index');
 $routes->get('staff/attendance', 'Attendance::index');
 $routes->post('staff/attendance/submit', 'Attendance::submit');
 
-// Staff News Management
+// Admin News Management
 $routes->get('staff/news', 'Staff::news');
 $routes->get('staff/news/create', 'Staff::newsCreate');
 $routes->post('staff/news/store', 'Staff::newsStore');
@@ -25,7 +30,25 @@ $routes->get('staff/news/deleteImage/(:num)', 'Staff::newsDeleteImage/$1');
 $routes->post('staff/news/uploadChunk', 'Staff::uploadChunk');
 $routes->get('staff/news/uploadChunk', 'Staff::uploadChunk');
 
-// Staff Personnel Management
+// Admin Scholarship Management
+$routes->get('staff/scholarships', 'Staff::scholarships');
+$routes->get('staff/scholarship-bookings', 'Staff::scholarshipBookingIndex');
+$routes->get('staff/scholarship/create', 'Staff::scholarshipCreate');
+$routes->post('staff/scholarship/store', 'Staff::scholarshipStore');
+$routes->get('staff/scholarship/edit/(:num)', 'Staff::scholarshipEdit/$1');
+$routes->post('staff/scholarship/update/(:num)', 'Staff::scholarshipUpdate/$1');
+$routes->get('staff/scholarship/delete/(:num)', 'Staff::scholarshipDelete/$1');
+
+// Admin Scholarship Booking/Slot Management
+$routes->get('staff/scholarship/(:num)/slots', 'Staff::scholarshipSlots/$1');
+$routes->post('staff/scholarship/(:num)/slots/generate', 'Staff::scholarshipSlotGenerate/$1');
+$routes->get('staff/scholarship/slot/toggle/(:num)', 'Staff::scholarshipSlotToggle/$1');
+$routes->get('staff/scholarship/(:num)/slots/delete-day', 'Staff::scholarshipSlotDeleteDay/$1');
+$routes->get('staff/scholarship/(:num)/bookings', 'Staff::scholarshipBookings/$1');
+$routes->get('staff/scholarship/booking/status/(:num)', 'Staff::scholarshipBookingStatus/$1');
+$routes->post('staff/scholarship/update-grades', 'Staff::scholarshipUpdateGrades');
+
+// Admin Personnel Management
 $routes->get('staff/personnel', 'Staff::personnel');
 $routes->post('staff/personnel/save', 'Staff::personnelSave');
 $routes->get('staff/personnel/delete/(:num)', 'Staff::personnelDelete/$1');
@@ -38,11 +61,8 @@ $routes->get('auth/select', 'Auth::select');
 $routes->get('auth/logout', 'Auth::logout');
 $routes->post('auth/googleLogin', 'Auth::googleLogin');
 
-// Admin Panel
-$routes->get('admin', 'Admin::index');
-$routes->get('admin/users', 'Admin::users');
-$routes->post('admin/userSave', 'Admin::userSave');
-$routes->get('admin/userDelete/(:num)', 'Admin::userDelete/$1');
-$routes->get('admin/settings', 'Admin::settings');
-$routes->post('admin/settingsUpdate', 'Admin::settingsUpdate');
-$routes->get('admin/exportExcel', 'Admin::exportExcel');
+// Super Admin Panel (Nested in Staff)
+$routes->get('staff/admin-summary', 'Admin::index');
+$routes->get('staff/settings', 'Admin::settings');
+$routes->post('staff/settingsUpdate', 'Admin::settingsUpdate');
+$routes->get('staff/exportExcel', 'Admin::exportExcel');

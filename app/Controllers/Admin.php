@@ -45,7 +45,7 @@ class Admin extends Controller
             'today_out' => $atdModel->where('atd_type', 'check_out')->where('DATE(atd_timestamp)', $filter_date)->countAllResults(),
         ];
                                  
-        return view('admin/index', $data);
+        return view('staff/admin_summary', $data);
     }
 
     // --------------------------------------------------------------------
@@ -60,7 +60,7 @@ class Admin extends Controller
         $model = new UserModel();
         $data['users'] = $model->findAll();
         $data['fullname'] = session()->get('u_fullname');
-        return view('admin/users/index', $data);
+        return view('staff/personnel/index', $data);
     }
 
     public function userSave()
@@ -131,14 +131,14 @@ class Admin extends Controller
             $msg = 'เพิ่มบุคลากรใหม่เรียบร้อยแล้ว';
         }
 
-        return redirect()->to(base_url('admin/users'))->with('status', $msg);
+        return redirect()->to(base_url('staff/personnel'))->with('status', $msg);
     }
 
     public function userDelete($id)
     {
         $model = new UserModel();
         $model->delete($id);
-        return redirect()->to(base_url('admin/users'))->with('status', 'ลบข้อมูลพนักงานเรียบร้อยแล้ว');
+        return redirect()->to(base_url('staff/personnel'))->with('status', 'ลบข้อมูลพนักงานเรียบร้อยแล้ว');
     }
 
     // --------------------------------------------------------------------
@@ -160,7 +160,7 @@ class Admin extends Controller
         }
 
         $data['fullname'] = session()->get('u_fullname');
-        return view('admin/settings', $data);
+        return view('staff/settings', $data);
     }
 
     public function settingsUpdate()
@@ -177,7 +177,7 @@ class Admin extends Controller
             }
         }
 
-        return redirect()->to(base_url('admin/settings'))->with('status', 'บันทึกการตั้งค่าเรียบร้อยแล้ว');
+        return redirect()->to(base_url('staff/settings'))->with('status', 'บันทึกการตั้งค่าเรียบร้อยแล้ว');
     }
     public function exportExcel()
     {

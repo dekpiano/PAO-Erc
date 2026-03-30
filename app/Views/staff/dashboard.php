@@ -1,4 +1,4 @@
-<?= $this->extend('staff/layout/admin') ?>
+<?= $this->extend('staff/layout/main') ?>
 
 <?= $this->section('content') ?>
     <div class="mb-12" data-aos="fade-up">
@@ -123,29 +123,7 @@
                 </div>
             </div>
 
-            <?php if(strpos(session()->get('u_role'), 'admin') !== false): ?>
-            <!-- Admin Shortcuts -->
-            <div>
-                <h3 class="text-xs font-black text-rose-400 uppercase tracking-widest mb-4 mt-6 flex items-center gap-2">
-                    <i data-lucide="shield-check" class="w-4 h-4"></i> เมนูการจัดการ (แอดมิน)
-                </h3>
-                <div class="grid grid-cols-2 gap-4">
-                    <a href="<?= base_url('staff/news') ?>" class="p-6 bg-amber-50 hover:bg-amber-600 hover:text-white rounded-[2rem] border border-amber-100 group transition-all duration-300 flex flex-col items-center justify-center text-center gap-3 shadow-sm shadow-amber-100">
-                        <div class="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                            <i data-lucide="newspaper" class="w-6 h-6 text-amber-600"></i>
-                        </div>
-                        <span class="text-xs font-black uppercase tracking-wider">จัดการข่าวสาร</span>
-                    </a>
-                    
-                    <a href="<?= base_url('staff/personnel') ?>" class="p-6 bg-blue-50 hover:bg-blue-600 hover:text-white rounded-[2rem] border border-blue-100 group transition-all duration-300 flex flex-col items-center justify-center text-center gap-3 shadow-sm shadow-blue-100">
-                        <div class="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                            <i data-lucide="users" class="w-6 h-6 text-blue-600"></i>
-                        </div>
-                        <span class="text-xs font-black uppercase tracking-wider">จัดการบุคลากร</span>
-                    </a>
-                </div>
-            </div>
-            <?php endif; ?>
+
         </div>
     </div>
 
