@@ -744,6 +744,48 @@ class Staff extends Controller
             return redirect()->back()->withInput()->with('error', 'เวลาเริ่มต้นต้องน้อยกว่าเวลาสิ้นสุด');
         }
 
+        // ตรวจสอบว่ามีสล็อตของวันที่เลือกอยู่แล้วหรือไม่
+        $existingSlots = $slotModel->where(['slot_scholarship_id' => $schId, 'slot_date' => $slotDate])->orderBy('slot_start_time', 'ASC')->findAll();
+        
+        if ($existingSlots) {
+            $bookingModel = new \App\Models\ScholarshipBookingModel();
+            $slotIds = array_column($existingSlots, 'slot_id');
+            $hasBookings = $bookingModel->whereIn('bk_slot_id', $slotIds)->countAllResults();
+
+            // หาเวลาเริ่มและเวลาสิ้นสุดปัจจุบัน
+            $currentStart = strtotime($existingSlots[0]['slot_start_time']);
+            $currentEnd = strtotime(end($existingSlots)['slot_end_time']);
+
+            // กรณีมีคนจองแล้ว: เราจะทำการ "Smart Update/Extend"
+            if ($hasBookings > 0) {
+                // ตรวจสอบว่า เวลาเริ่มต้น และ ระยะเวลา (Duration) ตรงกันไหม (เพื่อไม่ให้ตารางเดิมพัง)
+                // เราเช็คแค่รอบแรกก็พอ ถ้าไม่ตรงกัน แสดงว่าความตั้งใจคือการเปลี่ยนโครงสร้างใหม่ทั้งหมด ซึ่งทำไม่ได้ถ้ามีคนจอง
+                $firstSlotStart = strtotime($existingSlots[0]['slot_start_time']);
+                $firstSlotEnd = strtotime($existingSlots[0]['slot_end_time']);
+                $currentDuration = ($firstSlotEnd - $firstSlotStart) / 60;
+
+                if ($startTime != $firstSlotStart || $duration != $currentDuration) {
+                    return redirect()->back()->withInput()->with('error', "ไม่สามารถเปลี่ยน 'เวลาเริ่มต้น' หรือ 'ระยะเวลาต่อรอบ' ได้ เนื่องจากมีผู้สมัครจองคิวในตารางเดิมไปแล้ว กรุณาจัดการรายการจองออกก่อน หรือเตรียมตารางให้ตรงกับของเดิม");
+                }
+
+                // สิทธิ์ในการอัปเดต Slot Max และการขยายเวลา
+                // 1. อัปเดต slot_max ของเดิม
+                $slotModel->whereIn('slot_id', $slotIds)->set(['slot_max' => $maxPerSlot])->update();
+
+                // 2. ถ้าเวลาสิ้นสุดใหม่ ยาวกว่าของเดิม ให้เตรียมสร้างรอบต่อท้าย
+                if ($endTime > $currentEnd) {
+                    $startTime = $currentEnd; // เริ่มต้นสร้างต่อจากรอบสุดท้ายที่มีอยู่
+                } else {
+                    // ถ้าไม่ได้ขยายเวลา ก็ถือว่าอัปเดตแค่ slot_max เสร็จแล้ว
+                    return redirect()->to(base_url("staff/scholarship/{$schId}/slots?date={$slotDate}"))
+                        ->with('success', "อัปเดตจำนวนรับสูงสุดของวันที่ $slotDate เรียบร้อยแล้ว");
+                }
+            } else {
+                // กรณี "ยังไม่มีคนจอง": ลบของเก่าเพื่อสร้างใหม่ตามปกติ
+                $slotModel->where(['slot_scholarship_id' => $schId, 'slot_date' => $slotDate])->delete();
+            }
+        }
+
         $count = 0;
         $current = $startTime;
         while ($current < $endTime) {

@@ -330,9 +330,9 @@
                             <i data-lucide="user" class="w-24 h-24 mx-auto opacity-20"></i>
                             <h5 class="text-3xl font-black">ทำเนียบผู้บริหาร</h5>
                             <p class="opacity-80 font-medium">ทำความรู้จักกับคณะผู้บริหารกองการศึกษา ศาสนา และวัฒนธรรม</p>
-                            <button class="px-8 py-3 bg-white text-blue-700 rounded-xl font-bold hover:scale-105 transition-transform">
+                           <p> <a href="<?= base_url('personnel') ?>" class="px-8 py-3 bg-white text-blue-700 rounded-xl font-bold hover:scale-105 transition-transform">
                                 ดูรายชื่อทั้งหมด
-                            </button>
+                            </a></p>
                         </div>
                     </div>
                 </div>

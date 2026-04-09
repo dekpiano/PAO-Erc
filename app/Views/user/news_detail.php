@@ -9,16 +9,32 @@
                 <i data-lucide="arrow-left" class="w-4 h-4"></i> กลับหน้าแรก
             </a>
             
-            <div class="flex items-center gap-3 mb-6" data-aos="fade-up">
+            <div class="flex flex-wrap items-center gap-3 mb-6" data-aos="fade-up">
                 <span class="px-4 py-1.5 bg-blue-600 text-white text-[10px] font-black rounded-full uppercase tracking-widest shadow-lg shadow-blue-100">
                     <?= $news['news_category'] ?>
                 </span>
-                <span class="text-slate-400 font-bold text-xs flex items-center gap-1.5">
+                <span class="text-slate-400 font-bold text-xs flex items-center gap-1.5 border-r border-slate-200 pr-3 mr-1">
                     <i data-lucide="calendar" class="w-4 h-4"></i> <?= date('d F Y', strtotime($news['news_created_at'])) ?>
                 </span>
-                <span class="text-slate-400 font-bold text-xs flex items-center gap-1.5 ml-auto">
-                    <i data-lucide="eye" class="w-4 h-4"></i> <?= number_format($news['news_view_count']) ?> views
-                </span>
+                
+                <!-- Stats & Share Buttons -->
+                <div class="flex items-center gap-3 ml-auto">
+                    <span class="text-slate-400 font-bold text-xs flex items-center gap-1.5 mr-2">
+                        <i data-lucide="eye" class="w-4 h-4"></i> <?= number_format($news['news_view_count']) ?> views
+                    </span>
+                    
+                    <div class="flex items-center gap-1.5 bg-white p-1 rounded-xl border border-slate-100 shadow-sm">
+                        <!-- Facebook Share -->
+                        <a href="https://www.facebook.com/sharer/sharer.php?u=<?= urlencode(current_url()) ?>" target="_blank" class="w-8 h-8 bg-[#1877F2]/10 text-[#1877F2] rounded-lg flex items-center justify-center hover:bg-[#1877F2] hover:text-white transition-all" title="แชร์ลง Facebook">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
+                        </a>
+                        
+                        <!-- Copy Link -->
+                        <button onclick="copyCurrentUrl()" class="w-8 h-8 bg-slate-50 text-slate-500 rounded-lg flex items-center justify-center hover:bg-slate-200 hover:text-slate-700 transition-all" title="คัดลอกลิงก์">
+                            <i data-lucide="copy" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
             </div>
 
             <h1 class="text-4xl md:text-5xl font-black text-slate-900 leading-[1.1] mb-12 shadow-sm" data-aos="fade-up" data-aos-delay="100">
@@ -62,24 +78,31 @@
                 </div>
             <?php endif; ?>
 
-            <!-- Share Section -->
-            <div class="mt-24 p-10 bg-white rounded-[3rem] border border-slate-100 shadow-xl shadow-slate-100 text-center flex flex-col items-center" data-aos="fade-up">
-                <p class="text-[10px] font-black uppercase tracking-[0.2em] text-blue-600 mb-6">ช่วยพวกเราแชร์ข่าวนี้ต่อ</p>
-                <div class="flex gap-4">
-                    <button class="w-14 h-14 bg-[#1877F2]/10 text-[#1877F2] rounded-2xl flex items-center justify-center hover:bg-[#1877F2] hover:text-white transition-all">
-                        <i data-lucide="facebook" class="w-6 h-6"></i>
-                    </button>
-                    <button class="w-14 h-14 bg-slate-900 text-white rounded-2xl flex items-center justify-center hover:scale-110 transition-transform">
-                        <i data-lucide="twitter" class="w-6 h-6"></i>
-                    </button>
-                    <button class="w-14 h-14 bg-rose-500/10 text-rose-500 rounded-2xl flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all">
-                        <i data-lucide="link" class="w-6 h-6"></i>
-                    </button>
-                </div>
-            </div>
         </div>
     </section>
 
     <!-- FSLightbox Script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fslightbox/3.4.1/index.min.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            lucide.createIcons();
+        });
+
+        function copyCurrentUrl() {
+            const url = window.location.href;
+            navigator.clipboard.writeText(url).then(() => {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'คัดลอกลิงก์แล้ว!',
+                    text: 'คุณสามารถนำลิงก์ไปแชร์ต่อได้ทันที',
+                    timer: 1500,
+                    showConfirmButton: false,
+                    customClass: {
+                        popup: 'rounded-[2rem]',
+                    }
+                });
+            });
+        }
+    </script>
 <?= $this->endSection() ?>

@@ -29,10 +29,16 @@ class NewsModel extends Model
     protected $createdField  = 'news_created_at';
     protected $updatedField  = 'news_updated_at';
 
-    // Helper to generate slug
+    // Helper to generate slug supporting Thai characters
     public function generateSlug($title)
     {
-        $slug = mb_strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $title)));
-        return $slug . '-' . uniqid();
+        // Replace spaces with - and remove special chars but keep Thai (including vowels/marks)
+        $slug = mb_strtolower(trim($title));
+        // \p{L} is for letters, \p{M} is for marks (Thai vowels/tone marks), \p{N} is for numbers
+        $slug = preg_replace('/[^\p{L}\p{M}\p{N}\s-]/u', '', $slug); 
+        $slug = preg_replace('/\s+/', '-', $slug); 
+        $slug = preg_replace('/-+/', '-', $slug); 
+        
+        return trim($slug, '-') . '-' . uniqid();
     }
 }
