@@ -63,6 +63,8 @@ $routes->post('auth/googleLogin', 'Auth::googleLogin');
 
 // Super Admin Panel (Nested in Staff)
 $routes->get('staff/admin-summary', 'Admin::index');
+$routes->get('staff/permissions', 'Admin::permissions');
+$routes->post('staff/permissionsUpdate', 'Admin::permissionsUpdate');
 $routes->get('staff/settings', 'Admin::settings');
 $routes->post('staff/settingsUpdate', 'Admin::settingsUpdate');
 $routes->get('staff/exportExcel', 'Admin::exportExcel');

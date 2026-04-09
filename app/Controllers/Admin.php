@@ -11,7 +11,8 @@ class Admin extends Controller
 {
     public function index()
     {
-        if (strpos(session()->get('u_role') ?? '', 'superadmin') === false) {
+        $userRoles = session()->get('u_role') ?? '';
+        if (strpos($userRoles, 'superadmin') === false && strpos($userRoles, 'summary') === false) {
             return redirect()->to(base_url('/'))->with('error', 'คุณไม่มีสิทธิ์เข้าถึงหน้านี้');
         }
 
@@ -51,9 +52,70 @@ class Admin extends Controller
     // --------------------------------------------------------------------
     // 👥 STAFF MANAGEMENT
     // --------------------------------------------------------------------
-    public function users()
+    // --------------------------------------------------------------------
+    // 🔐 PERMISSION MANAGEMENT
+    // --------------------------------------------------------------------
+    public function permissions()
     {
         if (strpos(session()->get('u_role') ?? '', 'superadmin') === false) {
+            return redirect()->to(base_url('/'))->with('error', 'คุณไม่มีสิทธิ์เข้าถึงหน้านี้');
+        }
+
+        $model = new UserModel();
+        // เอาเฉพาะคนที่เป็นพนักงาน (ไม่พ้นสภาพ) มาตั้งค่าสิทธิ์
+        $data['users'] = $model->where('u_status', 'active')->orderBy('u_sort', 'ASC')->findAll();
+        $data['fullname'] = session()->get('u_fullname');
+        
+        // นิยามสิทธิ์ที่มีในระบบ
+        $data['available_permissions'] = [
+            'news'         => ['label' => 'จัดการข่าวสาร', 'icon' => 'newspaper', 'color' => 'text-rose-500'],
+            'scholarships' => ['label' => 'จัดการทุนการศึกษา', 'icon' => 'graduation-cap', 'color' => 'text-amber-500'],
+            'personnel'    => ['label' => 'จัดการบุคลากร', 'icon' => 'users', 'color' => 'text-blue-500'],
+            'summary'      => ['label' => 'ดูสรุปเวลาปฏิบัติงาน', 'icon' => 'bar-chart-3', 'color' => 'text-indigo-500'],
+            'settings'     => ['label' => 'ตั้งค่าระบบ', 'icon' => 'settings', 'color' => 'text-slate-500'],
+        ];
+
+        return view('staff/permissions', $data);
+    }
+
+    public function permissionsUpdate()
+    {
+        if (strpos(session()->get('u_role') ?? '', 'superadmin') === false) {
+            return $this->response->setJSON(['status' => 'error', 'message' => 'Unauthorized']);
+        }
+
+        $userId = $this->request->getPost('u_id');
+        $perms = $this->request->getPost('permissions'); // Array of permission keys
+        
+        $model = new UserModel();
+        $user = $model->find($userId);
+
+        if (!$user) {
+            return $this->response->setJSON(['status' => 'error', 'message' => 'User not found']);
+        }
+
+        // เก็บสิทธิ์ superadmin ไว้เสมอถ้าเขามีอยู่แล้ว หรือถ้าตารางมีค่า superadmin
+        $currentRoles = explode(',', $user['u_role'] ?? '');
+        $newRoles = $perms ?: [];
+        
+        if (in_array('superadmin', $currentRoles)) {
+            if (!in_array('superadmin', $newRoles)) {
+                $newRoles[] = 'superadmin';
+            }
+        }
+
+        // อัปเดต u_role
+        $model->update($userId, [
+            'u_role' => implode(',', array_filter(array_unique($newRoles)))
+        ]);
+
+        return $this->response->setJSON(['status' => 'success', 'message' => 'อัปเดตสิทธิ์การใช้งานเรียบร้อยแล้ว']);
+    }
+
+    public function users()
+    {
+        $userRoles = session()->get('u_role') ?? '';
+        if (strpos($userRoles, 'superadmin') === false && strpos($userRoles, 'personnel') === false) {
             return redirect()->to(base_url('/'))->with('error', 'คุณไม่มีสิทธิ์เข้าถึงหน้านี้');
         }
 
@@ -65,7 +127,8 @@ class Admin extends Controller
 
     public function userSave()
     {
-        if (strpos(session()->get('u_role') ?? '', 'superadmin') === false) {
+        $userRoles = session()->get('u_role') ?? '';
+        if (strpos($userRoles, 'superadmin') === false && strpos($userRoles, 'personnel') === false) {
             return redirect()->to(base_url('/'))->with('error', 'คุณไม่มีสิทธิ์เข้าถึงหน้านี้');
         }
 
@@ -146,7 +209,8 @@ class Admin extends Controller
     // --------------------------------------------------------------------
     public function settings()
     {
-        if (strpos(session()->get('u_role') ?? '', 'superadmin') === false) {
+        $userRoles = session()->get('u_role') ?? '';
+        if (strpos($userRoles, 'superadmin') === false && strpos($userRoles, 'settings') === false) {
             return redirect()->to(base_url('/'))->with('error', 'คุณไม่มีสิทธิ์เข้าถึงหน้านี้');
         }
 
@@ -165,6 +229,10 @@ class Admin extends Controller
 
     public function settingsUpdate()
     {
+        $userRoles = session()->get('u_role') ?? '';
+        if (strpos($userRoles, 'superadmin') === false && strpos($userRoles, 'settings') === false) {
+            return redirect()->to(base_url('/'))->with('error', 'คุณไม่มีสิทธิ์เข้าถึงหน้านี้');
+        }
         $model = new SettingsModel();
         $posts = $this->request->getPost();
 
@@ -181,7 +249,8 @@ class Admin extends Controller
     }
     public function exportExcel()
     {
-        if (strpos(session()->get('u_role') ?? '', 'superadmin') === false) {
+        $userRoles = session()->get('u_role') ?? '';
+        if (strpos($userRoles, 'superadmin') === false && strpos($userRoles, 'summary') === false) {
             return redirect()->to(base_url('/'))->with('error', 'คุณไม่มีสิทธิ์เข้าถึงหน้านี้');
         }
 

@@ -27,7 +27,10 @@ class Staff extends Controller
 
     public function news()
     {
-        if (strpos(session()->get('u_role') ?? '', 'admin') === false) return redirect()->to(base_url('staff'))->with('error', 'ไม่มีสิทธิ์เข้าถึง');
+        $userRoles = session()->get('u_role') ?? '';
+        if (strpos($userRoles, 'superadmin') === false && strpos($userRoles, 'news') === false) {
+            return redirect()->to(base_url('staff'))->with('error', 'คุณไม่มีสิทธิ์เข้าถึงระบบจัดการข่าวสาร');
+        }
         
         $newsModel = new \App\Models\NewsModel();
         
@@ -43,7 +46,10 @@ class Staff extends Controller
 
     public function newsCreate()
     {
-        if (strpos(session()->get('u_role') ?? '', 'admin') === false) return redirect()->to(base_url('staff'))->with('error', 'ไม่มีสิทธิ์เข้าถึง');
+        $userRoles = session()->get('u_role') ?? '';
+        if (strpos($userRoles, 'superadmin') === false && strpos($userRoles, 'news') === false) {
+            return redirect()->to(base_url('staff'))->with('error', 'คุณไม่มีสิทธิ์เข้าถึงระบบจัดการข่าวสาร');
+        }
         $data['title'] = "เพิ่มข่าวสารใหม่ | อบจ.นครสวรรค์";
         $data['fullname'] = session()->get('u_fullname');
         return view('staff/news/create', $data);
@@ -51,7 +57,10 @@ class Staff extends Controller
 
     public function newsStore()
     {
-        if (strpos(session()->get('u_role') ?? '', 'admin') === false) return redirect()->to(base_url('staff'))->with('error', 'ไม่มีสิทธิ์เข้าถึง');
+        $userRoles = session()->get('u_role') ?? '';
+        if (strpos($userRoles, 'superadmin') === false && strpos($userRoles, 'news') === false) {
+            return redirect()->to(base_url('staff'))->with('error', 'คุณไม่มีสิทธิ์เข้าถึงระบบจัดการข่าวสาร');
+        }
         $newsModel = new \App\Models\NewsModel();
         $galleryModel = new \App\Models\NewsGalleryModel();
         $userId = session()->get('u_id');
@@ -185,7 +194,10 @@ class Staff extends Controller
 
     public function newsEdit($id)
     {
-        if (strpos(session()->get('u_role') ?? '', 'admin') === false) return redirect()->to(base_url('staff'))->with('error', 'ไม่มีสิทธิ์เข้าถึง');
+        $userRoles = session()->get('u_role') ?? '';
+        if (strpos($userRoles, 'superadmin') === false && strpos($userRoles, 'news') === false) {
+            return redirect()->to(base_url('staff'))->with('error', 'คุณไม่มีสิทธิ์เข้าถึงระบบจัดการข่าวสาร');
+        }
         $userId = session()->get('u_id');
         $newsModel = new \App\Models\NewsModel();
         $galleryModel = new \App\Models\NewsGalleryModel();
@@ -205,7 +217,10 @@ class Staff extends Controller
 
     public function newsUpdate($id)
     {
-        if (strpos(session()->get('u_role') ?? '', 'admin') === false) return redirect()->to(base_url('staff'))->with('error', 'ไม่มีสิทธิ์เข้าถึง');
+        $userRoles = session()->get('u_role') ?? '';
+        if (strpos($userRoles, 'superadmin') === false && strpos($userRoles, 'news') === false) {
+            return redirect()->to(base_url('staff'))->with('error', 'คุณไม่มีสิทธิ์เข้าถึงระบบจัดการข่าวสาร');
+        }
         $newsModel = new \App\Models\NewsModel();
         $galleryModel = new \App\Models\NewsGalleryModel();
         $userId = session()->get('u_id');
@@ -325,7 +340,10 @@ class Staff extends Controller
 
     public function newsDeleteImage($galId)
     {
-        if (strpos(session()->get('u_role') ?? '', 'admin') === false) return redirect()->to(base_url('staff'))->with('error', 'ไม่มีสิทธิ์เข้าถึง');
+        $userRoles = session()->get('u_role') ?? '';
+        if (strpos($userRoles, 'superadmin') === false && strpos($userRoles, 'news') === false) {
+            return redirect()->to(base_url('staff'))->with('error', 'คุณไม่มีสิทธิ์เข้าถึงระบบจัดการข่าวสาร');
+        }
         $galleryModel = new \App\Models\NewsGalleryModel();
         $item = $galleryModel->find($galId);
         if ($item) {
@@ -337,7 +355,10 @@ class Staff extends Controller
 
     public function newsDelete($id)
     {
-        if (strpos(session()->get('u_role') ?? '', 'admin') === false) return redirect()->to(base_url('staff'))->with('error', 'ไม่มีสิทธิ์เข้าถึง');
+        $userRoles = session()->get('u_role') ?? '';
+        if (strpos($userRoles, 'superadmin') === false && strpos($userRoles, 'news') === false) {
+            return redirect()->to(base_url('staff'))->with('error', 'คุณไม่มีสิทธิ์เข้าถึงระบบจัดการข่าวสาร');
+        }
         $newsModel = new \App\Models\NewsModel();
         $galleryModel = new \App\Models\NewsGalleryModel();
         $userId = session()->get('u_id');
@@ -370,7 +391,10 @@ class Staff extends Controller
 
     public function scholarships()
     {
-        if (strpos(session()->get('u_role') ?? '', 'admin') === false) return redirect()->to(base_url('staff'))->with('error', 'ไม่มีสิทธิ์เข้าถึง');
+        $userRoles = session()->get('u_role') ?? '';
+        if (strpos($userRoles, 'superadmin') === false && strpos($userRoles, 'scholarships') === false) {
+            return redirect()->to(base_url('staff'))->with('error', 'คุณไม่มีสิทธิ์เข้าถึงระบบทุนการศึกษา');
+        }
         $schModel = new \App\Models\ScholarshipModel();
         
         $data['title'] = "จัดการทุนการศึกษา | อบจ.นครสวรรค์";
@@ -382,7 +406,10 @@ class Staff extends Controller
 
     public function scholarshipBookingIndex()
     {
-        if (strpos(session()->get('u_role') ?? '', 'admin') === false) return redirect()->to(base_url('staff'))->with('error', 'ไม่มีสิทธิ์เข้าถึง');
+        $userRoles = session()->get('u_role') ?? '';
+        if (strpos($userRoles, 'superadmin') === false && strpos($userRoles, 'scholarships') === false) {
+            return redirect()->to(base_url('staff'))->with('error', 'คุณไม่มีสิทธิ์เข้าถึงระบบผู้จองทุน');
+        }
         
         $model = new \App\Models\ScholarshipModel();
         $bookingModel = new \App\Models\ScholarshipBookingModel();
@@ -410,7 +437,10 @@ class Staff extends Controller
 
     public function scholarshipCreate()
     {
-        if (strpos(session()->get('u_role') ?? '', 'admin') === false) return redirect()->to(base_url('staff'))->with('error', 'ไม่มีสิทธิ์เข้าถึง');
+        $userRoles = session()->get('u_role') ?? '';
+        if (strpos($userRoles, 'superadmin') === false && strpos($userRoles, 'scholarships') === false) {
+            return redirect()->to(base_url('staff'))->with('error', 'คุณไม่มีสิทธิ์เข้าถึงระบบทุนการศึกษา');
+        }
         $data['title'] = "เพิ่มทุนการศึกษาใหม่ | อบจ.นครสวรรค์";
         $data['fullname'] = session()->get('u_fullname');
         return view('staff/scholarships/staff_sch_create', $data);
@@ -418,7 +448,10 @@ class Staff extends Controller
 
     public function scholarshipStore()
     {
-        if (strpos(session()->get('u_role') ?? '', 'admin') === false) return redirect()->to(base_url('staff'))->with('error', 'ไม่มีสิทธิ์เข้าถึง');
+        $userRoles = session()->get('u_role') ?? '';
+        if (strpos($userRoles, 'superadmin') === false && strpos($userRoles, 'scholarships') === false) {
+            return redirect()->to(base_url('staff'))->with('error', 'คุณไม่มีสิทธิ์เข้าถึงระบบทุนการศึกษา');
+        }
         $schModel = new \App\Models\ScholarshipModel();
         $userId = session()->get('u_id');
         
@@ -502,7 +535,10 @@ class Staff extends Controller
 
     public function scholarshipEdit($id)
     {
-        if (strpos(session()->get('u_role') ?? '', 'admin') === false) return redirect()->to(base_url('staff'))->with('error', 'ไม่มีสิทธิ์เข้าถึง');
+        $userRoles = session()->get('u_role') ?? '';
+        if (strpos($userRoles, 'superadmin') === false && strpos($userRoles, 'scholarships') === false) {
+            return redirect()->to(base_url('staff'))->with('error', 'คุณไม่มีสิทธิ์เข้าถึงระบบทุนการศึกษา');
+        }
         $schModel = new \App\Models\ScholarshipModel();
         $scholarship = $schModel->find($id);
         
@@ -519,7 +555,10 @@ class Staff extends Controller
 
     public function scholarshipUpdate($id)
     {
-        if (strpos(session()->get('u_role') ?? '', 'admin') === false) return redirect()->to(base_url('staff'))->with('error', 'ไม่มีสิทธิ์เข้าถึง');
+        $userRoles = session()->get('u_role') ?? '';
+        if (strpos($userRoles, 'superadmin') === false && strpos($userRoles, 'scholarships') === false) {
+            return redirect()->to(base_url('staff'))->with('error', 'คุณไม่มีสิทธิ์เข้าถึงระบบทุนการศึกษา');
+        }
         $schModel = new \App\Models\ScholarshipModel();
         $scholarship = $schModel->find($id);
         
@@ -601,7 +640,10 @@ class Staff extends Controller
 
     public function scholarshipDelete($id)
     {
-        if (strpos(session()->get('u_role') ?? '', 'admin') === false) return redirect()->to(base_url('staff'))->with('error', 'ไม่มีสิทธิ์เข้าถึง');
+        $userRoles = session()->get('u_role') ?? '';
+        if (strpos($userRoles, 'superadmin') === false && strpos($userRoles, 'scholarships') === false) {
+            return redirect()->to(base_url('staff'))->with('error', 'คุณไม่มีสิทธิ์เข้าถึงระบบทุนการศึกษา');
+        }
         $schModel = new \App\Models\ScholarshipModel();
         $scholarship = $schModel->find($id);
         
@@ -637,7 +679,10 @@ class Staff extends Controller
      */
     public function scholarshipSlots($schId)
     {
-        if (strpos(session()->get('u_role') ?? '', 'admin') === false) return redirect()->to(base_url('staff'))->with('error', 'ไม่มีสิทธิ์เข้าถึง');
+        $userRoles = session()->get('u_role') ?? '';
+        if (strpos($userRoles, 'superadmin') === false && strpos($userRoles, 'scholarships') === false) {
+            return redirect()->to(base_url('staff'))->with('error', 'คุณไม่มีสิทธิ์เข้าถึงระบบสล็อตจองทุน');
+        }
         
         $schModel  = new \App\Models\ScholarshipModel();
         $slotModel = new \App\Models\ScholarshipSlotModel();
@@ -664,7 +709,10 @@ class Staff extends Controller
      */
     public function scholarshipSlotGenerate($schId)
     {
-        if (strpos(session()->get('u_role') ?? '', 'admin') === false) return redirect()->to(base_url('staff'))->with('error', 'ไม่มีสิทธิ์เข้าถึง');
+        $userRoles = session()->get('u_role') ?? '';
+        if (strpos($userRoles, 'superadmin') === false && strpos($userRoles, 'scholarships') === false) {
+            return redirect()->to(base_url('staff'))->with('error', 'คุณไม่มีสิทธิ์เข้าถึงระบบสล็อตจองทุน');
+        }
 
         $schModel  = new \App\Models\ScholarshipModel();
         $slotModel = new \App\Models\ScholarshipSlotModel();
@@ -725,7 +773,10 @@ class Staff extends Controller
      */
     public function scholarshipSlotToggle($slotId)
     {
-        if (strpos(session()->get('u_role') ?? '', 'admin') === false) return redirect()->to(base_url('staff'))->with('error', 'ไม่มีสิทธิ์เข้าถึง');
+        $userRoles = session()->get('u_role') ?? '';
+        if (strpos($userRoles, 'superadmin') === false && strpos($userRoles, 'scholarships') === false) {
+            return redirect()->to(base_url('staff'))->with('error', 'คุณไม่มีสิทธิ์เข้าถึงระบบสล็อตจองทุน');
+        }
 
         $slotModel = new \App\Models\ScholarshipSlotModel();
         $slot = $slotModel->find($slotId);
@@ -744,7 +795,10 @@ class Staff extends Controller
      */
     public function scholarshipSlotDeleteDay($schId)
     {
-        if (strpos(session()->get('u_role') ?? '', 'admin') === false) return redirect()->to(base_url('staff'))->with('error', 'ไม่มีสิทธิ์เข้าถึง');
+        $userRoles = session()->get('u_role') ?? '';
+        if (strpos($userRoles, 'superadmin') === false && strpos($userRoles, 'scholarships') === false) {
+            return redirect()->to(base_url('staff'))->with('error', 'คุณไม่มีสิทธิ์เข้าถึงระบบสล็อตจองทุน');
+        }
 
         $date = $this->request->getGet('date');
         if (!$date) {
@@ -772,7 +826,10 @@ class Staff extends Controller
      */
     public function scholarshipBookings($schId)
     {
-        if (strpos(session()->get('u_role') ?? '', 'admin') === false) return redirect()->to(base_url('staff'))->with('error', 'ไม่มีสิทธิ์เข้าถึง');
+        $userRoles = session()->get('u_role') ?? '';
+        if (strpos($userRoles, 'superadmin') === false && strpos($userRoles, 'scholarships') === false) {
+            return redirect()->to(base_url('staff'))->with('error', 'คุณไม่มีสิทธิ์เข้าถึงระบบข้อมูลผู้จองทุน');
+        }
 
         $schModel     = new \App\Models\ScholarshipModel();
         $bookingModel = new \App\Models\ScholarshipBookingModel();

@@ -98,19 +98,39 @@
                     <span class="sidebar-text">บันทึกเวลาปฏิบัติราชการ</span>
                 </a>
 
-                <?php if(strpos(session()->get('u_role'), 'admin') !== false): ?>
+                <?php 
+                    $userRoles = session()->get('u_role') ?? ''; 
+                    $isAdmin = (strpos($userRoles, 'admin') !== false || strpos($userRoles, 'superadmin') !== false);
+                    $isSuper = (strpos($userRoles, 'superadmin') !== false);
+                ?>
+
+                <?php if($isAdmin || strpos($userRoles, 'news') !== false || strpos($userRoles, 'personnel') !== false || strpos($userRoles, 'summary') !== false): ?>
                 <div class="sidebar-category-text pt-8 text-[10px] font-bold text-rose-400 uppercase tracking-widest px-4 mb-4 flex items-center gap-2">
                     <i data-lucide="shield-check" class="w-3.5 h-3.5"></i> การจัดการ (แอดมิน)
                 </div>
+                <?php if($isSuper || strpos($userRoles, 'news') !== false): ?>
                 <a href="<?= base_url('staff/news') ?>" class="sidebar-item <?= strpos(uri_string(), 'staff/news') === 0 ? 'active shadow-lg shadow-blue-100 bg-blue-50/50' : 'text-slate-500 hover:text-blue-600' ?> flex items-center gap-4 px-4 py-3.5 rounded-2xl font-bold text-sm">
                     <i data-lucide="newspaper" class="w-5 h-5"></i>
                     <span class="sidebar-text">จัดการข่าวสาร</span>
                 </a>
+                <?php endif; ?>
+                
+                <?php if($isSuper || strpos($userRoles, 'personnel') !== false): ?>
                 <a href="<?= base_url('staff/personnel') ?>" class="sidebar-item <?= strpos(uri_string(), 'staff/personnel') === 0 ? 'active shadow-lg shadow-blue-100 bg-blue-50/50' : 'text-slate-500 hover:text-blue-600' ?> flex items-center gap-4 px-4 py-3.5 rounded-2xl font-bold text-sm">
                     <i data-lucide="users" class="w-5 h-5"></i>
                     <span class="sidebar-text">จัดการบุคลากร</span>
                 </a>
+                <?php endif; ?>
 
+                <?php if($isSuper || strpos($userRoles, 'summary') !== false): ?>
+                <a href="<?= base_url('staff/admin-summary') ?>" class="sidebar-item <?= uri_string() == 'staff/admin-summary' ? 'active shadow-lg shadow-blue-100 bg-blue-50/50' : 'text-slate-500 hover:text-blue-600' ?> flex items-center gap-4 px-4 py-3.5 rounded-2xl font-bold text-sm">
+                    <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
+                    <span class="sidebar-text">สรุปเวลาปฏิบัติงาน</span>
+                </a>
+                <?php endif; ?>
+                <?php endif; ?>
+
+                <?php if($isSuper || strpos($userRoles, 'scholarships') !== false): ?>
                 <div class="sidebar-category-text pt-8 text-[10px] font-bold text-amber-500 uppercase tracking-widest px-4 mb-4 flex items-center gap-2">
                     <i data-lucide="graduation-cap" class="w-3.5 h-3.5"></i> ระบบทุนการศึกษา
                 </div>
@@ -124,19 +144,26 @@
                 </a>
                 <?php endif; ?>
 
-                <?php if(strpos(session()->get('u_role'), 'superadmin') !== false): ?>
+                <?php if($isSuper || strpos($userRoles, 'settings') !== false): ?>
                 <div class="sidebar-category-text pt-8 text-[10px] font-bold text-indigo-500 uppercase tracking-widest px-4 mb-4 flex items-center gap-2">
                     <i data-lucide="database" class="w-3.5 h-3.5"></i> ผู้ดูแลระบบสูงสุด
                 </div>
-                <a href="<?= base_url('staff/admin-summary') ?>" class="sidebar-item <?= uri_string() == 'staff/admin-summary' ? 'active shadow-lg shadow-indigo-100 bg-indigo-50/50' : 'text-slate-500 hover:text-indigo-600' ?> flex items-center gap-4 px-4 py-3.5 rounded-2xl font-bold text-sm">
-                    <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
-                    <span class="sidebar-text">สรุปเวลาปฏิบัติงาน</span>
+
+                <?php if($isSuper): ?>
+                <a href="<?= base_url('staff/permissions') ?>" class="sidebar-item <?= uri_string() == 'staff/permissions' ? 'active shadow-lg shadow-indigo-100 bg-indigo-50/50' : 'text-slate-500 hover:text-indigo-600' ?> flex items-center gap-4 px-4 py-3.5 rounded-2xl font-bold text-sm">
+                    <i data-lucide="shield-check" class="w-5 h-5"></i>
+                    <span class="sidebar-text">จัดการสิทธิ์การใช้งาน</span>
                 </a>
+                <?php endif; ?>
+
+                <?php if($isSuper || strpos($userRoles, 'settings') !== false): ?>
                 <a href="<?= base_url('staff/settings') ?>" class="sidebar-item <?= uri_string() == 'staff/settings' ? 'active shadow-lg shadow-indigo-100 bg-indigo-50/50' : 'text-slate-500 hover:text-indigo-600' ?> flex items-center gap-4 px-4 py-3.5 rounded-2xl font-bold text-sm">
                     <i data-lucide="settings" class="w-5 h-5"></i>
                     <span class="sidebar-text">ตั้งค่าระบบ</span>
                 </a>
                 <?php endif; ?>
+                <?php endif; ?>
+
             </nav>
 
             <!-- Sidebar Footer -->

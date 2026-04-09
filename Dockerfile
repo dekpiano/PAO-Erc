@@ -1,4 +1,4 @@
-FROM php:8.2-apache
+FROM php:8.3-apache
 
 # ติดตั้ง System Dependencies และ PHP Extensions ที่จำเป็นสำหรับ CodeIgniter 4
 RUN apt-get update && apt-get install -y \
