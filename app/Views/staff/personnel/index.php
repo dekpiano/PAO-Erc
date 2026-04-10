@@ -43,6 +43,7 @@
                     <th class="p-5 text-[10px] font-black uppercase tracking-widest text-slate-400">บุคลากร</th>
                     <th class="p-5 text-[10px] font-black uppercase tracking-widest text-slate-400">สังกัด/ฝ่าย</th>
                     <th class="p-5 text-[10px] font-black uppercase tracking-widest text-slate-400">ข้อมูลระบบ</th>
+                    <th class="p-5 text-[10px] font-black uppercase tracking-widest text-slate-400">สิทธิ์ระบบ</th>
                     <th class="p-5 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">จัดการ</th>
                 </tr>
             </thead>
@@ -62,7 +63,7 @@
                             <div>
                                 <p class="font-black text-slate-800 leading-tight"><?= $user['u_prefix'] ?? '' ?><?= $user['u_fullname'] ?></p>
                                 <p class="text-[11px] text-blue-600 font-bold mt-1">
-                                    <?= $user['u_position'] ?: 'ไม่ระบุตำแหน่ง' ?> 
+                                    <?= $user['position_name'] ?: ($user['u_position'] ?: 'ไม่ระบุตำแหน่ง') ?> 
                                     <?php if(!empty($user['u_level']) && $user['u_level'] !== 'ไม่มีระดับ'): ?>
                                         <span class="text-slate-400 font-medium">(<?= $user['u_level'] ?>)</span>
                                     <?php endif; ?>
@@ -95,6 +96,11 @@
                                 </span>
                             <?php endforeach; ?>
                         </div>
+                    </td>
+                    <td class="p-5">
+                        <a href="<?= base_url('staff/permissions#user-'.$user['u_id']) ?>" class="inline-flex items-center gap-2 text-[10px] font-black text-amber-600 bg-amber-50 hover:bg-amber-100 px-3 py-1.5 rounded-lg transition-all">
+                            <i data-lucide="shield-lock" class="w-3.5 h-3.5"></i> ตั้งค่าสิทธิ์
+                        </a>
                     </td>
                     <td class="p-5 text-right">
                         <div class="flex justify-end gap-2">
@@ -150,9 +156,15 @@
 
                 <!-- ตำแหน่ง -->
                 <div>
-                    <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">ตำแหน่ง</label>
-                    <input type="text" name="u_position" id="u_position" placeholder="เช่น ผู้อำนวยการกองการศึกษา"
-                        class="w-full border border-slate-200 rounded-xl px-4 py-3 text-slate-700 font-bold focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all">
+                    <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">ตำแหน่งงาน (เลือกจากฐานข้อมูล)</label>
+                    <select name="u_pos_id" id="u_pos_id" required class="w-full border border-slate-200 rounded-xl px-4 py-3 text-slate-700 font-bold focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all bg-slate-50">
+                        <option value="">-- เลือกตำแหน่งงาน --</option>
+                        <?php foreach($positions as $pos): ?>
+                            <option value="<?= $pos['pos_id'] ?>"><?= esc($pos['pos_name']) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <!-- เก็บฟิลด์เก่าไว้ซ่อนเผื่อกรณีพิมพ์เอง (Optional) -->
+                    <input type="hidden" name="u_position" id="u_position">
                 </div>
 
                 <!-- ฝ่าย -->
@@ -199,33 +211,6 @@
                     <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">เบอร์โทรศัพท์</label>
                     <input type="text" name="u_phone" id="u_phone" placeholder="0x-xxx-xxxx"
                         class="w-full border border-slate-200 rounded-xl px-4 py-3 text-slate-700 font-bold focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all">
-                </div>
-
-                <!-- สิทธิ์ -->
-                <div>
-                    <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">สิทธิ์ระบบ (เลือกได้มากกว่า 1)</label>
-                    <div class="grid grid-cols-2 gap-3 mt-2">
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" name="u_role[]" value="user" class="role-checkbox w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500">
-                            <span class="text-xs font-bold text-slate-700">พนักงาน (User)</span>
-                        </label>
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" name="u_role[]" value="head" class="role-checkbox w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500">
-                            <span class="text-xs font-bold text-slate-700">หัวหน้า (Head)</span>
-                        </label>
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" name="u_role[]" value="director" class="role-checkbox w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500">
-                            <span class="text-xs font-bold text-slate-700">ผอ. (Director)</span>
-                        </label>
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" name="u_role[]" value="admin" class="role-checkbox w-4 h-4 text-red-500 rounded border-slate-300 focus:ring-red-500">
-                            <span class="text-xs font-bold text-red-600">แอดมิน (Admin)</span>
-                        </label>
-                        <label class="flex items-center gap-2 cursor-pointer col-span-2">
-                            <input type="checkbox" name="u_role[]" value="superadmin" class="role-checkbox w-4 h-4 text-purple-600 rounded border-slate-300 focus:ring-purple-600">
-                            <span class="text-xs font-bold text-purple-700">ผู้ดูแลระบบสูงสุด (Super Admin)</span>
-                        </label>
-                    </div>
                 </div>
 
                 <!-- ลำดับ + สถานะ -->
@@ -289,9 +274,6 @@
         document.getElementById('u_phone').value = '';
         document.getElementById('u_sort').value = '99';
         document.getElementById('u_status').value = 'active';
-        document.querySelectorAll('.role-checkbox').forEach(cb => {
-            cb.checked = (cb.value === 'user');
-        });
         
         // Reset Photo Preview
         document.getElementById('photo-preview-container').classList.add('hidden');
@@ -310,17 +292,12 @@
         document.getElementById('u_email').value = user.u_email || '';
         document.getElementById('u_fullname').value = user.u_fullname;
         document.getElementById('u_prefix').value = user.u_prefix || 'นาย';
-        document.getElementById('u_position').value = user.u_position || '';
+        document.getElementById('u_pos_id').value = user.u_position || '';
         document.getElementById('u_level').value = user.u_level || 'ไม่มีระดับ';
         document.getElementById('u_division').value = user.u_division || 'ฝ่ายบริหาร';
         document.getElementById('u_phone').value = user.u_phone || '';
         document.getElementById('u_sort').value = user.u_sort || '99';
         document.getElementById('u_status').value = user.u_status || 'active';
-        
-        const userRoles = (user.u_role || '').split(',').map(r => r.trim());
-        document.querySelectorAll('.role-checkbox').forEach(cb => {
-            cb.checked = userRoles.includes(cb.value);
-        });
 
         // Current photo preview if exists
         const previewContainer = document.getElementById('photo-preview-container');

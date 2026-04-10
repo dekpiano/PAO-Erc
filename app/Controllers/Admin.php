@@ -57,7 +57,8 @@ class Admin extends Controller
     // --------------------------------------------------------------------
     public function permissions()
     {
-        if (strpos(session()->get('u_role') ?? '', 'superadmin') === false) {
+        $roles = session()->get('u_role') ?? '';
+        if (strpos($roles, 'superadmin') === false && strpos($roles, 'admin') === false) {
             return redirect()->to(base_url('/'))->with('error', 'คุณไม่มีสิทธิ์เข้าถึงหน้านี้');
         }
 
@@ -73,6 +74,8 @@ class Admin extends Controller
             'personnel'    => ['label' => 'จัดการบุคลากร', 'icon' => 'users', 'color' => 'text-blue-500'],
             'summary'      => ['label' => 'ดูสรุปเวลาปฏิบัติงาน', 'icon' => 'bar-chart-3', 'color' => 'text-indigo-500'],
             'settings'     => ['label' => 'ตั้งค่าระบบ', 'icon' => 'settings', 'color' => 'text-slate-500'],
+            'admin'        => ['label' => 'แอดมินระบบ', 'icon' => 'shield-check', 'color' => 'text-red-500'],
+            'head'         => ['label' => 'หัวหน้าฝ่าย', 'icon' => 'user-check', 'color' => 'text-emerald-500'],
         ];
 
         return view('staff/permissions', $data);
@@ -80,7 +83,8 @@ class Admin extends Controller
 
     public function permissionsUpdate()
     {
-        if (strpos(session()->get('u_role') ?? '', 'superadmin') === false) {
+        $roles = session()->get('u_role') ?? '';
+        if (strpos($roles, 'superadmin') === false && strpos($roles, 'admin') === false) {
             return $this->response->setJSON(['status' => 'error', 'message' => 'Unauthorized']);
         }
 

@@ -52,7 +52,9 @@ class AddPersonnelFieldsToUsers extends Migration
                 'after'      => 'u_sort'
             ]
         ];
-        $this->forge->addColumn('Tb_Users', $fields);
+        if (!$this->db->fieldExists('u_prefix', 'Tb_Users')) {
+            $this->forge->addColumn('Tb_Users', $fields);
+        }
     }
 
     public function down()

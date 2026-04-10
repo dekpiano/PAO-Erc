@@ -87,8 +87,11 @@ class Home extends Controller
     public function personnel()
     {
         $model = new UserModel();
-        // Fetch active staff
-        $users = $model->where('u_status', 'active')->findAll();
+        // Fetch active staff with position names joined
+        $users = $model->select('Tb_Users.*, p.pos_name as position_name')
+                       ->join('Tb_Positions as p', 'p.pos_id = Tb_Users.u_position', 'left')
+                       ->where('u_status', 'active')
+                       ->findAll();
 
         // Custom sort logic:
         // 1. Primary: Manual Sort Order (u_sort). Treat 0, NULL, or empty as 9999 (last place)

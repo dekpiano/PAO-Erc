@@ -21,9 +21,11 @@ class Auth extends Controller
         $username = $this->request->getPost('username');
         $password = $this->request->getPost('password');
 
-        $user = $model->groupStart()
-                      ->where('u_username', $username)
-                      ->orWhere('u_email', $username)
+        $user = $model->select('Tb_Users.*, p.pos_name as position_name')
+                      ->join('Tb_Positions as p', 'p.pos_id = Tb_Users.u_position', 'left')
+                      ->groupStart()
+                          ->where('u_username', $username)
+                          ->orWhere('u_email', $username)
                       ->groupEnd()
                       ->first();
 
@@ -32,7 +34,7 @@ class Auth extends Controller
                 'u_id'       => $user['u_id'],
                 'u_username' => $user['u_username'],
                 'u_fullname' => $user['u_fullname'],
-                'u_position' => $user['u_position'] ?? 'บุคลากร',
+                'u_position' => $user['position_name'] ?? 'บุคลากร',
                 'u_photo'    => $user['u_photo'] ?? null,
                 'u_role'     => $user['u_role'],
                 'isLoggedIn' => true,
@@ -87,22 +89,27 @@ class Auth extends Controller
         $model = new UserModel();
         
         // 1. Find by Google Sub first
-        $user = $model->where('u_google_sub', $google_sub)->first();
+        $user = $model->select('Tb_Users.*, p.pos_name as position_name')
+                      ->join('Tb_Positions as p', 'p.pos_id = Tb_Users.u_position', 'left')
+                      ->where('u_google_sub', $google_sub)->first();
         
         // 2. If not found, find by Email then link it
-        if (!$user) {
-            $user = $model->where('u_email', $email)->first();
-            if ($user) {
-                $model->update($user['u_id'], ['u_google_sub' => $google_sub]);
+            if (!$user) {
+                // Try to find by email
+                $user = $model->select('Tb_Users.*, p.pos_name as position_name')
+                              ->join('Tb_Positions as p', 'p.pos_id = Tb_Users.u_position', 'left')
+                              ->where('u_email', $email)->first();
+                if ($user) {
+                    $model->update($user['u_id'], ['u_google_sub' => $google_sub]);
+                }
             }
-        }
 
         if ($user) {
             $sessionData = [
                 'u_id'       => $user['u_id'],
                 'u_username' => $user['u_username'],
                 'u_fullname' => $user['u_fullname'],
-                'u_position' => $user['u_position'] ?? 'บุคลากร',
+                'u_position' => $user['position_name'] ?? 'บุคลากร',
                 'u_photo'    => $user['u_photo'] ?? null,
                 'u_role'     => $user['u_role'],
                 'isLoggedIn' => true,

@@ -85,7 +85,10 @@ phpunit
 # Composer
 #-------------------------
 vendor/
-
+mysql_data/*
+docx_temp/
+scratch/
+DB_PAO_Erc/
 #-------------------------
 # IDE / Development Files
 #-------------------------

@@ -16,8 +16,14 @@ $routes->get('booking/success/(:num)', 'Home::scholarshipBookingSuccess/$1');
 $routes->get('booking/(:segment)', 'Home::scholarshipBooking/$1');
 $routes->get('migrate', 'Home::migrate');
 $routes->get('staff', 'Staff::index');
-$routes->get('staff/attendance', 'Attendance::index');
+    $routes->get('staff/attendance', 'Attendance::index');
 $routes->post('staff/attendance/submit', 'Attendance::submit');
+
+// Leave System
+$routes->get('staff/leave', 'Leave::index');
+$routes->get('staff/leave/create', 'Leave::create');
+$routes->post('staff/leave/store', 'Leave::store');
+$routes->get('staff/leave/export/(:num)', 'Leave::exportDocs/$1');
 
 // Admin News Management
 $routes->get('staff/news', 'Staff::news');
@@ -53,7 +59,11 @@ $routes->get('staff/personnel', 'Staff::personnel');
 $routes->post('staff/personnel/save', 'Staff::personnelSave');
 $routes->get('staff/personnel/delete/(:num)', 'Staff::personnelDelete/$1');
 
-
+// Admin Position Management
+$routes->get('admin/position', 'Position::index');
+$routes->post('admin/position/store', 'Position::store');
+$routes->post('admin/position/update/(:num)', 'Position::update/$1');
+$routes->get('admin/position/delete/(:num)', 'Position::delete/$1');
 // Authentication
 $routes->get('auth/login', 'Auth::login');
 $routes->post('auth/doLogin', 'Auth::doLogin');

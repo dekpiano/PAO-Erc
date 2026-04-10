@@ -44,7 +44,7 @@
                     $userPerms = explode(',', $user['u_role'] ?? ''); 
                     $isSuper = in_array('superadmin', $userPerms);
                 ?>
-                <tr class="hover:bg-blue-50/20 transition-all">
+                <tr id="user-<?= $user['u_id'] ?>" class="hover:bg-blue-50/20 transition-all target:bg-amber-50 target:ring-2 target:ring-amber-500/20">
                     <td class="p-8">
                         <div class="flex items-center gap-5">
                             <div class="w-16 h-16 rounded-2xl bg-slate-100 overflow-hidden shrink-0 border-2 border-slate-50 relative">

@@ -948,16 +948,32 @@ class Staff extends Controller
     
     public function personnel()
     {
-        if (strpos(session()->get('u_role') ?? '', 'admin') === false) return redirect()->to(base_url('staff'))->with('error', 'ไม่มีสิทธิ์เข้าถึง');
+        $roles = session()->get('u_role') ?? '';
+        if (strpos($roles, 'admin') === false && strpos($roles, 'personnel') === false) {
+            return redirect()->to(base_url('staff'))->with('error', 'ไม่มีสิทธิ์เข้าถึง');
+        }
+        
         $model = new \App\Models\UserModel();
+        $posModel = new \App\Models\PositionModel();
+
         $data['title'] = "จัดการบุคลากร | อบจ.นครสวรรค์";
-        $data['users'] = $model->orderBy('u_sort', 'ASC')->findAll();
+        // Join Tb_Positions to get pos_name
+        $data['users'] = $model->select('Tb_Users.*, p.pos_name as position_name')
+                              ->join('Tb_Positions as p', 'p.pos_id = Tb_Users.u_position', 'left')
+                              ->orderBy('u_sort', 'ASC')
+                              ->findAll();
+        
+        $data['positions'] = $posModel->orderBy('pos_name', 'ASC')->findAll();
+        
         return view('staff/personnel/index', $data);
     }
 
     public function personnelSave()
     {
-        if (strpos(session()->get('u_role') ?? '', 'admin') === false) return redirect()->to(base_url('staff'))->with('error', 'ไม่มีสิทธิ์เข้าถึง');
+        $roles = session()->get('u_role') ?? '';
+        if (strpos($roles, 'admin') === false && strpos($roles, 'personnel') === false) {
+            return redirect()->to(base_url('staff'))->with('error', 'ไม่มีสิทธิ์เข้าถึง');
+        }
 
 
         $model = new \App\Models\UserModel();
@@ -971,7 +987,7 @@ class Staff extends Controller
             'u_prefix'   => $this->request->getPost('u_prefix'),
             'u_fullname' => $this->request->getPost('u_fullname'),
             'u_email'    => $email,
-            'u_position' => $this->request->getPost('u_position'),
+            'u_position' => $this->request->getPost('u_pos_id') ?: null, // ใช้ u_position เก็บ ID แล้ว
             'u_level'    => $this->request->getPost('u_level'),
             'u_division' => $this->request->getPost('u_division'),
             'u_phone'    => $this->request->getPost('u_phone'),

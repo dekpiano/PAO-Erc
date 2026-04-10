@@ -17,6 +17,11 @@
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+    <!-- Flatpickr (Calendar) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/th.js"></script>
+
     <style>
         body {
             font-family: 'Inter', 'Sarabun', sans-serif;
@@ -70,7 +75,7 @@
     <div class="flex h-screen overflow-hidden">
         
         <!-- Sidebar -->
-        <aside id="sidebar-menu" class="hidden lg:flex flex-col w-72 bg-white border-r border-slate-200 shrink-0 fixed inset-y-0 left-0 z-[60] lg:static">
+        <aside id="sidebar-menu" class="flex flex-col w-72 bg-white border-r border-slate-200 shrink-0 fixed inset-y-0 left-0 z-[60] lg:static hidden lg:flex">
             <!-- Sidebar Header -->
             <div class="h-20 flex items-center px-6 border-b border-slate-100 gap-3 shrink-0 overflow-hidden">
                 <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg shrink-0">
@@ -98,6 +103,11 @@
                     <span class="sidebar-text">บันทึกเวลาปฏิบัติราชการ</span>
                 </a>
 
+                <a href="<?= base_url('staff/leave') ?>" class="sidebar-item <?= strpos(uri_string(), 'staff/leave') === 0 ? 'active shadow-lg shadow-blue-100 bg-blue-50/50' : 'text-slate-500 hover:text-blue-600' ?> flex items-center gap-4 px-4 py-3.5 rounded-2xl font-bold text-sm">
+                    <i data-lucide="file-signature" class="w-5 h-5"></i>
+                    <span class="sidebar-text">การลางาน</span>
+                </a>
+
                 <?php 
                     $userRoles = session()->get('u_role') ?? ''; 
                     $isAdmin = (strpos($userRoles, 'admin') !== false || strpos($userRoles, 'superadmin') !== false);
@@ -116,9 +126,13 @@
                 <?php endif; ?>
                 
                 <?php if($isSuper || strpos($userRoles, 'personnel') !== false): ?>
-                <a href="<?= base_url('staff/personnel') ?>" class="sidebar-item <?= strpos(uri_string(), 'staff/personnel') === 0 ? 'active shadow-lg shadow-blue-100 bg-blue-50/50' : 'text-slate-500 hover:text-blue-600' ?> flex items-center gap-4 px-4 py-3.5 rounded-2xl font-bold text-sm">
+                <a href="<?= base_url('staff/personnel') ?>" class="sidebar-item <?= uri_string() == 'staff/personnel' ? 'active shadow-lg shadow-blue-100 bg-blue-50/50' : 'text-slate-500 hover:text-blue-600' ?> flex items-center gap-4 px-4 py-3.5 rounded-2xl font-bold text-sm">
                     <i data-lucide="users" class="w-5 h-5"></i>
                     <span class="sidebar-text">จัดการบุคลากร</span>
+                </a>
+                <a href="<?= base_url('admin/position') ?>" class="sidebar-item <?= strpos(uri_string(), 'admin/position') === 0 ? 'active shadow-lg shadow-blue-100 bg-blue-50/50' : 'text-slate-500 hover:text-blue-600' ?> flex items-center gap-4 px-4 py-3.5 rounded-2xl font-bold text-sm">
+                    <i data-lucide="briefcase" class="w-5 h-5"></i>
+                    <span class="sidebar-text">ตั้งค่าตำแหน่งงาน</span>
                 </a>
                 <?php endif; ?>
 
@@ -182,18 +196,18 @@
         <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
             
             <!-- Navbar -->
-            <header class="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-8 shrink-0 z-20">
-                <div class="flex items-center gap-4">
+            <header class="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-4 sm:px-8 shrink-0 z-20">
+                <div class="flex items-center gap-2 sm:gap-4 min-w-0">
                     <button id="mobile-sidebar-btn" class="lg:hidden p-2 text-slate-400">
                         <i data-lucide="menu" class="w-6 h-6"></i>
                     </button>
                     <button id="sidebar-collapse-btn" class="hidden lg:flex p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all rounded-lg">
                         <i data-lucide="chevrons-left" class="w-6 h-6"></i>
                     </button>
-                    <h1 class="text-xl font-black text-slate-900 leading-none">ยินดีต้อนรับ, <?= session()->get('u_fullname') ?></h1>
+                    <h1 class="text-base sm:text-lg lg:text-xl font-black text-slate-900 leading-none truncate">ยินดีต้อนรับ, <?= session()->get('u_fullname') ?></h1>
                 </div>
 
-                <div class="flex items-center gap-6">
+                <div class="flex items-center gap-3 sm:gap-6 shrink-0">
                     <div class="hidden md:flex flex-col items-end text-right">
                         <span class="text-sm font-extrabold text-slate-900 leading-none"><?= session()->get('u_fullname') ?></span>
                         <span class="text-[10px] font-bold text-blue-600 uppercase tracking-widest mt-1">

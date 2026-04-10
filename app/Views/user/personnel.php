@@ -71,7 +71,7 @@
                                 <?= $p['u_prefix'] ?><?= $p['u_fullname'] ?>
                             </h3>
                             <div class="inline-block px-5 py-2 rounded-2xl bg-slate-50 border border-slate-100 mb-2">
-                                <p class="text-blue-600 font-black uppercase tracking-widest text-[12px]"><?= $p['u_position'] ?></p>
+                                <p class="text-blue-600 font-black uppercase tracking-widest text-[12px]"><?= $p['position_name'] ?? 'ไม่มีตำแหน่ง' ?></p>
                             </div>
                             <?php if(!empty($p['u_level']) && $p['u_level'] !== 'ไม่มีระดับ'): ?>
                                 <p class="text-slate-400 font-bold text-[11px] mb-6 uppercase tracking-wider"><?= $p['u_level'] ?></p>
@@ -137,7 +137,7 @@
                             </div>
                             <div class="relative z-10 flex-1">
                                 <h3 class="text-lg font-black text-slate-800 leading-tight mb-1"><?= $h['u_prefix'] ?><?= $h['u_fullname'] ?></h3>
-                                <p class="text-blue-600 font-black text-[10px] uppercase tracking-widest mb-1 leading-tight"><?= $h['u_position'] ?></p>
+                                <p class="text-blue-600 font-black text-[10px] uppercase tracking-widest mb-1 leading-tight"><?= $h['position_name'] ?? 'หัวหน้าฝ่าย' ?></p>
                                 <?php if(!empty($h['u_level']) && $h['u_level'] !== 'ไม่มีระดับ'): ?>
                                     <p class="text-slate-400 font-bold text-[8px] uppercase"><?= $h['u_level'] ?></p>
                                 <?php endif; ?>
@@ -163,11 +163,8 @@
                     <div class="group bg-white rounded-3xl p-5 shadow-lg shadow-slate-200/40 border border-slate-100 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 hover:border-blue-200" 
                          data-aos="fade-up" 
                          data-aos-delay="<?= $i * 30 ?>"
-                         data-u-sort="<?= $s['u_sort'] ?? 'NULL' ?>"
                          data-u-role="<?= $s['u_role'] ?? '' ?>">
                         <div class="flex items-center gap-4">
-                            <!-- Debug Sort (Hidden but inspectable)  -->
-                            <span class="hidden"><?= $s['u_sort'] ?></span>
                             
                             <div class="w-16 h-16 rounded-2xl overflow-hidden shrink-0 border-2 border-slate-50 shadow-sm group-hover:scale-105 transition-transform">
                                 <?php if($s['u_photo']): ?>
@@ -180,7 +177,7 @@
                             </div>
                             <div class="overflow-hidden">
                                 <h3 class="font-black text-slate-800 text-sm leading-tight mb-1 truncate"><?= $s['u_prefix'] ?? '' ?><?= $s['u_fullname'] ?></h3>
-                                <p class="text-[9px] text-blue-500 font-bold uppercase tracking-wider mb-1 opacity-80"><?= $s['u_position'] ?></p>
+                                <p class="text-[9px] text-blue-500 font-bold uppercase tracking-wider mb-1 opacity-80"><?= $s['position_name'] ?? 'เจ้าหน้าที่' ?></p>
                                 <?php if(!empty($s['u_level']) && $s['u_level'] !== 'ไม่มีระดับ'): ?>
                                     <p class="text-[8px] text-slate-400 font-medium truncate"><?= $s['u_level'] ?></p>
                                 <?php endif; ?>
@@ -214,7 +211,7 @@
                         <?php endif; ?>
                     </div>
                     <h4 class="text-[11px] font-black text-slate-700 leading-tight"><?= $s['u_prefix'] ?? '' ?><?= $s['u_fullname'] ?></h4>
-                    <p class="text-[9px] text-slate-400 mt-1"><?= $s['u_position'] ?></p>
+                    <p class="text-[9px] text-slate-400 mt-1"><?= $s['position_name'] ?? 'พนักงาน' ?></p>
                 </div>
                 <?php endforeach; ?>
             </div>

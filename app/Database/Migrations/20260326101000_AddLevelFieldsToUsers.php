@@ -16,7 +16,9 @@ class AddLevelFieldsToUsers extends Migration
                 'after'      => 'u_position'
             ]
         ];
-        $this->forge->addColumn('Tb_Users', $fields);
+        if (!$this->db->fieldExists('u_level', 'Tb_Users')) {
+            $this->forge->addColumn('Tb_Users', $fields);
+        }
     }
 
     public function down()
