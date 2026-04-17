@@ -25,7 +25,7 @@
         <table class="w-full text-left">
             <thead>
                 <tr class="border-b border-slate-100">
-                    <th class="p-8 text-[11px] font-black uppercase tracking-widest text-slate-400">บุคลากร</th>
+                    <th class="p-6 sm:p-8 text-[11px] font-black uppercase tracking-widest text-slate-400 sticky left-0 bg-white z-10 shadow-[4px_0_10px_-5px_rgba(0,0,0,0.05)]">บุคลากร</th>
                     <?php foreach($available_permissions as $key => $perms): ?>
                     <th class="p-8 text-center bg-slate-50/50">
                         <div class="flex flex-col items-center gap-2">
@@ -44,10 +44,10 @@
                     $userPerms = explode(',', $user['u_role'] ?? ''); 
                     $isSuper = in_array('superadmin', $userPerms);
                 ?>
-                <tr id="user-<?= $user['u_id'] ?>" class="hover:bg-blue-50/20 transition-all target:bg-amber-50 target:ring-2 target:ring-amber-500/20">
-                    <td class="p-8">
-                        <div class="flex items-center gap-5">
-                            <div class="w-16 h-16 rounded-2xl bg-slate-100 overflow-hidden shrink-0 border-2 border-slate-50 relative">
+                <tr id="user-<?= $user['u_id'] ?>" class="hover:bg-blue-50/20 transition-all target:bg-amber-50 target:ring-2 target:ring-amber-500/20 group">
+                    <td class="p-6 sm:p-8 sticky left-0 bg-white z-10 group-hover:bg-blue-50/50 transition-colors shadow-[4px_0_10px_-5px_rgba(0,0,0,0.05)]">
+                        <div class="flex items-center gap-3 sm:gap-5 min-w-[200px]">
+                            <div class="w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-slate-100 overflow-hidden shrink-0 border-2 border-slate-50 relative">
                                 <?php if(!empty($user['u_photo'])): ?>
                                     <img src="<?= base_url('uploads/personnel/' . $user['u_photo']) ?>" class="w-full h-full object-cover">
                                 <?php else: ?>
@@ -72,7 +72,7 @@
                     </td>
                     
                     <?php foreach($available_permissions as $key => $perms): ?>
-                    <td class="p-8 text-center align-middle">
+                    <td class="p-6 sm:p-8 text-center align-middle">
                         <label class="relative inline-flex items-center cursor-pointer group">
                             <input type="checkbox" 
                                    onchange="togglePermission(<?= $user['u_id'] ?>, '<?= $key ?>', this)"

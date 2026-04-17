@@ -39,21 +39,21 @@
         <table class="w-full text-left">
             <thead>
                 <tr class="border-b border-slate-100">
-                    <th class="p-5 text-[10px] font-black uppercase tracking-widest text-slate-400">ลำดับ</th>
-                    <th class="p-5 text-[10px] font-black uppercase tracking-widest text-slate-400">บุคลากร</th>
-                    <th class="p-5 text-[10px] font-black uppercase tracking-widest text-slate-400">สังกัด/ฝ่าย</th>
-                    <th class="p-5 text-[10px] font-black uppercase tracking-widest text-slate-400">ข้อมูลระบบ</th>
-                    <th class="p-5 text-[10px] font-black uppercase tracking-widest text-slate-400">สิทธิ์ระบบ</th>
-                    <th class="p-5 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">จัดการ</th>
+                    <th class="p-4 sm:p-5 text-[10px] font-black uppercase tracking-widest text-slate-400 hidden sm:table-cell">ลำดับ</th>
+                    <th class="p-4 sm:p-5 text-[10px] font-black uppercase tracking-widest text-slate-400">บุคลากร</th>
+                    <th class="p-4 sm:p-5 text-[10px] font-black uppercase tracking-widest text-slate-400 hidden md:table-cell">สังกัด/ฝ่าย</th>
+                    <th class="p-4 sm:p-5 text-[10px] font-black uppercase tracking-widest text-slate-400 hidden lg:table-cell">ข้อมูลระบบ</th>
+                    <th class="p-4 sm:p-5 text-[10px] font-black uppercase tracking-widest text-slate-400 hidden xl:table-cell">สิทธิ์ระบบ</th>
+                    <th class="p-4 sm:p-5 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">จัดการ</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-slate-50">
                 <?php foreach($users as $user): ?>
                 <tr class="hover:bg-blue-50/30 transition-all <?= ($user['u_status'] ?? 'active') == 'inactive' ? 'opacity-40' : '' ?>">
-                    <td class="p-5 text-slate-300 font-mono text-xs font-black"><?= $user['u_sort'] ?? 99 ?></td>
-                    <td class="p-5">
-                        <div class="flex items-center gap-4">
-                            <div class="w-14 h-14 rounded-2xl bg-slate-100 overflow-hidden flex items-center justify-center shrink-0 border-2 border-slate-50">
+                    <td class="p-4 sm:p-5 text-slate-300 font-mono text-xs font-black hidden sm:table-cell"><?= $user['u_sort'] ?? 99 ?></td>
+                    <td class="p-4 sm:p-5">
+                        <div class="flex items-center gap-3 sm:gap-4">
+                            <div class="w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-slate-100 overflow-hidden flex items-center justify-center shrink-0 border-2 border-slate-50">
                                 <?php if(!empty($user['u_photo'])): ?>
                                     <img src="<?= base_url('uploads/personnel/' . $user['u_photo']) ?>" class="w-full h-full object-cover">
                                 <?php else: ?>
@@ -71,7 +71,7 @@
                             </div>
                         </div>
                     </td>
-                    <td class="p-5">
+                    <td class="p-4 sm:p-5 hidden md:table-cell">
                         <?php 
                             $divColor = match($user['u_division'] ?? '') {
                                 'ผู้บริหาร' => 'bg-purple-50 text-purple-600 border-purple-100',
@@ -87,7 +87,7 @@
                             <p class="text-[10px] text-slate-400 mt-2"><i data-lucide="phone" class="w-3 h-3 inline"></i> <?= $user['u_phone'] ?></p>
                         <?php endif; ?>
                     </td>
-                    <td class="p-5">
+                    <td class="p-4 sm:p-5 hidden lg:table-cell">
                         <code class="text-[10px] bg-slate-100 px-2 py-1 rounded-lg text-slate-500 font-mono"><?= $user['u_email'] ?: 'No Email' ?></code>
                         <div class="flex flex-wrap gap-1 mt-2">
                             <?php foreach(explode(',', $user['u_role']) as $role): ?>
@@ -97,12 +97,12 @@
                             <?php endforeach; ?>
                         </div>
                     </td>
-                    <td class="p-5">
+                    <td class="p-4 sm:p-5 hidden xl:table-cell">
                         <a href="<?= base_url('staff/permissions#user-'.$user['u_id']) ?>" class="inline-flex items-center gap-2 text-[10px] font-black text-amber-600 bg-amber-50 hover:bg-amber-100 px-3 py-1.5 rounded-lg transition-all">
                             <i data-lucide="shield-lock" class="w-3.5 h-3.5"></i> ตั้งค่าสิทธิ์
                         </a>
                     </td>
-                    <td class="p-5 text-right">
+                    <td class="p-4 sm:p-5 text-right">
                         <div class="flex justify-end gap-2">
                             <button onclick='editUser(<?= json_encode($user) ?>)' class="w-10 h-10 flex items-center justify-center bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-xl transition-all" title="แก้ไข">
                                 <i data-lucide="edit-3" class="w-4 h-4"></i>
@@ -122,15 +122,18 @@
 </div>
 
 <!-- Modal -->
-<div id="userModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[70] hidden flex items-center justify-center p-4">
-    <div class="bg-white w-full max-w-3xl rounded-[2.5rem] overflow-hidden shadow-2xl animate-[fadeIn_0.3s_ease-out]">
+<div id="userModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[70] hidden flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+    <div class="bg-white w-full max-w-3xl rounded-none sm:rounded-[2.5rem] overflow-hidden shadow-2xl animate-[fadeIn_0.3s_ease-out] my-auto">
         <!-- Modal Header -->
-        <div class="bg-gradient-to-r from-blue-600 to-indigo-700 p-8 text-white">
-            <h3 id="modalTitle" class="text-2xl font-black">เพิ่มบุคลากรใหม่</h3>
-            <p class="text-blue-200 text-xs font-bold uppercase tracking-widest mt-1">Personnel Registration</p>
+        <div class="bg-gradient-to-r from-blue-600 to-indigo-700 p-6 sm:p-8 text-white relative">
+            <h3 id="modalTitle" class="text-xl sm:text-2xl font-black">เพิ่มบุคลากรใหม่</h3>
+            <p class="text-blue-200 text-[10px] font-bold uppercase tracking-widest mt-1">Personnel Registration</p>
+            <button onclick="closeModal()" class="absolute top-6 right-6 text-white/50 hover:text-white transition-colors">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
         </div>
         
-        <form id="personnel-form" action="<?= base_url('staff/personnel/save') ?>" method="post" enctype="multipart/form-data" class="p-8">
+        <form id="personnel-form" action="<?= base_url('staff/personnel/save') ?>" method="post" enctype="multipart/form-data" class="p-6 sm:p-8">
             <input type="hidden" name="u_id" id="u_id">
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">

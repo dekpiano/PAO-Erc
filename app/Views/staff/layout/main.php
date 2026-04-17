@@ -75,7 +75,7 @@
     <div class="flex h-screen overflow-hidden">
         
         <!-- Sidebar -->
-        <aside id="sidebar-menu" class="flex flex-col w-72 bg-white border-r border-slate-200 shrink-0 fixed inset-y-0 left-0 z-[60] lg:static hidden lg:flex">
+        <aside id="sidebar-menu" class="flex flex-col w-72 bg-white border-r border-slate-200 shrink-0 fixed inset-y-0 left-0 z-[60] lg:static -translate-x-full lg:translate-x-0 transition-transform duration-300">
             <!-- Sidebar Header -->
             <div class="h-20 flex items-center px-6 border-b border-slate-100 gap-3 shrink-0 overflow-hidden">
                 <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg shrink-0">
@@ -142,6 +142,13 @@
                     <span class="sidebar-text">สรุปเวลาปฏิบัติงาน</span>
                 </a>
                 <?php endif; ?>
+
+                <?php if($isAdmin): ?>
+                <a href="<?= base_url('staff/leave/admin') ?>" class="sidebar-item <?= strpos(uri_string(), 'staff/leave/admin') === 0 ? 'active shadow-lg shadow-blue-100 bg-blue-50/50' : 'text-slate-500 hover:text-blue-600' ?> flex items-center gap-4 px-4 py-3.5 rounded-2xl font-bold text-sm">
+                    <i data-lucide="clipboard-check" class="w-5 h-5"></i>
+                    <span class="sidebar-text">จัดการการลางาน</span>
+                </a>
+                <?php endif; ?>
                 <?php endif; ?>
 
                 <?php if($isSuper || strpos($userRoles, 'scholarships') !== false): ?>
@@ -196,8 +203,8 @@
         <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
             
             <!-- Navbar -->
-            <header class="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-4 sm:px-8 shrink-0 z-20">
-                <div class="flex items-center gap-2 sm:gap-4 min-w-0">
+            <header class="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-4 sm:px-6 shrink-0 z-20 sticky top-0">
+                <div class="flex items-center gap-1 sm:gap-4 min-w-0">
                     <button id="mobile-sidebar-btn" class="lg:hidden p-2 text-slate-400">
                         <i data-lucide="menu" class="w-6 h-6"></i>
                     </button>
@@ -225,7 +232,7 @@
             </header>
 
             <!-- Dashboard Content -->
-            <main class="flex-1 overflow-y-auto p-8 relative">
+            <main class="flex-1 overflow-y-auto p-4 sm:p-8 relative">
                 <div class="max-w-7xl mx-auto animate-[fadeIn_0.5s_ease-out]">
                     <?= $this->renderSection('content') ?>
                 </div>
@@ -243,11 +250,11 @@
 
         if (sidebarBtn && sidebarMenu && sidebarOverlay) {
             const toggleSidebar = () => {
-                sidebarMenu.classList.toggle('hidden');
+                sidebarMenu.classList.toggle('-translate-x-full');
                 sidebarOverlay.classList.toggle('hidden');
                 document.body.classList.toggle('overflow-hidden');
             };
-
+ 
             sidebarBtn.addEventListener('click', toggleSidebar);
             sidebarOverlay.addEventListener('click', toggleSidebar);
         }

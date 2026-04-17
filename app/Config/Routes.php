@@ -21,8 +21,10 @@ $routes->post('staff/attendance/submit', 'Attendance::submit');
 
 // Leave System
 $routes->get('staff/leave', 'Leave::index');
+$routes->get('staff/leave/admin', 'Leave::adminIndex');
 $routes->get('staff/leave/create', 'Leave::create');
 $routes->post('staff/leave/store', 'Leave::store');
+$routes->post('staff/leave/update-status', 'Leave::updateStatus');
 $routes->get('staff/leave/export/(:num)', 'Leave::exportDocs/$1');
 
 // Admin News Management

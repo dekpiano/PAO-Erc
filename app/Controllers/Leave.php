@@ -43,16 +43,12 @@ class Leave extends BaseController
             $fiscalYears[] = $currentFY - $i;
         }
 
-        // --- ดึงข้อมูลใบลา (กรองตามปีงบประมาณที่เลือก) ---
-        $builder = $this->leaveModel->where('leave_from_date >=', $fStart)
-                                    ->where('leave_from_date <=', $fEnd);
-
-        // ถ้าไม่ใช่แอดมิน ให้ดูแค่ของตัวเอง
-        if (strpos($role, 'superadmin') === false && strpos($role, 'admin') === false) {
-            $builder->where('leave_user_id', $userId);
-        }
-
-        $leaves = $builder->orderBy('leave_created_at', 'DESC')->findAll();
+        // --- ดึงข้อมูลใบลา (หน้าทั่วไป: ดูแค่ของตัวเองเท่านั้น) ---
+        $leaves = $this->leaveModel->where('leave_user_id', $userId)
+                                    ->where('leave_from_date >=', $fStart)
+                                    ->where('leave_from_date <=', $fEnd)
+                                    ->orderBy('leave_created_at', 'DESC')
+                                    ->findAll();
 
         // --- คำนวณสถิติ (เฉพาะของคนล็อกอินในฐานะ Staff) ---
         $db = \Config\Database::connect();
@@ -118,6 +114,65 @@ class Leave extends BaseController
         ];
 
         return view('staff/leave/create', $data);
+    }
+
+    public function adminIndex()
+    {
+        if (!session()->get('isLoggedIn')) {
+            return redirect()->to('/auth/login')->with('error', 'กรุณาเข้าสู่ระบบ');
+        }
+
+        $role = session()->get('u_role') ?? '';
+        if (strpos($role, 'superadmin') === false && strpos($role, 'admin') === false && strpos($role, 'head') === false) {
+            return redirect()->to('/staff/leave')->with('error', 'คุณไม่มีสิทธิ์เข้าถึงหน้าจัดการใบลา');
+        }
+
+        // --- ส่วนการจัดการปีงบประมาณ ---
+        $now = time();
+        $currentFY = (date('n', $now) >= 10) ? date('Y', $now) + 544 : date('Y', $now) + 543;
+        $selectedFY = $this->request->getVar('f_year') ?: $currentFY;
+        $yearAD = $selectedFY - 543;
+        $fStart = ($yearAD - 1) . '-10-01';
+        $fEnd = $yearAD . '-09-30';
+
+        $fiscalYears = [];
+        for ($i = 0; $i < 5; $i++) {
+            $fiscalYears[] = $currentFY - $i;
+        }
+
+        // --- ดึงข้อมูลใบลาทั้งหมด (สำหรับแอดมิน) ---
+        $leaves = $this->leaveModel->select('Tb_Leave.*, Tb_Users.u_fullname, Tb_Users.u_prefix')
+                                    ->join('Tb_Users', 'Tb_Users.u_id = Tb_Leave.leave_user_id', 'left')
+                                    ->where('leave_from_date >=', $fStart)
+                                    ->where('leave_from_date <=', $fEnd)
+                                    ->orderBy('leave_created_at', 'DESC')
+                                    ->findAll();
+
+        // --- คำนวณสถิติภาพรวม (สำหรับแอดมิน) ---
+        $stats = [
+            'total'   => count($leaves),
+            'pending' => 0,
+            'approved' => 0,
+            'rejected' => 0
+        ];
+
+        foreach ($leaves as $l) {
+            if ($l['leave_status'] == 'pending') $stats['pending']++;
+            if ($l['leave_status'] == 'approved') $stats['approved']++;
+            if ($l['leave_status'] == 'rejected') $stats['rejected']++;
+        }
+
+        $data = [
+            'title' => 'จัดการการลางาน (Admin)',
+            'leaves' => $leaves,
+            'stats'  => $stats,
+            'fYearBE' => $selectedFY,
+            'fiscalYears' => $fiscalYears,
+            'fStart' => date('d/m/', strtotime($fStart)) . (date('Y', strtotime($fStart)) + 543),
+            'fEnd' => date('d/m/', strtotime($fEnd)) . (date('Y', strtotime($fEnd)) + 543)
+        ];
+
+        return view('staff/leave/admin_index', $data);
     }
 
     public function store()
@@ -395,6 +450,38 @@ class Leave extends BaseController
             
         } catch (\Exception $e) {
             return redirect()->to('/staff/leave')->with('error', 'เกิดข้อผิดพลาดในการสร้างไฟล์ Word: ' . $e->getMessage());
+        }
+    }
+
+    public function updateStatus()
+    {
+        $userId = session()->get('u_id');
+        $role = session()->get('u_role') ?? '';
+
+        // เช็คสิทธิ์แอดมินหรือหัวหน้า
+        if (strpos($role, 'superadmin') === false && strpos($role, 'admin') === false && strpos($role, 'head') === false) {
+            return $this->response->setJSON(['status' => 'error', 'message' => 'คุณไม่มีสิทธิ์ดำเนินการนี้']);
+        }
+
+        $id = $this->request->getPost('id');
+        $status = $this->request->getPost('status');
+
+        if (!$id || !$status) {
+            return $this->response->setJSON(['status' => 'error', 'message' => 'ข้อมูลไม่ครบถ้วน']);
+        }
+
+        try {
+            $this->leaveModel->update($id, [
+                'leave_status' => $status,
+                'leave_approver_id' => $userId
+            ]);
+
+            return $this->response->setJSON([
+                'status' => 'success', 
+                'message' => 'ปรับปรุงสถานะใบลาเป็น "' . ($status == 'approved' ? 'อนุมัติ' : 'ไม่อนุมัติ') . '" เรียบร้อยแล้ว'
+            ]);
+        } catch (\Exception $e) {
+            return $this->response->setJSON(['status' => 'error', 'message' => $e->getMessage()]);
         }
     }
 }
