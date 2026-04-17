@@ -16,6 +16,7 @@ $routes->get('booking/success/(:num)', 'Home::scholarshipBookingSuccess/$1');
 $routes->get('booking/(:segment)', 'Home::scholarshipBooking/$1');
 $routes->get('migrate', 'Home::migrate');
 $routes->get('staff', 'Staff::index');
+$routes->get('staff/notifications', 'Staff::notifications');
 $routes->get('staff/attendance', 'Attendance::index');
 $routes->post('staff/attendance/submit', 'Attendance::submit');
 $routes->get('staff/attendance-admin', 'StaffAttendance::index');
@@ -37,6 +38,7 @@ $routes->get('staff/leave/admin', 'Leave::adminIndex');
 $routes->get('staff/leave/create', 'Leave::create');
 $routes->post('staff/leave/store', 'Leave::store');
 $routes->post('staff/leave/update-status', 'Leave::updateStatus');
+$routes->get('staff/leave/get-last/(:num)', 'Leave::getLastLeave/$1');
 $routes->get('staff/leave/export/(:num)', 'Leave::exportDocs/$1');
 
 // Admin News Management

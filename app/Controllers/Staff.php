@@ -5,7 +5,7 @@ namespace App\Controllers;
 use App\Models\AttendanceModel;
 use CodeIgniter\Controller;
 
-class Staff extends Controller
+class Staff extends BaseController
 {
     public function index()
     {
@@ -15,14 +15,34 @@ class Staff extends Controller
         $data['title'] = "Dashboard บุคลากร | อบจ.นครสวรรค์";
         $data['fullname'] = session()->get('u_fullname');
         
-        // Stats for current user
-        $data['total_attendance'] = $atdModel->where('atd_user_id', $userId)->countAllResults();
+        // Stats for current user (ดูเฉพาะที่แอดมินบันทึกเป็นหลัก)
+        $data['total_attendance'] = $atdModel->where('atd_user_id', $userId)
+                                            ->where('atd_type', 'excel_import')
+                                            ->countAllResults();
+
         $data['today_checkin'] = $atdModel->where('atd_user_id', $userId)
-                                          ->where('atd_type', 'check_in')
-                                          ->where('DATE(atd_timestamp)', date('Y-m-d'))
+                                          ->where('atd_type', 'excel_import')
+                                          ->where('atd_date', date('Y-m-d'))
                                           ->first();
                                           
         return view('staff/dashboard', $data);
+    }
+
+    public function notifications()
+    {
+        $userId = session()->get('u_id');
+        $notModel = new \App\Models\NotificationModel();
+        
+        $data['title'] = "การแจ้งเตือน | อบจ.นครสวรรค์";
+        $data['fullname'] = session()->get('u_fullname');
+        $data['notifications'] = $notModel->where('not_user_id', $userId)
+                                         ->orderBy('not_created_at', 'DESC')
+                                         ->findAll();
+        
+        // Mark all as read when visiting this page
+        $notModel->where('not_user_id', $userId)->set(['not_is_read' => 1])->update();
+        
+        return view('staff/notifications', $data);
     }
 
     public function news()

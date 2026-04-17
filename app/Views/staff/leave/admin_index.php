@@ -15,9 +15,9 @@
                 <?php endforeach; ?>
             </select>
         </form>
-        <a href="<?= base_url('staff/leave/create') ?>" class="inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold transition-all shadow-lg shadow-blue-200">
-            <i data-lucide="plus" class="w-5 h-5"></i> เขียนใบลาใหม่
-        </a>
+        <button onclick="openLeaveModal()" class="inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl font-bold transition-all shadow-lg shadow-emerald-200">
+            <i data-lucide="user-plus" class="w-5 h-5"></i> บันทึกการลาแทน
+        </button>
     </div>
 </div>
 
@@ -239,5 +239,233 @@
             }
         }
     }
+
+    // --- ส่วนจัดการ Modal การลาแทน ---
+    function openLeaveModal() {
+        document.getElementById('leaveModal').classList.remove('hidden');
+        initDatepickers();
+    }
+
+    function closeLeaveModal() {
+        document.getElementById('leaveModal').classList.add('hidden');
+    }
+
+    function initDatepickers() {
+        // ตั้งค่า Flatpickr ภาษาไทย + พ.ศ.
+        const dateConfig = {
+            locale: "th",
+            dateFormat: "Y-m-d",
+            altInput: true,
+            altFormat: "d/m/Y",
+            onReady: function(selectedDates, dateStr, instance) {
+                const adjustYear = () => {
+                    if (instance.altInput) {
+                        const value = instance.altInput.value;
+                        if (value && value.includes('/')) {
+                            const parts = value.split('/');
+                            if (parts.length === 3 && parts[2].length === 4 && parseInt(parts[2]) < 2500) {
+                                parts[2] = parseInt(parts[2]) + 543;
+                                instance.altInput.value = parts.join('/');
+                            }
+                        }
+                    }
+                };
+                instance.altInput.addEventListener('blur', adjustYear);
+                instance.config.onChange.push(function(selDates, dateStr, inst) {
+                    setTimeout(adjustYear, 10);
+                    calculateDays();
+                });
+                adjustYear();
+            }
+        };
+
+        flatpickr(".datepicker", dateConfig);
+    }
+
+    function calculateDays() {
+        const fromDate = document.getElementById('leave_from_date').value;
+        const toDate = document.getElementById('leave_to_date').value;
+        
+        if(fromDate && toDate) {
+            const start = new Date(fromDate);
+            const end = new Date(toDate);
+            let diffTime = Math.abs(end - start);
+            let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+            if(diffDays > 0) {
+                document.getElementById('leave_days').value = diffDays;
+            }
+        }
+    }
+
+    // Toggle ช่องผู้รับมอบงาน
+    function toggleSubstitute() {
+        const type = document.getElementById('leave_type').value;
+        const container = document.getElementById('substitute_container');
+        const select = document.getElementById('leave_substitute_id');
+        if (type === 'vacation') {
+            container.classList.remove('hidden');
+            select.required = true;
+        } else {
+            container.classList.add('hidden');
+            select.required = false;
+        }
+    }
+
+    // ฟังก์ชันดึงประวัติการลาล่าสุดแบบอัตโนมัติ
+    async function fetchLastLeave(userId) {
+        if (!userId) return;
+
+        // ล้างค่าเดิมก่อน
+        document.getElementById('leave_last_from_date').value = '';
+        document.getElementById('leave_last_to_date').value = '';
+        document.getElementById('leave_last_days').value = '';
+
+        try {
+            const response = await fetch(`<?= base_url('staff/leave/get-last/') ?>${userId}`, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            const res = await response.json();
+
+            if (res.status === 'success') {
+                // อัปเดตค่าใน Field (ใช้ _flatpickr.setDate ถ้าจำเป็น แต่ในที่นี้เราใช้ Input ธรรมดาที่ซ่อน Datepicker ไว้)
+                document.getElementById('leave_last_from_date')._flatpickr.setDate(res.data.from_date);
+                document.getElementById('leave_last_to_date')._flatpickr.setDate(res.data.to_date);
+                document.getElementById('leave_last_days').value = res.data.days;
+                
+                // แจ้งเตือนเล็กน้อย
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'info',
+                    title: 'โหลดประวัติการลาล่าสุดเรียบร้อย',
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+            }
+        } catch (error) {
+            console.error('Fetch error:', error);
+        }
+    }
 </script>
+
+<!-- Add Proxy Leave Modal -->
+<div id="leaveModal" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="closeLeaveModal()"></div>
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-4xl p-4">
+        <div class="bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="p-8 border-b border-slate-50 flex justify-between items-center shrink-0">
+                <div>
+                    <h3 class="text-xl font-black text-slate-900">บันทึกการลาแทนบุคลากร</h3>
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Admin Proxy Mode</p>
+                </div>
+                <button onclick="closeLeaveModal()" class="text-slate-400 hover:text-slate-600 transition-colors"><i data-lucide="x" class="w-6 h-6"></i></button>
+            </div>
+            
+            <form action="<?= base_url('staff/leave/store') ?>" method="POST" class="p-8 overflow-y-auto">
+                <?= csrf_field() ?>
+                
+                <!-- เลือกบุคลากร -->
+                <div class="mb-10 bg-blue-50/50 p-6 rounded-3xl border border-blue-100">
+                    <label class="block text-[11px] font-black text-blue-600 uppercase tracking-widest mb-3 ml-1">1. เลือกบุคลากรที่ต้องการลาให้ (Proxy Target)</label>
+                    <select name="leave_user_id" id="leave_user_id" onchange="fetchLastLeave(this.value)" required class="w-full px-5 py-4 bg-white border-2 border-slate-200 focus:border-blue-500 rounded-2xl font-black text-slate-900 outline-none transition-all appearance-none cursor-pointer">
+                        <option value="">-- ค้นหาและเลือกรายชื่อพนักงาน --</option>
+                        <?php foreach($users_list as $u): ?>
+                            <option value="<?= $u['u_id'] ?>"><?= $u['u_prefix'] . $u['u_fullname'] ?> [<?= $u['u_role'] ?>]</option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
+                    <div class="md:col-span-2">
+                        <h4 class="text-sm font-black text-slate-800 flex items-center gap-2 mb-6">
+                            <i data-lucide="file-text" class="w-5 h-5 text-blue-500"></i> ข้อมูลการลา
+                        </h4>
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">ประเภทการลา <span class="text-rose-500">*</span></label>
+                        <select name="leave_type" id="leave_type" required onchange="toggleSubstitute()" class="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-500 rounded-2xl font-bold text-slate-800 transition-all outline-none">
+                            <option value="sick">ลาป่วย</option>
+                            <option value="personal">ลากิจส่วนตัว</option>
+                            <option value="maternity">ลาคลอดบุตร</option>
+                            <option value="paternity">ลาไปช่วยเหลือภริยาที่คลอดบุตร</option>
+                            <option value="vacation">ลาพักผ่อน</option>
+                            <option value="ordination">ลาอุปสมบท / ไปประกอบพิธีฮัจย์</option>
+                            <option value="military">ลาเข้ารับการตรวจเลือกหรือเข้ารับการเตรียมพล</option>
+                            <option value="study">ลาไปศึกษา ฝึกอบรม ปฏิบัติการวิจัย หรือดูงาน</option>
+                            <option value="international_org">ลาไปปฏิบัติงานในองค์การระหว่างประเทศ</option>
+                            <option value="spouse_follow">ลาติดตามคู่สมรส</option>
+                            <option value="rehabilitation">ลาไปฟื้นฟูสมรรถภาพด้านอาชีพ</option>
+                        </select>
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">เนื่องจาก (ระบุสาเหตุ) <span class="text-rose-500">*</span></label>
+                        <input type="text" name="leave_reason" required placeholder="เหตุผลการลา..." class="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-500 rounded-2xl font-bold text-slate-800 transition-all outline-none">
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">ตั้งแต่วันที่ <span class="text-rose-500">*</span></label>
+                        <input type="text" name="leave_from_date" id="leave_from_date" required placeholder="เลือกวันที่" class="datepicker w-full px-5 py-3.5 bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-500 rounded-2xl font-bold text-slate-800 transition-all outline-none">
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">ถึงวันที่ <span class="text-rose-500">*</span></label>
+                        <input type="text" name="leave_to_date" id="leave_to_date" required placeholder="เลือกวันที่" class="datepicker w-full px-5 py-3.5 bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-500 rounded-2xl font-bold text-slate-800 transition-all outline-none">
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">จำนวนหน่วยวันลา <span class="text-rose-500">*</span></label>
+                        <div class="relative">
+                            <input type="number" step="0.5" name="leave_days" id="leave_days" required placeholder="0" class="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-500 rounded-2xl font-bold text-slate-800 transition-all outline-none pr-12">
+                            <span class="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold">วัน</span>
+                        </div>
+                    </div>
+
+                    <div id="substitute_container" class="hidden">
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">ผู้ปฏิบัติราชการแทน <span class="text-rose-500">*</span></label>
+                        <select name="leave_substitute_id" id="leave_substitute_id" class="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-500 rounded-2xl font-bold text-slate-800 transition-all outline-none">
+                            <option value="">-- เลือกผู้รับมอบงาน --</option>
+                            <?php foreach($users_list as $u): ?>
+                                <option value="<?= $u['u_id'] ?>"><?= $u['u_prefix'] . $u['u_fullname'] ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">ในระหว่างลาจะติดต่อได้ที่</label>
+                        <textarea name="leave_contact" rows="2" placeholder="ที่อยู่หรือเบอร์โทรศัพท์..." class="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-500 rounded-2xl font-bold text-slate-800 transition-all outline-none"></textarea>
+                    </div>
+                </div>
+
+                <div class="mb-8">
+                    <h4 class="text-sm font-black text-slate-800 flex items-center gap-2 mb-6">
+                        <i data-lucide="history" class="w-5 h-5 text-indigo-500"></i> ประวัติการลาครั้งสุดท้าย
+                    </h4>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">ลาตั้งแต่วันที่</label>
+                            <input type="text" name="leave_last_from_date" id="leave_last_from_date" class="datepicker w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-slate-800 outline-none transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">ลาถึงวันที่</label>
+                            <input type="text" name="leave_last_to_date" id="leave_last_to_date" class="datepicker w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-slate-800 outline-none transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">จำนวนวัน</label>
+                            <input type="number" step="0.5" name="leave_last_days" id="leave_last_days" class="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-slate-800 outline-none transition-all">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex gap-4 pt-6 mt-4 border-t border-slate-50">
+                    <button type="button" onclick="closeLeaveModal()" class="px-8 py-4 bg-slate-100 hover:bg-slate-200 text-slate-500 rounded-[1.5rem] font-black transition-all">ยกเลิก</button>
+                    <button type="submit" class="flex-1 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-[1.5rem] font-black transition-all shadow-xl shadow-blue-100 flex items-center justify-center gap-2">
+                        <i data-lucide="save" class="w-5 h-5"></i> บันทึกใบลาให้พนักงาน
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 <?= $this->endSection() ?>

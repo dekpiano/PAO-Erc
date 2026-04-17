@@ -98,10 +98,12 @@
 
                 <div class="sidebar-category-text pt-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest px-4 mb-4">ระบบบริหารงาน</div>
                 
+                <?php /* 
                 <a href="<?= base_url('staff/attendance') ?>" class="sidebar-item <?= uri_string() == 'staff/attendance' ? 'active shadow-lg shadow-blue-100 bg-blue-50/50' : 'text-slate-500 hover:text-blue-600' ?> flex items-center gap-4 px-4 py-3.5 rounded-2xl font-bold text-sm">
                     <i data-lucide="clock" class="w-5 h-5"></i>
                     <span class="sidebar-text">บันทึกเวลาปฏิบัติราชการ</span>
                 </a>
+                */ ?>
 
                 <a href="<?= base_url('staff/leave') ?>" class="sidebar-item <?= strpos(uri_string(), 'staff/leave') === 0 ? 'active shadow-lg shadow-blue-100 bg-blue-50/50' : 'text-slate-500 hover:text-blue-600' ?> flex items-center gap-4 px-4 py-3.5 rounded-2xl font-bold text-sm">
                     <i data-lucide="file-signature" class="w-5 h-5"></i>
@@ -136,16 +138,18 @@
                 </a>
                 <?php endif; ?>
 
+                 
                 <?php if($isSuper || strpos($userRoles, 'summary') !== false): ?>
-                <a href="<?= base_url('staff/admin-summary') ?>" class="sidebar-item <?= uri_string() == 'staff/admin-summary' ? 'active shadow-lg shadow-blue-100 bg-blue-50/50' : 'text-slate-500 hover:text-blue-600' ?> flex items-center gap-4 px-4 py-3.5 rounded-2xl font-bold text-sm">
+                <!-- <a href="<?= base_url('staff/admin-summary') ?>" class="sidebar-item <?= uri_string() == 'staff/admin-summary' ? 'active shadow-lg shadow-blue-100 bg-blue-50/50' : 'text-slate-500 hover:text-blue-600' ?> flex items-center gap-4 px-4 py-3.5 rounded-2xl font-bold text-sm">
                     <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
                     <span class="sidebar-text">สรุปเวลาปฏิบัติงาน</span>
-                </a>
+                </a> -->
                 <a href="<?= base_url('staff/attendance-admin') ?>" class="sidebar-item <?= strpos(uri_string(), 'staff/attendance-admin') === 0 ? 'active shadow-lg shadow-blue-100 bg-blue-50/50' : 'text-slate-500 hover:text-blue-600' ?> flex items-center gap-4 px-4 py-3.5 rounded-2xl font-bold text-sm">
                     <i data-lucide="file-spreadsheet" class="w-5 h-5"></i>
                     <span class="sidebar-text">บันทึกการมาทำงาน</span>
                 </a>
                 <?php endif; ?>
+                
 
                 <?php if($isAdmin): ?>
                 <a href="<?= base_url('staff/leave/admin') ?>" class="sidebar-item <?= strpos(uri_string(), 'staff/leave/admin') === 0 ? 'active shadow-lg shadow-blue-100 bg-blue-50/50' : 'text-slate-500 hover:text-blue-600' ?> flex items-center gap-4 px-4 py-3.5 rounded-2xl font-bold text-sm">
@@ -219,6 +223,23 @@
                 </div>
 
                 <div class="flex items-center gap-3 sm:gap-6 shrink-0">
+                    <!-- Notification Bell -->
+                    <?php 
+                        $notModel = new \App\Models\NotificationModel();
+                        $unreadCount = session()->get('isLoggedIn') ? $notModel->getUnreadCount(session()->get('u_id')) : 0;
+                    ?>
+                    <div class="relative group">
+                        <button onclick="location.href='<?= base_url('staff/notifications') ?>'" 
+                                class="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all rounded-xl relative">
+                            <i data-lucide="bell" class="w-6 h-6"></i>
+                            <?php if($unreadCount > 0): ?>
+                                <span class="absolute top-2 right-2 w-4.5 h-4.5 bg-rose-500 text-white text-[9px] font-black border-2 border-white rounded-full flex items-center justify-center animate-bounce">
+                                    <?= $unreadCount ?>
+                                </span>
+                            <?php endif; ?>
+                        </button>
+                    </div>
+
                     <div class="hidden md:flex flex-col items-end text-right">
                         <span class="text-sm font-extrabold text-slate-900 leading-none"><?= session()->get('u_fullname') ?></span>
                         <span class="text-[10px] font-bold text-blue-600 uppercase tracking-widest mt-1">

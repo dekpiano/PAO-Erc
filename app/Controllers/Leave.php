@@ -162,10 +162,18 @@ class Leave extends BaseController
             if ($l['leave_status'] == 'rejected') $stats['rejected']++;
         }
 
+        // --- ดึงข้อมูลบุคลากรทั้งหมด (สำหรับเลือกเวลาแอดมินลาให้) ---
+        $db = \Config\Database::connect();
+        $users_list = $db->table('Tb_Users')
+                         ->where('u_status', 'active')
+                         ->orderBy('u_fullname', 'ASC')
+                         ->get()->getResultArray();
+
         $data = [
             'title' => 'จัดการการลางาน (Admin)',
             'leaves' => $leaves,
             'stats'  => $stats,
+            'users_list' => $users_list,
             'fYearBE' => $selectedFY,
             'fiscalYears' => $fiscalYears,
             'fStart' => date('d/m/', strtotime($fStart)) . (date('Y', strtotime($fStart)) + 543),
@@ -192,8 +200,15 @@ class Leave extends BaseController
             return redirect()->back()->withInput()->with('error', 'กรุณากรอกข้อมูลให้ครบถ้วน');
         }
 
+        // กำหนด User ID (ถ้าแอดมินทำรายการแทนคนอื่น ให้ใช้ ID ที่เลือกมา)
+        $userId = session()->get('u_id');
+        $userRoles = session()->get('u_role') ?? '';
+        $isAdmin = (strpos($userRoles, 'admin') !== false || strpos($userRoles, 'superadmin') !== false || strpos($userRoles, 'head') !== false);
+        
+        $targetUserId = ($isAdmin && $this->request->getVar('leave_user_id')) ? $this->request->getVar('leave_user_id') : $userId;
+
         $data = [
-            'leave_user_id' => session()->get('u_id'),
+            'leave_user_id' => $targetUserId,
             'leave_type' => $this->request->getVar('leave_type'),
             'leave_reason' => $this->request->getVar('leave_reason'),
             'leave_from_date' => $this->request->getVar('leave_from_date'),
@@ -207,9 +222,31 @@ class Leave extends BaseController
             'leave_status' => 'pending' // เริ่มต้นสถานะรออนุมัติ
         ];
 
-        $this->leaveModel->insert($data);
+        $leaveId = $this->leaveModel->insert($data);
+        
+        $fullname = session()->get('u_fullname');
+        $typeLabel = [
+            'sick' => 'ลาป่วย',
+            'personal' => 'ลากิจส่วนตัว',
+            'vacation' => 'ลาพักผ่อน'
+        ][$data['leave_type']] ?? $data['leave_type'];
 
-        return redirect()->to('/staff/leave')->with('success', 'บันทึกใบลาเรียบร้อยแล้ว');
+        // 1. แจ้งเตือนแอดมิน
+        $this->notifyAdmins(
+            "มีคำขอลาใหม่จาก $fullname",
+            "$fullname ได้ส่งคำขอ $typeLabel ตั้งแต่วันที่ {$data['leave_from_date']} ถึง {$data['leave_to_date']} จำนวน {$data['leave_days']} วัน",
+            "staff/leave/admin"
+        );
+
+        // 2. แจ้งเตือนกลับไปหาคนลา
+        $this->notify(
+            $data['leave_user_id'],
+            "ส่งใบลาเรียบร้อยแล้ว",
+            "คุณได้ส่งคำขอ $typeLabel เรียบร้อยแล้ว ขณะนี้อยู่ระหว่างรอการพิจารณา",
+            "staff/leave"
+        );
+
+        return redirect()->to('/staff/leave')->with('success', 'บันทึกใบลาและส่งการแจ้งเตือนเรียบร้อยแล้ว');
     }
 
     public function exportDocs($id = null)
@@ -476,12 +513,48 @@ class Leave extends BaseController
                 'leave_approver_id' => $userId
             ]);
 
+            // แจ้งเตือนกลับไปหาคนลา
+            $leave = $this->leaveModel->find($id);
+            if ($leave) {
+                $statusLabel = ($status == 'approved' ? 'อนุมัติ' : 'ไม่อนุมัติ');
+                $this->notify(
+                    $leave['leave_user_id'],
+                    "ใบลาของคุณได้รับความเห็นชอบ: $statusLabel",
+                    "ใบลาตั้งแต่วันที่ {$leave['leave_from_date']} ของคุณได้รับการ $statusLabel โดยผู้บริหารเรียบร้อยแล้ว",
+                    "staff/leave"
+                );
+            }
+
             return $this->response->setJSON([
                 'status' => 'success', 
-                'message' => 'ปรับปรุงสถานะใบลาเป็น "' . ($status == 'approved' ? 'อนุมัติ' : 'ไม่อนุมัติ') . '" เรียบร้อยแล้ว'
+                'message' => 'ปรับปรุงสถานะใบลาเป็น "' . ($status == 'approved' ? 'อนุมัติ' : 'ไม่อนุมัติ') . '" และส่งการแจ้งเตือนแล้ว'
             ]);
         } catch (\Exception $e) {
             return $this->response->setJSON(['status' => 'error', 'message' => $e->getMessage()]);
         }
+    }
+
+    public function getLastLeave($userId)
+    {
+        if (!$this->request->isAJAX()) {
+            return $this->response->setStatusCode(403);
+        }
+
+        $lastLeave = $this->leaveModel->where('leave_user_id', $userId)
+                                     ->orderBy('leave_created_at', 'DESC')
+                                     ->first();
+
+        if ($lastLeave) {
+            return $this->response->setJSON([
+                'status' => 'success',
+                'data' => [
+                    'from_date' => $lastLeave['leave_from_date'],
+                    'to_date' => $lastLeave['leave_to_date'],
+                    'days' => floatval($lastLeave['leave_days'])
+                ]
+            ]);
+        }
+
+        return $this->response->setJSON(['status' => 'none']);
     }
 }
