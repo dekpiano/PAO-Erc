@@ -64,7 +64,13 @@ class Admin extends Controller
 
         $model = new UserModel();
         // เอาเฉพาะคนที่เป็นพนักงาน (ไม่พ้นสภาพ) มาตั้งค่าสิทธิ์
-        $data['users'] = $model->where('u_status', 'active')->orderBy('u_sort', 'ASC')->findAll();
+        $db = \Config\Database::connect();
+        $builder = $db->table('Tb_Users');
+        $builder->select('Tb_Users.*, Tb_Positions.pos_name as position_name');
+        $builder->join('Tb_Positions', 'Tb_Positions.pos_id = Tb_Users.u_position', 'left');
+        $builder->where('Tb_Users.u_status', 'active');
+        $builder->orderBy('Tb_Users.u_sort', 'ASC');
+        $data['users'] = $builder->get()->getResultArray();
         $data['fullname'] = session()->get('u_fullname');
         
         // นิยามสิทธิ์ที่มีในระบบ

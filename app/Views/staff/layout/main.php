@@ -141,6 +141,10 @@
                     <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
                     <span class="sidebar-text">สรุปเวลาปฏิบัติงาน</span>
                 </a>
+                <a href="<?= base_url('staff/attendance-admin') ?>" class="sidebar-item <?= strpos(uri_string(), 'staff/attendance-admin') === 0 ? 'active shadow-lg shadow-blue-100 bg-blue-50/50' : 'text-slate-500 hover:text-blue-600' ?> flex items-center gap-4 px-4 py-3.5 rounded-2xl font-bold text-sm">
+                    <i data-lucide="file-spreadsheet" class="w-5 h-5"></i>
+                    <span class="sidebar-text">บันทึกการมาทำงาน</span>
+                </a>
                 <?php endif; ?>
 
                 <?php if($isAdmin): ?>

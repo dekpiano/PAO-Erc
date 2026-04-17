@@ -33,93 +33,55 @@
     </div>
 </div>
 
-<!-- Personnel Table -->
-<div class="glass-card rounded-[2rem] overflow-hidden">
-    <div class="overflow-x-auto">
-        <table class="w-full text-left">
-            <thead>
-                <tr class="border-b border-slate-100">
-                    <th class="p-4 sm:p-5 text-[10px] font-black uppercase tracking-widest text-slate-400 hidden sm:table-cell">ลำดับ</th>
-                    <th class="p-4 sm:p-5 text-[10px] font-black uppercase tracking-widest text-slate-400">บุคลากร</th>
-                    <th class="p-4 sm:p-5 text-[10px] font-black uppercase tracking-widest text-slate-400 hidden md:table-cell">สังกัด/ฝ่าย</th>
-                    <th class="p-4 sm:p-5 text-[10px] font-black uppercase tracking-widest text-slate-400 hidden lg:table-cell">ข้อมูลระบบ</th>
-                    <th class="p-4 sm:p-5 text-[10px] font-black uppercase tracking-widest text-slate-400 hidden xl:table-cell">สิทธิ์ระบบ</th>
-                    <th class="p-4 sm:p-5 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">จัดการ</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-50">
-                <?php foreach($users as $user): ?>
-                <tr class="hover:bg-blue-50/30 transition-all <?= ($user['u_status'] ?? 'active') == 'inactive' ? 'opacity-40' : '' ?>">
-                    <td class="p-4 sm:p-5 text-slate-300 font-mono text-xs font-black hidden sm:table-cell"><?= $user['u_sort'] ?? 99 ?></td>
-                    <td class="p-4 sm:p-5">
-                        <div class="flex items-center gap-3 sm:gap-4">
-                            <div class="w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-slate-100 overflow-hidden flex items-center justify-center shrink-0 border-2 border-slate-50">
-                                <?php if(!empty($user['u_photo'])): ?>
-                                    <img src="<?= base_url('uploads/personnel/' . $user['u_photo']) ?>" class="w-full h-full object-cover">
-                                <?php else: ?>
-                                    <i data-lucide="user" class="w-7 h-7 text-slate-300"></i>
-                                <?php endif; ?>
-                            </div>
-                            <div>
-                                <p class="font-black text-slate-800 leading-tight"><?= $user['u_prefix'] ?? '' ?><?= $user['u_fullname'] ?></p>
-                                <p class="text-[11px] text-blue-600 font-bold mt-1">
-                                    <?= $user['position_name'] ?: ($user['u_position'] ?: 'ไม่ระบุตำแหน่ง') ?> 
-                                    <?php if(!empty($user['u_level']) && $user['u_level'] !== 'ไม่มีระดับ'): ?>
-                                        <span class="text-slate-400 font-medium">(<?= $user['u_level'] ?>)</span>
-                                    <?php endif; ?>
-                                </p>
-                            </div>
-                        </div>
-                    </td>
-                    <td class="p-4 sm:p-5 hidden md:table-cell">
-                        <?php 
-                            $divColor = match($user['u_division'] ?? '') {
-                                'ผู้บริหาร' => 'bg-purple-50 text-purple-600 border-purple-100',
-                                'ฝ่ายบริหาร' => 'bg-emerald-50 text-emerald-600 border-emerald-100',
-                                'ฝ่ายส่งเสริม' => 'bg-amber-50 text-amber-600 border-amber-100',
-                                default => 'bg-slate-50 text-slate-500 border-slate-100'
-                            };
-                        ?>
-                        <span class="text-[10px] font-black px-3 py-1.5 rounded-full border <?= $divColor ?>">
-                            <?= $user['u_division'] ?: 'ยังไม่ระบุ' ?>
-                        </span>
-                        <?php if(!empty($user['u_phone'])): ?>
-                            <p class="text-[10px] text-slate-400 mt-2"><i data-lucide="phone" class="w-3 h-3 inline"></i> <?= $user['u_phone'] ?></p>
-                        <?php endif; ?>
-                    </td>
-                    <td class="p-4 sm:p-5 hidden lg:table-cell">
-                        <code class="text-[10px] bg-slate-100 px-2 py-1 rounded-lg text-slate-500 font-mono"><?= $user['u_email'] ?: 'No Email' ?></code>
-                        <div class="flex flex-wrap gap-1 mt-2">
-                            <?php foreach(explode(',', $user['u_role']) as $role): ?>
-                                <span class="bg-blue-50 text-blue-600 border border-blue-100 text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md">
-                                    <?= trim($role) ?>
-                                </span>
-                            <?php endforeach; ?>
-                        </div>
-                    </td>
-                    <td class="p-4 sm:p-5 hidden xl:table-cell">
-                        <a href="<?= base_url('staff/permissions#user-'.$user['u_id']) ?>" class="inline-flex items-center gap-2 text-[10px] font-black text-amber-600 bg-amber-50 hover:bg-amber-100 px-3 py-1.5 rounded-lg transition-all">
-                            <i data-lucide="shield-lock" class="w-3.5 h-3.5"></i> ตั้งค่าสิทธิ์
-                        </a>
-                    </td>
-                    <td class="p-4 sm:p-5 text-right">
-                        <div class="flex justify-end gap-2">
-                            <button onclick='editUser(<?= json_encode($user) ?>)' class="w-10 h-10 flex items-center justify-center bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-xl transition-all" title="แก้ไข">
-                                <i data-lucide="edit-3" class="w-4 h-4"></i>
-                            </button>
-                            <?php if($user['u_username'] !== 'admin'): ?>
-                            <button onclick="confirmDelete(<?= $user['u_id'] ?>)" class="w-10 h-10 flex items-center justify-center bg-red-50 text-red-500 hover:bg-red-600 hover:text-white rounded-xl transition-all" title="ลบ">
-                                <i data-lucide="trash-2" class="w-4 h-4"></i>
-                            </button>
-                            <?php endif; ?>
-                        </div>
-                    </td>
-                </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
+<!-- Personnel Layout: Executives Top -->
+<?php if(isset($grouped_users['ผู้บริหาร'])): ?>
+<div class="mb-12 animate-[fadeIn_0.5s_ease-out]">
+    <div class="flex items-center gap-4 mb-6">
+        <div class="h-10 w-2 bg-purple-600 rounded-full"></div>
+        <h3 class="text-2xl font-black text-slate-800 tracking-tight">ผู้บริหารกอง <span class="text-slate-400 font-bold ml-2 text-sm">(<?= count($grouped_users['ผู้บริหาร']) ?> ท่าน)</span></h3>
+    </div>
+    <?= view_cell('\App\Controllers\Staff::renderPersonnelTable', ['members' => $grouped_users['ผู้บริหาร']]) ?>
+</div>
+<?php unset($grouped_users['ผู้บริหาร']); ?>
+<?php endif; ?>
+
+<!-- Personnel Layout: Two Columns for Main Divisions -->
+<div class="grid grid-cols-1 xl:grid-cols-2 gap-10 mb-12">
+    <!-- Left: ฝ่ายบริหาร -->
+    <div class="animate-[fadeIn_0.6s_ease-out]">
+        <?php if(isset($grouped_users['ฝ่ายบริหาร'])): ?>
+            <div class="flex items-center gap-4 mb-6">
+                <div class="h-8 w-1.5 bg-emerald-500 rounded-full"></div>
+                <h3 class="text-xl font-black text-slate-800 tracking-tight">ฝ่ายบริหารงานทั่วไป <span class="text-slate-400 font-bold ml-2 text-sm">(<?= count($grouped_users['ฝ่ายบริหาร']) ?> ท่าน)</span></h3>
+            </div>
+            <?= view_cell('\App\Controllers\Staff::renderPersonnelTable', ['members' => $grouped_users['ฝ่ายบริหาร'], 'compact' => true]) ?>
+            <?php unset($grouped_users['ฝ่ายบริหาร']); ?>
+        <?php endif; ?>
+    </div>
+
+    <!-- Right: ฝ่ายส่งเสริม -->
+    <div class="animate-[fadeIn_0.7s_ease-out]">
+        <?php if(isset($grouped_users['ฝ่ายส่งเสริม'])): ?>
+            <div class="flex items-center gap-4 mb-6">
+                <div class="h-8 w-1.5 bg-amber-500 rounded-full"></div>
+                <h3 class="text-xl font-black text-slate-800 tracking-tight">ฝ่ายส่งเสริมการศึกษาฯ <span class="text-slate-400 font-bold ml-2 text-sm">(<?= count($grouped_users['ฝ่ายส่งเสริม']) ?> ท่าน)</span></h3>
+            </div>
+            <?= view_cell('\App\Controllers\Staff::renderPersonnelTable', ['members' => $grouped_users['ฝ่ายส่งเสริม'], 'compact' => true]) ?>
+            <?php unset($grouped_users['ฝ่ายส่งเสริม']); ?>
+        <?php endif; ?>
     </div>
 </div>
+
+<!-- Remaining Divisions -->
+<?php foreach($grouped_users as $division => $members): ?>
+<div class="mb-12 animate-[fadeIn_0.8s_ease-out]">
+    <div class="flex items-center gap-4 mb-6">
+        <div class="h-10 w-2 bg-slate-400 rounded-full"></div>
+        <h3 class="text-xl font-black text-slate-800 tracking-tight"><?= esc($division) ?> <span class="text-slate-400 font-bold ml-2 text-sm">(<?= count($members) ?> ท่าน)</span></h3>
+    </div>
+    <?= view_cell('\App\Controllers\Staff::renderPersonnelTable', ['members' => $members]) ?>
+</div>
+<?php endforeach; ?>
 
 <!-- Modal -->
 <div id="userModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[70] hidden flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
@@ -220,7 +182,7 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">ลำดับแสดงผล</label>
-                        <input type="number" name="u_sort" id="u_sort" value="99"
+                        <input type="number" name="u_sort" id="u_sort" value="<?= $next_sort ?>"
                             class="w-full border border-slate-200 rounded-xl px-4 py-3 text-slate-700 font-bold focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all">
                     </div>
                     <div>
@@ -261,10 +223,97 @@
     </div>
 </div>
 
+<style>
+    .sortable-ghost {
+        opacity: 0.3;
+        background: #dbeafe !important;
+    }
+    .sortable-drag {
+        background: white !important;
+        box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1) !important;
+    }
+    .drag-handle {
+        cursor: grab;
+    }
+    .drag-handle:active {
+        cursor: grabbing;
+    }
+</style>
+
 <?= $this->endSection() ?>
 
 <?= $this->section('scripts') ?>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 <script>
+    // Initialize Sortable for all divisional tables with Swap mode
+    document.querySelectorAll('.sortable-tbody').forEach(tbody => {
+        new Sortable(tbody, {
+            animation: 200,
+            handle: '.drag-handle',
+            ghostClass: 'sortable-ghost',
+            dragClass: 'sortable-drag',
+            swap: true, // Enable Swap mode
+            swapClass: 'bg-blue-100', // Class for swapped item
+            onEnd: function (evt) {
+                // If it's a swap, evt.swapItem exists
+                if (evt.swapItem) {
+                    const id1 = evt.item.dataset.id;
+                    const id2 = evt.swapItem.dataset.id;
+                    swapOrder(id1, id2, evt.item, evt.swapItem);
+                }
+            }
+        });
+    });
+
+    async function swapOrder(id1, id2, item1, item2) {
+        // Find the sort number elements within each row
+        const sort1 = item1.querySelector('.drag-handle div');
+        const sort2 = item2.querySelector('.drag-handle div');
+        
+        // Temporarily swap visually for immediate feedback (if not already swapped by DOM)
+        const oldVal1 = sort1.lastChild.textContent.trim();
+        const oldVal2 = sort2.lastChild.textContent.trim();
+
+        try {
+            const formData = new FormData();
+            formData.append('id1', id1);
+            formData.append('id2', id2);
+
+            const response = await fetch('<?= base_url('staff/personnel/reorder') ?>', {
+                method: 'POST',
+                body: formData,
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+
+            const data = await response.json();
+            if (data.status === 'success') {
+                // Swap the text content of the sort numbers to match new DB state
+                sort1.lastChild.textContent = ' ' + oldVal2;
+                sort2.lastChild.textContent = ' ' + oldVal1;
+
+                // Success Toast
+                const Toast = Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 2000,
+                    timerProgressBar: true,
+                });
+                Toast.fire({
+                    icon: 'success',
+                    title: 'สลับลำดับเรียบร้อย'
+                });
+            } else {
+                throw new Error(data.message);
+            }
+        } catch (error) {
+            console.error('Error swapping order:', error);
+            Swal.fire('ข้อผิดพลาด', error.message || 'ไม่สามารถสลับลำดับได้', 'error').then(() => {
+                window.location.reload();
+            });
+        }
+    }
+
     function openModal() {
         document.getElementById('modalTitle').textContent = 'เพิ่มบุคลากรใหม่';
         document.getElementById('u_id').value = '';
@@ -275,7 +324,7 @@
         document.getElementById('u_level').value = 'ไม่มีระดับ';
         document.getElementById('u_division').value = 'ฝ่ายบริหาร';
         document.getElementById('u_phone').value = '';
-        document.getElementById('u_sort').value = '99';
+        document.getElementById('u_sort').value = '<?= $next_sort ?>';
         document.getElementById('u_status').value = 'active';
         
         // Reset Photo Preview

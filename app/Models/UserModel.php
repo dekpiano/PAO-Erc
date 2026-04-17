@@ -13,6 +13,7 @@ class UserModel extends Model
     protected $returnType     = 'array';
 
     protected $allowedFields = [
+        'u_fingerprint_id',
         'u_username', 
         'u_email',
         'u_google_sub',

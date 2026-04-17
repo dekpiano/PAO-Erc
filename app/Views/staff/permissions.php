@@ -63,7 +63,7 @@
                             </div>
                             <div>
                                 <p class="font-black text-lg text-slate-800 leading-none"><?= $user['u_prefix'] ?><?= $user['u_fullname'] ?></p>
-                                <p class="text-xs text-blue-600 font-bold mt-1.5 uppercase tracking-wide"><?= $user['u_position'] ?: 'พนักงาน' ?></p>
+                                <p class="text-xs text-blue-600 font-bold mt-1.5 uppercase tracking-wide"><?= $user['position_name'] ?: ($user['u_position'] ?: 'พนักงาน') ?></p>
                                 <?php if($isSuper): ?>
                                     <span class="mt-2 inline-block text-[9px] font-black bg-amber-50 text-amber-600 border border-amber-100 px-2 py-0.5 rounded-md uppercase tracking-widest">Master Admin</span>
                                 <?php endif; ?>

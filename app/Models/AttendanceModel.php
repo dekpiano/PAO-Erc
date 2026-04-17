@@ -17,7 +17,9 @@ class AttendanceModel extends Model
     protected $allowedFields = [
         'atd_user_id', 
         'atd_type', 
+        'atd_status',
         'atd_timestamp', 
+        'atd_date',
         'atd_ip', 
         'atd_location', 
         'atd_note'

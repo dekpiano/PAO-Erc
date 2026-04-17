@@ -16,8 +16,20 @@ $routes->get('booking/success/(:num)', 'Home::scholarshipBookingSuccess/$1');
 $routes->get('booking/(:segment)', 'Home::scholarshipBooking/$1');
 $routes->get('migrate', 'Home::migrate');
 $routes->get('staff', 'Staff::index');
-    $routes->get('staff/attendance', 'Attendance::index');
+$routes->get('staff/attendance', 'Attendance::index');
 $routes->post('staff/attendance/submit', 'Attendance::submit');
+$routes->get('staff/attendance-admin', 'StaffAttendance::index');
+$routes->get('staff/attendance-admin/upload', 'StaffAttendance::upload');
+$routes->get('staff/attendance-admin/report', 'StaffAttendance::report'); // Hub page
+$routes->get('staff/attendance-admin/report/annual', 'StaffAttendance::annualReport'); // Annual logic
+$routes->get('staff/attendance-admin/report/annual/export', 'StaffAttendance::exportAnnualExcel'); 
+$routes->get('staff/attendance-admin/report/monthly', 'StaffAttendance::monthlyReport'); // Monthly logic placeholder
+$routes->get('staff/attendance-admin/report/monthly/export', 'StaffAttendance::exportMonthlyExcel');
+$routes->post('staff/attendance-admin/process', 'StaffAttendance::process');
+$routes->post('staff/attendance-admin/update-note', 'StaffAttendance::updateNote');
+$routes->get('staff/attendance-admin/users', 'StaffAttendance::users');
+$routes->post('staff/attendance-admin/save-mapping', 'StaffAttendance::saveUserMapping');
+$routes->post('staff/attendance-admin/save-manual', 'StaffAttendance::saveManual');
 
 // Leave System
 $routes->get('staff/leave', 'Leave::index');
@@ -59,6 +71,7 @@ $routes->post('staff/scholarship/update-grades', 'Staff::scholarshipUpdateGrades
 // Admin Personnel Management
 $routes->get('staff/personnel', 'Staff::personnel');
 $routes->post('staff/personnel/save', 'Staff::personnelSave');
+$routes->post('staff/personnel/reorder', 'Staff::personnelReorder');
 $routes->get('staff/personnel/delete/(:num)', 'Staff::personnelDelete/$1');
 
 // Admin Position Management

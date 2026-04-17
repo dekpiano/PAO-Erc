@@ -958,10 +958,23 @@ class Staff extends Controller
 
         $data['title'] = "จัดการบุคลากร | อบจ.นครสวรรค์";
         // Join Tb_Positions to get pos_name
-        $data['users'] = $model->select('Tb_Users.*, p.pos_name as position_name')
-                              ->join('Tb_Positions as p', 'p.pos_id = Tb_Users.u_position', 'left')
-                              ->orderBy('u_sort', 'ASC')
-                              ->findAll();
+        $allUsers = $model->select('Tb_Users.*, p.pos_name as position_name')
+                               ->join('Tb_Positions as p', 'p.pos_id = Tb_Users.u_position', 'left')
+                               ->orderBy('u_sort', 'ASC')
+                               ->findAll();
+        
+        // จัดกลุ่มตามฝ่ายงาน
+        $groupedUsers = [];
+        foreach ($allUsers as $u) {
+            $div = !empty($u['u_division']) ? $u['u_division'] : 'ไม่ระบุฝ่ายงาน';
+            $groupedUsers[$div][] = $u;
+        }
+        $data['users'] = $allUsers;
+        $data['grouped_users'] = $groupedUsers;
+        
+        // คำนวณลำดับถัดไป (คนสุดท้าย + 1)
+        $maxSort = $model->selectMax('u_sort')->first();
+        $data['next_sort'] = ($maxSort['u_sort'] ?? 0) + 1;
         
         $data['positions'] = $posModel->orderBy('pos_name', 'ASC')->findAll();
         
@@ -1141,5 +1154,129 @@ class Staff extends Controller
         }
         $model->delete($id);
         return redirect()->to(base_url('staff/personnel'))->with('success', 'ลบข้อมูลบุคลากรเรียบร้อยแล้ว');
+    }
+
+    public function personnelReorder()
+    {
+        if (strpos(session()->get('u_role') ?? '', 'admin') === false && strpos(session()->get('u_role') ?? '', 'personnel') === false) {
+            return $this->response->setJSON(['status' => 'error', 'message' => 'ไม่มีสิทธิ์เข้าถึง']);
+        }
+
+        $id1 = $this->request->getPost('id1');
+        $id2 = $this->request->getPost('id2');
+        
+        if (!$id1 || !$id2) {
+            return $this->response->setJSON(['status' => 'error', 'message' => 'ข้อมูลไม่ครบถ้วน']);
+        }
+
+        $model = new \App\Models\UserModel();
+        $user1 = $model->find($id1);
+        $user2 = $model->find($id2);
+
+        if ($user1 && $user2) {
+            // สลับเลข u_sort กันโดยตรง
+            $model->update($id1, ['u_sort' => $user2['u_sort']]);
+            $model->update($id2, ['u_sort' => $user1['u_sort']]);
+            return $this->response->setJSON(['status' => 'success', 'message' => 'สลับรายชื่อเรียบร้อยแล้ว']);
+        }
+
+        return $this->response->setJSON(['status' => 'error', 'message' => 'ไม่พบข้อมูลผู้ใช้งาน']);
+    }
+
+    /**
+     * Helper สำหรับเรนเดอร์ตารางบุคลากร (ใช้ View Cell)
+     */
+    public function renderPersonnelTable($params)
+    {
+        $members = $params['members'] ?? [];
+        $compact = $params['compact'] ?? false;
+        
+        $html = '<div class="glass-card rounded-[2rem] overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead>
+                                <tr class="border-b border-slate-100">
+                                    <th class="p-4 sm:p-5 text-[10px] font-black uppercase tracking-widest text-slate-400 hidden sm:table-cell">ลำดับ</th>
+                                    <th class="p-4 sm:p-5 text-[10px] font-black uppercase tracking-widest text-slate-400">บุคลากร</th>';
+        
+        if (!$compact) {
+            $html .= '<th class="p-4 sm:p-5 text-[10px] font-black uppercase tracking-widest text-slate-400 hidden lg:table-cell">ข้อมูลระบบ</th>
+                      <th class="p-4 sm:p-5 text-[10px] font-black uppercase tracking-widest text-slate-400 hidden xl:table-cell">สิทธิ์ระบบ</th>';
+        }
+        
+        $html .= '<th class="p-4 sm:p-5 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">จัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-50 sortable-tbody">';
+                            
+        foreach ($members as $user) {
+            $statusClass = ($user['u_status'] ?? 'active') == 'inactive' ? 'opacity-40' : '';
+            $photoHtml = !empty($user['u_photo']) 
+                ? '<img src="'.base_url('uploads/personnel/' . $user['u_photo']).'" class="w-full h-full object-cover">'
+                : '<i data-lucide="user" class="w-7 h-7 text-slate-300"></i>';
+            
+            $u_prefix = $user['u_prefix'] ?? '';
+            $pos_name = $user['position_name'] ?: ($user['u_position'] ?: 'ไม่ระบุตำแหน่ง');
+            $u_level = (!empty($user['u_level']) && $user['u_level'] !== 'ไม่มีระดับ') ? '<span class="text-slate-400 font-medium">('.$user['u_level'].')</span>' : '';
+            $u_phone = !empty($user['u_phone']) ? '<p class="text-[10px] text-slate-400 mt-1"><i data-lucide="phone" class="w-3 h-3 inline"></i> '.$user['u_phone'].'</p>' : '';
+            $u_email = !empty($user['u_email']) ? '<p class="text-[10px] text-blue-400 mt-0.5 font-medium"><i data-lucide="mail" class="w-3 h-3 inline"></i> '.$user['u_email'].'</p>' : '';
+            
+            $html .= '<tr class="hover:bg-blue-50/30 transition-all '.$statusClass.'" data-id="'.$user['u_id'].'">
+                        <td class="p-4 sm:p-5 text-slate-300 font-mono text-xs font-black hidden sm:table-cell cursor-grab drag-handle">
+                            <div class="flex items-center gap-2">
+                                <i data-lucide="grip-vertical" class="w-4 h-4 text-slate-200"></i>
+                                '.($user['u_sort'] ?? 99).'
+                            </div>
+                        </td>
+                        <td class="p-4 sm:p-5">
+                            <div class="flex items-center gap-3 sm:gap-4">
+                                <div class="w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-slate-100 overflow-hidden flex items-center justify-center shrink-0 border-2 border-slate-50">
+                                    '.$photoHtml.'
+                                </div>
+                                <div>
+                                    <p class="font-black text-slate-800 leading-tight">'.$u_prefix.$user['u_fullname'].'</p>
+                                    <p class="text-[11px] text-blue-600 font-bold mt-1">'.$pos_name.' '.$u_level.'</p>
+                                    '.$u_phone.'
+                                    '.$u_email.'
+                                </div>
+                            </div>
+                        </td>';
+            
+            if (!$compact) {
+                $rolesHtml = '';
+                foreach(explode(',', $user['u_role']) as $role) {
+                    $rolesHtml .= '<span class="bg-blue-50 text-blue-600 border border-blue-100 text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md mr-1">'.trim($role).'</span>';
+                }
+                
+                $html .= '<td class="p-4 sm:p-5 hidden lg:table-cell">
+                            <code class="text-[10px] bg-slate-100 px-2 py-1 rounded-lg text-slate-500 font-mono">'.($user['u_email'] ?: 'No Email').'</code>
+                            <div class="flex flex-wrap gap-1 mt-2">'.$rolesHtml.'</div>
+                          </td>
+                          <td class="p-4 sm:p-5 hidden xl:table-cell">
+                            <a href="'.base_url('staff/permissions#user-'.$user['u_id']).'" class="inline-flex items-center gap-2 text-[10px] font-black text-amber-600 bg-amber-50 hover:bg-amber-100 px-3 py-1.5 rounded-lg transition-all">
+                                <i data-lucide="shield-lock" class="w-3.5 h-3.5"></i> ตั้งค่าสิทธิ์
+                            </a>
+                          </td>';
+            }
+            
+            $userJson = htmlspecialchars(json_encode($user), ENT_QUOTES, 'UTF-8');
+            $html .= '<td class="p-4 sm:p-5 text-right">
+                            <div class="flex justify-end gap-2">
+                                <button onclick=\'editUser('.$userJson.')\' class="w-10 h-10 flex items-center justify-center bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-xl transition-all" title="แก้ไข">
+                                    <i data-lucide="edit-3" class="w-4 h-4"></i>
+                                </button>';
+            
+            if ($user['u_username'] !== 'admin') {
+                $html .= '<button onclick="confirmDelete('.$user['u_id'].')" class="w-10 h-10 flex items-center justify-center bg-red-50 text-red-500 hover:bg-red-600 hover:text-white rounded-xl transition-all" title="ลบ">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                          </button>';
+            }
+            
+            $html .= '</div></td></tr>';
+        }
+        
+        $html .= '</tbody></table></div></div>';
+        
+        return $html;
     }
 }
