@@ -16,6 +16,8 @@ $routes->get('booking/success/(:num)', 'Home::scholarshipBookingSuccess/$1');
 $routes->get('booking/(:segment)', 'Home::scholarshipBooking/$1');
 $routes->get('migrate', 'Home::migrate');
 $routes->get('staff', 'Staff::index');
+$routes->get('staff/profile', 'Staff::profile');
+$routes->post('staff/profile/save', 'Staff::profileSave');
 $routes->get('staff/notifications', 'Staff::notifications');
 $routes->get('staff/attendance', 'Attendance::index');
 $routes->post('staff/attendance/submit', 'Attendance::submit');

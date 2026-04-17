@@ -31,7 +31,7 @@
                 </div>
             </div>
             <div class="mt-12">
-                <a href="#" class="text-xs font-bold text-blue-100 flex items-center gap-2 hover:translate-x-1 transition-transform">
+                <a href="<?= base_url('staff/profile') ?>" class="text-xs font-bold text-blue-100 flex items-center gap-2 hover:translate-x-1 transition-transform">
                     จัดการข้อมูลส่วนตัว <i data-lucide="arrow-right" class="w-4 h-4"></i>
                 </a>
             </div>
@@ -148,6 +148,12 @@
                             <i data-lucide="file-signature" class="w-6 h-6 text-blue-600"></i>
                         </div>
                         <span class="text-xs font-black uppercase tracking-wider">แจ้งการลางาน</span>
+                    </a>
+                    <a href="<?= base_url('staff/profile') ?>" class="p-6 bg-indigo-50 hover:bg-indigo-600 hover:text-white rounded-[2rem] border border-indigo-100 group transition-all duration-300 flex flex-col items-center justify-center text-center gap-3 shadow-sm shadow-indigo-100">
+                        <div class="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                            <i data-lucide="user-cog" class="w-6 h-6 text-indigo-600"></i>
+                        </div>
+                        <span class="text-xs font-black uppercase tracking-wider">ข้อมูลส่วนตัว</span>
                     </a>
                 </div>
             </div>

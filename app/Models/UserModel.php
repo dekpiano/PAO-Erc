@@ -27,7 +27,16 @@ class UserModel extends Model
         'u_phone',
         'u_sort',
         'u_status',
-        'u_role'
+        'u_role',
+        'u_id_card', 
+        'u_birthday', 
+        'u_blood_type', 
+        'u_religion', 
+        'u_nationality', 
+        'u_address', 
+        'u_current_address', 
+        'u_emergency_contact', 
+        'u_hired_date'
     ];
 
     protected $useTimestamps = true;

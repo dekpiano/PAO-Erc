@@ -1016,17 +1016,44 @@ class Staff extends BaseController
         
         $roleStr = is_array($roles) ? implode(',', $roles) : ($roles ?: 'user');
 
+        $birthday  = $this->request->getPost('u_birthday');
+        $hiredDate = $this->request->getPost('u_hired_date');
+
+        // ฟังก์ชันช่วยแปลง พ.ศ. -> ค.ศ. (ถ้าปีเกิน 2400)
+        $convertToAD = function($dateStr) {
+            if (empty($dateStr)) return null;
+            $parts = explode('-', $dateStr);
+            if (count($parts) === 3) {
+                $year = (int)$parts[0];
+                if ($year > 2400) {
+                    $parts[0] = $year - 543;
+                }
+                return implode('-', $parts);
+            }
+            return $dateStr;
+        };
+
         $data = [
             'u_prefix'   => $this->request->getPost('u_prefix'),
             'u_fullname' => $this->request->getPost('u_fullname'),
             'u_email'    => $email,
-            'u_position' => $this->request->getPost('u_pos_id') ?: null, // ใช้ u_position เก็บ ID แล้ว
+            'u_position' => $this->request->getPost('u_pos_id') ?: null,
             'u_level'    => $this->request->getPost('u_level'),
             'u_division' => $this->request->getPost('u_division'),
             'u_phone'    => $this->request->getPost('u_phone'),
             'u_sort'     => $this->request->getPost('u_sort') ?: 99,
             'u_status'   => $this->request->getPost('u_status') ?: 'active',
             'u_role'     => $roleStr,
+            // ข้อมูลส่วนตัวเชิงลึก (แปลง พ.ศ. -> ค.ศ. ก่อนเข้า DB)
+            'u_id_card'          => $this->request->getPost('u_id_card'),
+            'u_birthday'         => $convertToAD($birthday),
+            'u_hired_date'       => $convertToAD($hiredDate),
+            'u_blood_type'       => $this->request->getPost('u_blood_type'),
+            'u_religion'         => $this->request->getPost('u_religion'),
+            'u_nationality'      => $this->request->getPost('u_nationality'),
+            'u_address'          => $this->request->getPost('u_address'),
+            'u_current_address'  => $this->request->getPost('u_current_address'),
+            'u_emergency_contact'=> $this->request->getPost('u_emergency_contact'),
         ];
 
         // Release session lock to prevent 504 during image processing
@@ -1279,7 +1306,8 @@ class Staff extends BaseController
                           </td>';
             }
             
-            $userJson = htmlspecialchars(json_encode($user), ENT_QUOTES, 'UTF-8');
+            // Debug: เช็คว่าใน Object มีข้อมูลที่ต้องการไหม
+            $userJson = htmlspecialchars(json_encode($user, JSON_UNESCAPED_UNICODE), ENT_QUOTES, 'UTF-8');
             $html .= '<td class="p-4 sm:p-5 text-right">
                             <div class="flex justify-end gap-2">
                                 <button onclick=\'editUser('.$userJson.')\' class="w-10 h-10 flex items-center justify-center bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-xl transition-all" title="แก้ไข">
@@ -1298,5 +1326,106 @@ class Staff extends BaseController
         $html .= '</tbody></table></div></div>';
         
         return $html;
+    }
+
+    public function profile()
+    {
+        $userId = session()->get('u_id');
+        if (!$userId) return redirect()->to(base_url('auth/login'));
+
+        $userModel = new \App\Models\UserModel();
+        $posModel = new \App\Models\PositionModel();
+
+        $user = $userModel->select('Tb_Users.*, p.pos_name as position_name')
+                          ->join('Tb_Positions as p', 'p.pos_id = Tb_Users.u_position', 'left')
+                          ->find($userId);
+
+        $data = [
+            'title' => 'ข้อมูลส่วนตัว | Staff Portal',
+            'user'  => $user,
+            'positions' => $posModel->orderBy('pos_name', 'ASC')->findAll()
+        ];
+
+        return view('staff/personnel/profile', $data);
+    }
+
+    public function profileSave()
+    {
+        $userId = session()->get('u_id');
+        if (!$userId) return redirect()->to(base_url('auth/login'));
+
+        $model = new \App\Models\UserModel();
+        
+        $birthday  = $this->request->getPost('u_birthday');
+        $hiredDate = $this->request->getPost('u_hired_date');
+
+        // ฟังก์ชันช่วยแปลง พ.ศ. -> ค.ศ. (ถ้าปีเกิน 2400)
+        $convertToAD = function($dateStr) {
+            if (empty($dateStr)) return null;
+            $parts = explode('-', $dateStr);
+            if (count($parts) === 3) {
+                $year = (int)$parts[0];
+                if ($year > 2400) {
+                    $parts[0] = $year - 543;
+                }
+                return implode('-', $parts);
+            }
+            return $dateStr;
+        };
+
+        $data = [
+            'u_prefix'   => $this->request->getPost('u_prefix'),
+            'u_fullname' => $this->request->getPost('u_fullname'),
+            'u_phone'    => $this->request->getPost('u_phone'),
+            // ข้อมูลส่วนตัวเชิงลึก 
+            'u_id_card'          => $this->request->getPost('u_id_card'),
+            'u_birthday'         => $convertToAD($birthday),
+            'u_hired_date'       => $convertToAD($hiredDate),
+            'u_blood_type'       => $this->request->getPost('u_blood_type'),
+            'u_religion'         => $this->request->getPost('u_religion'),
+            'u_nationality'      => $this->request->getPost('u_nationality'),
+            'u_address'          => $this->request->getPost('u_address'),
+            'u_current_address'  => $this->request->getPost('u_current_address'),
+            'u_emergency_contact'=> $this->request->getPost('u_emergency_contact'),
+        ];
+
+        // Handle Photo Upload
+        $photoFile = $this->request->getFile('u_photo');
+        if ($photoFile && $photoFile->isValid() && !$photoFile->hasMoved()) {
+            $newName = $photoFile->getRandomName();
+            $targetDir = FCPATH . 'uploads/personnel/';
+            if (!is_dir($targetDir)) mkdir($targetDir, 0777, true);
+            
+            $photoFile->move($targetDir, $newName);
+            $data['u_photo'] = $newName;
+            
+            // Update session photo
+            session()->set('u_photo', $newName);
+        }
+
+        try {
+            $model->update($userId, $data);
+            
+            // Update Session Name
+            session()->set('u_fullname', $data['u_fullname']);
+
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON([
+                    'status' => 'success',
+                    'message' => 'อัปเดตข้อมูลส่วนตัวเรียบร้อยแล้ว',
+                    'redirect' => base_url('staff/profile')
+                ]);
+            }
+
+            return redirect()->to(base_url('staff/profile'))->with('success', 'อัปเดตข้อมูลส่วนตัวเรียบร้อยแล้ว');
+        } catch (\Exception $e) {
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON([
+                    'status' => 'error',
+                    'message' => 'ไม่สามารถบันทึกข้อมูลได้: ' . $e->getMessage()
+                ]);
+            }
+            return redirect()->back()->withInput()->with('error', 'ไม่สามารถบันทึกข้อมูลได้: ' . $e->getMessage());
+        }
     }
 }
