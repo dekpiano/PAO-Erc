@@ -48,20 +48,27 @@
 </head>
 <body class="min-h-screen flex items-center justify-center p-6 antialiased">
     
-    <div class="w-full max-w-2xl transition-all duration-700 animate-[fadeIn_0.8s_ease-out]">
-        <div class="login-card rounded-[2.5rem] p-12 md:p-16 text-center">
+            <?php 
+                $userRoles = session()->get('u_role') ?? ''; 
+                $isSuperAdmin = (strpos($userRoles, 'superadmin') !== false);
+                $isIT = (strpos($userRoles, 'it_support') !== false);
+                $isITOfficer = ($isSuperAdmin || $isIT);
+            ?>
+    
+    <div class="w-full max-w-5xl transition-all duration-700 animate-[fadeIn_0.8s_ease-out]">
+        <div class="login-card rounded-[3rem] p-10 md:p-14 text-center">
             
-            <div class="mb-12">
+            <div class="mb-10">
                 <div class="w-20 h-20 bg-emerald-500 rounded-3xl flex items-center justify-center text-white shadow-xl shadow-emerald-200 mx-auto mb-6">
                     <i data-lucide="layers" class="w-10 h-10"></i>
                 </div>
                 <h1 class="text-3xl font-black text-slate-900 mb-2 tracking-tight uppercase">เลือกพื้นที่เข้าใช้งาน</h1>
                 <p class="text-emerald-600/80 font-bold text-sm tracking-widest uppercase mb-1">SELECT YOUR WORKSPACE</p>
-                <p class="text-slate-400 text-xs font-medium italic mt-2">บัญชีของคุณมีสิทธิ์เข้าถึงหลายระบบ กรุณาเลือกเป้าหมาย</p>
+                <p class="text-slate-400 text-xs font-medium italic mt-2">กรุณาเลือกพื้นที่การปฏิบัติงานหรือเข้าชมผลงานระบบ</p>
             </div>
 
             <!-- Portal Selection -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 
                 <!-- Admin Portal -->
                 <a href="<?= base_url('admin') ?>" class="group bg-white p-8 rounded-[2rem] border border-slate-100 shadow-lg shadow-slate-200/50 hover:shadow-2xl hover:border-red-200 transition-all duration-300 text-left relative overflow-hidden flex flex-col items-center text-center">
@@ -86,6 +93,21 @@
                     <p class="text-xs text-slate-400 font-medium">ทำเนียบ, ลงเวลาปฏิบัติงาน, ข่าวกิจกรรม</p>
                     <span class="mt-6 px-4 py-1.5 bg-blue-50 text-blue-500 text-[10px] font-black uppercase tracking-widest rounded-full group-hover:bg-blue-600 group-hover:text-white transition-colors">
                         Staff Portal
+                    </span>
+                </a>
+
+                <!-- IT Support Standalone Portal -->
+                <a href="<?= base_url('itsupport') ?>" class="group bg-white p-8 rounded-[2rem] border border-slate-100 shadow-lg shadow-slate-200/50 hover:shadow-2xl hover:border-indigo-200 transition-all duration-300 text-left relative overflow-hidden flex flex-col items-center text-center">
+                    <div class="absolute -top-10 -right-10 w-32 h-32 bg-indigo-50 rounded-full blur-2xl opacity-50 group-hover:opacity-100 transition-opacity"></div>
+                    <div class="w-16 h-16 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center mb-6 group-hover-scale">
+                        <i data-lucide="wrench" class="w-8 h-8"></i>
+                    </div>
+                    <h3 class="text-xl font-black text-slate-800 mb-2">ระบบ IT Support</h3>
+                    <p class="text-xs text-slate-400 font-medium">
+                        <?= $isITOfficer ? 'บันทึกงานบริการ, ไทม์ไลน์, ชาร์ตสถิติ' : 'ดูไทม์ไลน์ผลงานและประวัติซ่อมบำรุง' ?>
+                    </p>
+                    <span class="mt-6 px-4 py-1.5 bg-indigo-50 text-indigo-500 text-[10px] font-black uppercase tracking-widest rounded-full group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                        <?= $isITOfficer ? 'IT Support Admin' : 'IT Support Feed' ?>
                     </span>
                 </a>
 

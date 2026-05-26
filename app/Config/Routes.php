@@ -97,3 +97,21 @@ $routes->post('staff/permissionsUpdate', 'Admin::permissionsUpdate');
 $routes->get('staff/settings', 'Admin::settings');
 $routes->post('staff/settingsUpdate', 'Admin::settingsUpdate');
 $routes->get('staff/exportExcel', 'Admin::exportExcel');
+
+// IT Support Standalone Module (อิงจาก SKJ Work Journey)
+// Public routes (No login required)
+$routes->get('itsupport', 'ITSupport::index');
+$routes->get('itsupport/logs', 'ITSupport::index');
+$routes->get('itsupport/view/(:num)', 'ITSupport::view/$1');
+
+// Protected routes (Require login)
+$routes->group('itsupport', ['filter' => 'auth'], function($routes) {
+    $routes->get('dashboard', 'ITSupport::stats');
+    $routes->get('create', 'ITSupport::create');
+    $routes->post('store', 'ITSupport::store');
+    $routes->get('edit/(:num)', 'ITSupport::edit/$1');
+    $routes->post('update/(:num)', 'ITSupport::update/$1');
+    $routes->get('delete/(:num)', 'ITSupport::delete/$1');
+    $routes->get('print/(:num)', 'ITSupport::printJob/$1');
+    $routes->get('export', 'ITSupport::exportExcel');
+});

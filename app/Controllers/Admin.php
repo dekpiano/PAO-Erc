@@ -77,6 +77,7 @@ class Admin extends Controller
         $data['available_permissions'] = [
             'news'         => ['label' => 'จัดการข่าวสาร', 'icon' => 'newspaper', 'color' => 'text-rose-500'],
             'scholarships' => ['label' => 'จัดการทุนการศึกษา', 'icon' => 'graduation-cap', 'color' => 'text-amber-500'],
+            'it_support'   => ['label' => 'จัดการระบบ IT Support', 'icon' => 'wrench', 'color' => 'text-indigo-600'],
             'personnel'    => ['label' => 'จัดการบุคลากร', 'icon' => 'users', 'color' => 'text-blue-500'],
             'summary'      => ['label' => 'ดูสรุปเวลาปฏิบัติงาน', 'icon' => 'bar-chart-3', 'color' => 'text-indigo-500'],
             'settings'     => ['label' => 'ตั้งค่าระบบ', 'icon' => 'settings', 'color' => 'text-slate-500'],

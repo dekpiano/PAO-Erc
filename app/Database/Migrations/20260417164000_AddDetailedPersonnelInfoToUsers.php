@@ -76,7 +76,13 @@ class AddDetailedPersonnelInfoToUsers extends Migration
             ],
         ];
 
-        $this->forge->addColumn('Tb_Users', $fields);
+        foreach ($fields as $fieldName => $fieldConfig) {
+            if (!$this->db->fieldExists($fieldName, 'Tb_Users')) {
+                $this->forge->addColumn('Tb_Users', [
+                    $fieldName => $fieldConfig
+                ]);
+            }
+        }
     }
 
     public function down()
