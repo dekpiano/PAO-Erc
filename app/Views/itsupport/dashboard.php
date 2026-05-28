@@ -4,11 +4,11 @@
 <!-- Header Section -->
 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
     <div>
-        <h2 class="text-3xl font-extrabold text-white tracking-tight tech-glow">วิเคราะห์ข้อมูลและแดชบอร์ด</h2>
-        <p class="text-sm text-slate-400 mt-1 font-medium">ภาพรวมภาระงาน สถิติงานบริการ และผู้นำการลงบันทึกข้อมูลไอที</p>
+        <h2 class="text-3xl font-extrabold text-slate-800 tracking-tight tech-glow">วิเคราะห์ข้อมูลและแดชบอร์ด</h2>
+        <p class="text-sm text-slate-500 mt-1 font-medium">ภาพรวมภาระงาน สถิติงานบริการ และผู้นำการลงบันทึกข้อมูลไอที</p>
     </div>
     <div class="flex gap-3">
-        <a href="<?= base_url('itsupport/create') ?>" class="px-6 py-3 rounded-2xl bg-gradient-to-r from-cyan-500 to-indigo-600 text-white font-bold text-sm shadow-lg shadow-cyan-500/20 hover:scale-105 transition-all duration-200 flex items-center gap-2">
+        <a href="<?= base_url('itsupport/create') ?>" class="px-6 py-3 rounded-2xl bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold text-sm shadow-lg shadow-blue-500/20 hover:scale-105 transition-all duration-200 flex items-center gap-2">
             <i data-lucide="plus-circle" class="w-4 h-4"></i> เพิ่มบันทึกงานใหม่
         </a>
     </div>
@@ -20,10 +20,10 @@
     <div class="glass-card p-6 rounded-3xl relative overflow-hidden flex items-center justify-between">
         <div>
             <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">งานบริการสะสม</span>
-            <span class="text-4xl font-black text-white block mt-1 tracking-tight"><?= number_format($total_tasks) ?></span>
-            <span class="text-xs font-semibold text-cyan-400 mt-2 block">รายการทั้งหมดในฐานข้อมูล</span>
+            <span class="text-4xl font-black text-slate-800 block mt-1 tracking-tight"><?= number_format($total_tasks) ?></span>
+            <span class="text-xs font-semibold text-blue-600 mt-2 block">รายการทั้งหมดในฐานข้อมูล</span>
         </div>
-        <div class="w-14 h-14 bg-cyan-500/10 rounded-2xl border border-cyan-500/20 flex items-center justify-center text-cyan-400">
+        <div class="w-14 h-14 bg-blue-500/10 rounded-2xl border border-blue-500/20 flex items-center justify-center text-blue-600">
             <i data-lucide="database" class="w-7 h-7"></i>
         </div>
     </div>
@@ -32,10 +32,10 @@
     <div class="glass-card p-6 rounded-3xl relative overflow-hidden flex items-center justify-between">
         <div>
             <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">ผลงานในเดือนนี้</span>
-            <span class="text-4xl font-black text-white block mt-1 tracking-tight"><?= number_format($month_tasks) ?></span>
-            <span class="text-xs font-semibold text-indigo-400 mt-2 block">บันทึกในเดือน <?= date('F Y') ?></span>
+            <span class="text-4xl font-black text-slate-800 block mt-1 tracking-tight"><?= number_format($month_tasks) ?></span>
+            <span class="text-xs font-semibold text-indigo-600 mt-2 block">บันทึกในเดือน <?= date('F Y') ?></span>
         </div>
-        <div class="w-14 h-14 bg-indigo-500/10 rounded-2xl border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+        <div class="w-14 h-14 bg-indigo-500/10 rounded-2xl border border-indigo-500/20 flex items-center justify-center text-indigo-600">
             <i data-lucide="calendar" class="w-7 h-7"></i>
         </div>
     </div>
@@ -44,10 +44,10 @@
     <div class="glass-card p-6 rounded-3xl relative overflow-hidden flex items-center justify-between">
         <div>
             <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">ทีมผู้บันทึกระบบ</span>
-            <span class="text-4xl font-black text-white block mt-1 tracking-tight"><?= count($leaderboard) ?></span>
-            <span class="text-xs font-semibold text-emerald-400 mt-2 block">เจ้าหน้าที่ซ่อมบำรุง/บริการ</span>
+            <span class="text-4xl font-black text-slate-800 block mt-1 tracking-tight"><?= count($leaderboard) ?></span>
+            <span class="text-xs font-semibold text-emerald-600 mt-2 block">เจ้าหน้าที่ซ่อมบำรุง/บริการ</span>
         </div>
-        <div class="w-14 h-14 bg-emerald-500/10 rounded-2xl border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+        <div class="w-14 h-14 bg-emerald-500/10 rounded-2xl border border-emerald-500/20 flex items-center justify-center text-emerald-600">
             <i data-lucide="users" class="w-7 h-7"></i>
         </div>
     </div>
@@ -56,13 +56,13 @@
 <!-- Charts & Leaderboards Grid -->
 <div class="grid grid-cols-1 lg:grid-cols-5 gap-8 mb-10">
     <!-- Pie Chart Container -->
-    <div class="glass-card p-6 rounded-3xl lg:col-span-3 flex flex-col justify-between">
+    <div class="glass-card p-6 rounded-3xl lg:col-span-3 flex flex-col justify-between bg-white">
         <div>
-            <h3 class="text-lg font-bold text-white mb-2 flex items-center gap-2">
-                <i data-lucide="pie-chart" class="text-cyan-400 w-5 h-5"></i>
+            <h3 class="text-lg font-bold text-slate-800 mb-2 flex items-center gap-2">
+                <i data-lucide="pie-chart" class="text-blue-600 w-5 h-5"></i>
                 สัดส่วนงานบริการแยกตามประเภทงาน (Category)
             </h3>
-            <p class="text-xs text-slate-400 mb-6">กราฟแสดงอัตราส่วนของ 8 หมวดหมู่การให้บริการตามต้นแบบ SKJ Journey</p>
+            <p class="text-xs text-slate-500 mb-6">กราฟแสดงอัตราส่วนของ 8 หมวดหมู่การให้บริการตามต้นแบบ SKJ Journey</p>
         </div>
         <div class="w-full h-[280px] flex items-center justify-center relative">
             <canvas id="categoryChart"></canvas>
@@ -70,36 +70,36 @@
     </div>
 
     <!-- Leaderboard Container -->
-    <div class="glass-card p-6 rounded-3xl lg:col-span-2 flex flex-col justify-between">
+    <div class="glass-card p-6 rounded-3xl lg:col-span-2 flex flex-col justify-between bg-white">
         <div>
-            <h3 class="text-lg font-bold text-white mb-2 flex items-center gap-2">
-                <i data-lucide="award" class="text-indigo-400 w-5 h-5"></i>
+            <h3 class="text-lg font-bold text-slate-800 mb-2 flex items-center gap-2">
+                <i data-lucide="award" class="text-indigo-600 w-5 h-5"></i>
                 จัดอันดับผลงาน (IT Workload)
             </h3>
-            <p class="text-xs text-slate-400 mb-6">ตารางแสดงปริมาณการบันทึกประวัติการทำงานของทีมเจ้าหน้าที่</p>
+            <p class="text-xs text-slate-500 mb-6">ตารางแสดงปริมาณการบันทึกประวัติการทำงานของทีมเจ้าหน้าที่</p>
         </div>
         <div class="space-y-4 max-h-[300px] overflow-y-auto custom-scrollbar pr-2">
             <?php if(empty($leaderboard)): ?>
-                <div class="text-slate-500 text-center py-10 text-sm">ยังไม่มีข้อมูลการบันทึกผลงาน</div>
+                <div class="text-slate-400 text-center py-10 text-sm">ยังไม่มีข้อมูลการบันทึกผลงาน</div>
             <?php else: ?>
                 <?php $maxJob = reset($leaderboard)['job_count'] ?: 1; ?>
                 <?php foreach($leaderboard as $idx => $user): ?>
                     <?php 
                         $percentage = round(($user['job_count'] / $maxJob) * 100);
-                        $bgColors = ['bg-cyan-500', 'bg-indigo-500', 'bg-emerald-500', 'bg-amber-500'];
+                        $bgColors = ['bg-blue-500', 'bg-indigo-500', 'bg-emerald-500', 'bg-amber-500'];
                         $bgColor = $bgColors[$idx % count($bgColors)];
                     ?>
                     <div class="space-y-2">
                         <div class="flex justify-between items-center text-xs">
                             <div class="flex items-center gap-2">
-                                <span class="w-5 h-5 rounded-md flex items-center justify-center font-bold text-[10px] <?= $idx == 0 ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-slate-800 text-slate-400 border border-slate-700/50' ?>">
+                                <span class="w-5 h-5 rounded-md flex items-center justify-center font-bold text-[10px] <?= $idx == 0 ? 'bg-amber-500/20 text-amber-600 border border-amber-500/30' : 'bg-slate-100 text-slate-500 border border-slate-200/80' ?>">
                                     <?= $idx + 1 ?>
                                 </span>
-                                <span class="font-bold text-slate-300"><?= $user['its_recorded_by'] ?></span>
+                                <span class="font-bold text-slate-700"><?= $user['its_recorded_by'] ?></span>
                             </div>
-                            <span class="font-black text-cyan-400"><?= number_format($user['job_count']) ?> งาน</span>
+                            <span class="font-black text-blue-600"><?= number_format($user['job_count']) ?> งาน</span>
                         </div>
-                        <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                        <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
                             <div class="h-full <?= $bgColor ?> rounded-full" style="width: <?= $percentage ?>%;"></div>
                         </div>
                     </div>
@@ -110,13 +110,13 @@
 </div>
 
 <!-- Recent Logs List -->
-<div class="glass-card p-6 rounded-3xl">
-    <div class="flex justify-between items-center mb-6 border-b border-slate-900 pb-4">
-        <h3 class="text-lg font-bold text-white flex items-center gap-2">
-            <i data-lucide="list-video" class="text-emerald-400 w-5 h-5"></i>
+<div class="glass-card p-6 rounded-3xl bg-white">
+    <div class="flex justify-between items-center mb-6 border-b border-slate-100 pb-4">
+        <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+            <i data-lucide="list-video" class="text-emerald-600 w-5 h-5"></i>
             รายการบันทึกผลงานล่าสุด 5 รายการ
         </h3>
-        <a href="<?= base_url('itsupport/logs') ?>" class="text-xs font-bold text-cyan-400 hover:underline flex items-center gap-1">
+        <a href="<?= base_url('itsupport/logs') ?>" class="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1">
             ดูประวัติทั้งหมด <i data-lucide="arrow-right" class="w-3 h-3"></i>
         </a>
     </div>
@@ -124,7 +124,7 @@
     <div class="overflow-x-auto">
         <table class="w-full text-left text-sm">
             <thead>
-                <tr class="text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-900">
+                <tr class="text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100">
                     <th class="pb-3 pr-4">รหัสใบงาน</th>
                     <th class="pb-3 px-4">วันที่ทำงาน</th>
                     <th class="pb-3 px-4">หมวดหมู่งาน</th>
@@ -134,30 +134,30 @@
                     <th class="pb-3 pl-4 text-right">ดำเนินการ</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-slate-900/40 text-slate-300">
+            <tbody class="divide-y divide-slate-100 text-slate-600">
                 <?php if(empty($recent_logs)): ?>
                     <tr>
-                        <td colspan="7" class="py-8 text-center text-slate-500">ยังไม่มีข้อมูลการบันทึกประวัติ</td>
+                        <td colspan="7" class="py-8 text-center text-slate-400">ยังไม่มีข้อมูลการบันทึกประวัติ</td>
                     </tr>
                 <?php else: ?>
                     <?php foreach($recent_logs as $log): ?>
-                        <tr class="hover:bg-slate-900/20 transition-all">
-                            <td class="py-4 pr-4 font-mono font-bold text-cyan-400"><?= $log['its_ticket_code'] ?></td>
+                        <tr class="hover:bg-slate-50 transition-all">
+                            <td class="py-4 pr-4 font-mono font-bold text-blue-600"><?= $log['its_ticket_code'] ?></td>
                             <td class="py-4 px-4 whitespace-nowrap text-xs"><?= date('d/m/Y H:i', strtotime($log['its_date'])) ?> น.</td>
                             <td class="py-4 px-4 whitespace-nowrap text-xs">
-                                <span class="px-3 py-1 rounded-full bg-slate-900 text-slate-300 border border-slate-800 text-[10px] font-extrabold uppercase">
+                                <span class="px-3 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-100/50 text-[10px] font-extrabold uppercase">
                                     <?= $log['its_category'] ?>
                                 </span>
                             </td>
-                            <td class="py-4 px-4 text-xs font-bold text-amber-500 whitespace-nowrap">📍 <?= $log['its_location'] ?></td>
-                            <td class="py-4 px-4 max-w-[250px] truncate text-slate-400" title="<?= esc($log['its_task']) ?>"><?= esc($log['its_task']) ?></td>
-                            <td class="py-4 px-4 whitespace-nowrap text-xs font-bold"><?= $log['its_recorded_by'] ?></td>
+                            <td class="py-4 px-4 text-xs font-bold text-amber-600 whitespace-nowrap">📍 <?= $log['its_location'] ?></td>
+                            <td class="py-4 px-4 max-w-[250px] truncate text-slate-500" title="<?= esc($log['its_task']) ?>"><?= esc($log['its_task']) ?></td>
+                            <td class="py-4 px-4 whitespace-nowrap text-xs font-bold text-slate-700"><?= $log['its_recorded_by'] ?></td>
                             <td class="py-4 pl-4 text-right whitespace-nowrap text-xs">
                                 <div class="flex justify-end gap-2">
-                                    <a href="<?= base_url('itsupport/view/' . $log['its_id']) ?>" class="p-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-white rounded-lg transition-all" title="ดูรายละเอียด">
+                                    <a href="<?= base_url('itsupport/view/' . $log['its_id']) ?>" class="p-2 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-500 hover:text-slate-800 rounded-lg transition-all" title="ดูรายละเอียด">
                                         <i data-lucide="eye" class="w-4 h-4"></i>
                                     </a>
-                                    <a href="<?= base_url('itsupport/edit/' . $log['its_id']) ?>" class="p-2 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/20 text-cyan-400 rounded-lg transition-all" title="แก้ไขข้อมูล">
+                                    <a href="<?= base_url('itsupport/edit/' . $log['its_id']) ?>" class="p-2 bg-blue-50 hover:bg-blue-100/80 border border-blue-200/60 text-blue-600 rounded-lg transition-all" title="แก้ไขข้อมูล">
                                         <i data-lucide="edit" class="w-4 h-4"></i>
                                     </a>
                                 </div>
@@ -183,9 +183,9 @@
         const labels = Object.keys(statsData);
         const dataValues = Object.values(statsData);
 
-        // Curated HARMONIOUS custom dark tech palette
+        // Curated HARMONIOUS custom light theme blue-centric palette
         const colors = [
-            '#06b6d4', // cyan-500
+            '#3b82f6', // blue-550
             '#6366f1', // indigo-500
             '#10b981', // emerald-500
             '#f59e0b', // amber-500
@@ -195,7 +195,7 @@
             '#64748b'  // slate-500
         ];
 
-        new Chart(ctx, {
+        const categoryChart = new Chart(ctx, {
             type: 'doughnut',
             data: {
                 labels: labels,
@@ -203,7 +203,7 @@
                     data: dataValues,
                     backgroundColor: colors,
                     borderWidth: 2,
-                    borderColor: '#111928',
+                    borderColor: document.documentElement.classList.contains('dark') ? '#090d16' : '#ffffff',
                     hoverOffset: 12
                 }]
             },
@@ -214,7 +214,7 @@
                     legend: {
                         position: 'right',
                         labels: {
-                            color: '#94a3b8',
+                            color: document.documentElement.classList.contains('dark') ? '#cbd5e1' : '#475569',
                             font: {
                                 family: 'Sarabun',
                                 size: 10,
@@ -225,10 +225,10 @@
                         }
                     },
                     tooltip: {
-                        backgroundColor: '#111928',
+                        backgroundColor: '#1e293b',
                         titleColor: '#ffffff',
-                        bodyColor: '#e2e8f0',
-                        borderColor: 'rgba(255,255,255,0.08)',
+                        bodyColor: '#f1f5f9',
+                        borderColor: 'rgba(0,0,0,0.05)',
                         borderWidth: 1,
                         padding: 12,
                         cornerRadius: 12,
@@ -240,6 +240,14 @@
                 },
                 cutout: '65%'
             }
+        });
+
+        // Listen for theme changes to dynamically update Chart.js colors
+        window.addEventListener('themeChanged', function() {
+            const isDark = document.documentElement.classList.contains('dark');
+            categoryChart.options.plugins.legend.labels.color = isDark ? '#cbd5e1' : '#475569';
+            categoryChart.data.datasets[0].borderColor = isDark ? '#090d16' : '#ffffff';
+            categoryChart.update();
         });
     });
 </script>

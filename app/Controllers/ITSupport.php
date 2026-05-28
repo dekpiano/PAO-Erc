@@ -69,18 +69,27 @@ class ITSupport extends BaseController
      */
     private function autoOrientAndResize(string $filePath, int $maxWidth = 1200, int $quality = 85)
     {
-        // 1. จัดการ Orientation สำหรับรูปภาพ JPEG จากมือถือ / iPhone
-        if (function_exists('exif_read_data')) {
+        // เพิ่มหน่วยความจำและเวลาประมวลผลชั่วคราว เพื่อรองรับภาพความละเอียดสูงมาก (เช่น 12MP-48MP จากมือถือ / iPhone)
+        @ini_set('memory_limit', '512M');
+        @set_time_limit(120);
+
+        $mime = @mime_content_type($filePath);
+        if ($mime !== 'image/jpeg' && $mime !== 'image/jpg') {
+            // หากไม่ใช่ JPEG ข้ามขั้นตอนหมุนภาพ (EXIF) ไปปรับขนาดโดยตรง เพื่อความเสถียรและป้องกันการค้าง
+            try {
+                \Config\Services::image()
+                    ->withFile($filePath)
+                    ->resize($maxWidth, $maxWidth, true, 'width')
+                    ->save($filePath, $quality);
+            } catch (\Exception $e) { }
+            return;
+        }
+
+        // 1. จัดการ Orientation สำหรับรูปภาพ JPEG จากมือถือ / iPhone (ตรวจสอบการมีอยู่ของฟังก์ชัน GD ป้องกัน Fatal Crash)
+        if (function_exists('exif_read_data') && function_exists('imagecreatefromjpeg') && function_exists('imagerotate')) {
             $exif = @exif_read_data($filePath);
             if (!empty($exif['Orientation'])) {
-                $image = null;
-                $mime = mime_content_type($filePath);
-                
-                if ($mime === 'image/jpeg' || $mime === 'image/jpg') {
-                    $image = @imagecreatefromjpeg($filePath);
-                } elseif ($mime === 'image/png') {
-                    $image = @imagecreatefrompng($filePath);
-                }
+                $image = @imagecreatefromjpeg($filePath);
                 
                 if ($image) {
                     $deg = 0;
@@ -99,11 +108,7 @@ class ITSupport extends BaseController
                     if ($deg > 0) {
                         $rotated = @imagerotate($image, $deg, 0);
                         if ($rotated) {
-                            if ($mime === 'image/jpeg' || $mime === 'image/jpg') {
-                                @imagejpeg($rotated, $filePath, 95);
-                            } elseif ($mime === 'image/png') {
-                                @imagepng($rotated, $filePath, 9);
-                            }
+                            @imagejpeg($rotated, $filePath, 95);
                             @imagedestroy($rotated);
                         }
                     }
@@ -250,9 +255,12 @@ class ITSupport extends BaseController
         $db = \Config\Database::connect();
         $builder = $db->table('Tb_It_Support_Logs');
         $builder->select('its_recorded_by, COUNT(its_id) as job_count, its_user_id');
-        $builder->groupBy('its_user_id');
+        $builder->groupBy(['its_user_id', 'its_recorded_by']);
         $builder->orderBy('job_count', 'DESC');
         $data['leaderboard'] = $builder->get()->getResultArray();
+
+        // ดึงรายการบันทึกผลงานล่าสุด 5 รายการ
+        $data['recent_logs'] = $this->itsModel->orderBy('its_date', 'DESC')->findAll(5);
 
         return view('itsupport/dashboard', $data);
     }
@@ -306,7 +314,7 @@ class ITSupport extends BaseController
         if (isset($imageFiles['images'])) {
             $targetDir = FCPATH . 'uploads/it_support/';
             if (!is_dir($targetDir)) {
-                mkdir($targetDir, 0777, true);
+                @mkdir($targetDir, 0777, true);
             }
 
             foreach ($imageFiles['images'] as $img) {
@@ -375,61 +383,135 @@ class ITSupport extends BaseController
      */
     public function update($id)
     {
-        $access = $this->checkAccess();
-        if ($access !== true) return $access;
+        // Debug: log all incoming data
+        log_message('debug', 'ITSupport::update called. ID=' . $id . ' POST=' . json_encode($this->request->getPost()) . ' FILES=' . json_encode($this->request->getFiles()));
 
-        $log = $this->itsModel->find($id);
-        if (!$log) {
-            return redirect()->to(base_url('itsupport'))->with('error', 'ไม่พบข้อมูล');
-        }
+        try {
+            $access = $this->checkAccess();
+            if ($access !== true) return $access;
 
-        $rules = [
-            'its_date'     => 'required',
-            'its_category' => 'required',
-            'its_task'     => 'required|min_length[5]'
-        ];
+            $log = $this->itsModel->find($id);
+            if (!$log) {
+                return redirect()->to(base_url('itsupport'))->with('error', 'ไม่พบข้อมูล');
+            }
 
-        if (!$this->validate($rules)) {
-            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
-        }
+            $rules = [
+                'its_date'     => 'required',
+                'its_category' => 'required',
+                'its_task'     => 'required|min_length[5]'
+            ];
 
-        $uploadedImages = !empty($log['its_images']) ? json_decode($log['its_images'], true) : [];
-        $imageFiles = $this->request->getFiles();
+            if (!$this->validate($rules)) {
+                $errors = $this->validator->getErrors();
+                log_message('debug', 'ITSupport::update validation failed: ' . json_encode($errors));
+                // Return JSON for AJAX requests
+                if ($this->request->isAJAX()) {
+                    return $this->response->setStatusCode(400)->setJSON(['status' => 'error', 'message' => implode(', ', $errors)]);
+                }
+                return redirect()->back()->withInput()->with('errors', $errors);
+            }
 
-        if (isset($imageFiles['images']) && $imageFiles['images'][0]->isValid()) {
-            if (!empty($uploadedImages)) {
-                foreach ($uploadedImages as $oldImg) {
-                    @unlink(FCPATH . 'uploads/it_support/' . $oldImg);
+            $uploadedImages = !empty($log['its_images']) ? json_decode($log['its_images'], true) : [];
+            $imageFiles = $this->request->getFiles();
+
+            // ★ ตรวจจับไฟล์รูปภาพใหม่อย่างปลอดภัย (รองรับทั้ง form submit ปกติ และ fetch+FormData)
+            $hasNewImages = false;
+            if (isset($imageFiles['images']) && is_array($imageFiles['images'])) {
+                foreach ($imageFiles['images'] as $img) {
+                    if ($img->isValid() && $img->getSize() > 0) {
+                        $hasNewImages = true;
+                        break;
+                    }
                 }
             }
-            
-            $uploadedImages = [];
-            $targetDir = FCPATH . 'uploads/it_support/';
-            
-            foreach ($imageFiles['images'] as $img) {
-                if ($img->isValid() && !$img->hasMoved()) {
-                    $newName = $img->getRandomName();
-                    $img->move($targetDir, $newName);
 
-                    // ออโต้ออเรียนเทชัน ย่อรูปเหลือ 1200px ชัดแจ๋วเบาสบาย
-                    $this->autoOrientAndResize($targetDir . $newName, 1200, 85);
+            log_message('debug', 'ITSupport::update images check: hasNewImages=' . ($hasNewImages ? 'YES' : 'NO') . ' existingImages=' . json_encode($uploadedImages));
 
-                    $uploadedImages[] = $newName;
+            if ($hasNewImages) {
+                // ลบรูปเก่าออกจากดิสก์
+                if (!empty($uploadedImages)) {
+                    foreach ($uploadedImages as $oldImg) {
+                        @unlink(FCPATH . 'uploads/it_support/' . $oldImg);
+                    }
                 }
+
+                $uploadedImages = [];
+                $targetDir = FCPATH . 'uploads/it_support/';
+
+                // ★ สร้างโฟลเดอร์พร้อมตั้ง permission ให้ถูกต้อง (umask อาจบล็อก 0777 ใน mkdir)
+                if (!is_dir($targetDir)) {
+                    mkdir($targetDir, 0755, true);
+                    @chmod($targetDir, 0755);
+                }
+                // ★ ตรวจสอบสิทธิ์เขียนก่อนดำเนินการ
+                if (!is_writable($targetDir)) {
+                    @chmod($targetDir, 0755);
+                    // ลองสร้าง parent ด้วย
+                    @chmod(FCPATH . 'uploads/', 0755);
+                    if (!is_writable($targetDir)) {
+                        log_message('error', 'ITSupport::update uploads directory not writable: ' . $targetDir);
+                        throw new \RuntimeException('โฟลเดอร์อัปโหลดไม่มีสิทธิ์เขียน กรุณาเรียก: sudo chown -R www-data:www-data ' . $targetDir);
+                    }
+                }
+
+                foreach ($imageFiles['images'] as $img) {
+                    if ($img->isValid() && !$img->hasMoved() && $img->getSize() > 0) {
+                        $newName = $img->getRandomName();
+
+                        // ★ ลอง move() ปกติก่อน ถ้าไม่ได้ให้ fallback ด้วย copy+unlink
+                        try {
+                            $img->move($targetDir, $newName);
+                        } catch (\Throwable $moveErr) {
+                            log_message('warning', 'ITSupport::update move() failed, trying copy fallback: ' . $moveErr->getMessage());
+                            // Fallback: copy จาก temp file แล้วลบ temp
+                            $tmpPath = $img->getTempName();
+                            if ($tmpPath && file_exists($tmpPath)) {
+                                if (!copy($tmpPath, $targetDir . $newName)) {
+                                    throw new \RuntimeException('ไม่สามารถคัดลอกไฟล์ภาพไปยัง ' . $targetDir . ' ได้ — ตรวจสอบสิทธิ์โฟลเดอร์ด้วย: sudo chown -R www-data:www-data ' . FCPATH . 'uploads/');
+                                }
+                                @chmod($targetDir . $newName, 0644);
+                            } else {
+                                throw new \RuntimeException('ไม่พบไฟล์ temp ที่อัปโหลด: ' . ($tmpPath ?: 'null'));
+                            }
+                        }
+
+                        // ออโต้ออเรียนเทชัน ย่อรูปเหลือ 1200px ชัดแจ๋วเบาสบาย
+                        $this->autoOrientAndResize($targetDir . $newName, 1200, 85);
+
+                        $uploadedImages[] = $newName;
+                    }
+                }
+                log_message('debug', 'ITSupport::update new images saved: ' . json_encode($uploadedImages));
             }
+
+            $normalizedDate = $this->normalizeDate($this->request->getPost('its_date'));
+
+            $updateData = [
+                'its_date'     => $normalizedDate,
+                'its_category' => $this->request->getPost('its_category'),
+                'its_location' => $this->request->getPost('its_location') ?: 'ศูนย์เทคโนโลยีสารสนเทศ',
+                'its_task'     => $this->request->getPost('its_task'),
+                'its_images'   => !empty($uploadedImages) ? json_encode($uploadedImages) : null
+            ];
+
+            log_message('debug', 'ITSupport::update data: ' . json_encode($updateData));
+
+            $this->itsModel->update($id, $updateData);
+
+            // Return JSON for AJAX requests
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON(['status' => 'success', 'message' => 'ปรับปรุงประวัติการซ่อมบำรุงเรียบร้อยแล้ว']);
+            }
+
+            return redirect()->to(base_url('itsupport'))->with('success', 'ปรับปรุงประวัติการซ่อมบำรุงเรียบร้อยแล้ว');
+
+        } catch (\Throwable $e) {
+            log_message('error', 'ITSupport::update EXCEPTION: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine() . "\n" . $e->getTraceAsString());
+            if ($this->request->isAJAX()) {
+                return $this->response->setStatusCode(500)->setJSON(['status' => 'error', 'message' => $e->getMessage(), 'file' => $e->getFile(), 'line' => $e->getLine()]);
+            }
+            return redirect()->back()->with('error', 'เกิดข้อผิดพลาด: ' . $e->getMessage());
         }
-
-        $normalizedDate = $this->normalizeDate($this->request->getPost('its_date'));
-
-        $this->itsModel->update($id, [
-            'its_date'     => $normalizedDate,
-            'its_category' => $this->request->getPost('its_category'),
-            'its_location' => $this->request->getPost('its_location') ?: 'ศูนย์เทคโนโลยีสารสนเทศ',
-            'its_task'     => $this->request->getPost('its_task'),
-            'its_images'   => !empty($uploadedImages) ? json_encode($uploadedImages) : null
-        ]);
-
-        return redirect()->to(base_url('itsupport'))->with('success', 'ปรับปรุงประวัติการซ่อมบำรุงเรียบร้อยแล้ว');
     }
 
     /**

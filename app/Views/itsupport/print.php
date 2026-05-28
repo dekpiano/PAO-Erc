@@ -112,7 +112,7 @@
 <body>
     <!-- Print Button (Hidden in actual printout) -->
     <div class="no-print" style="margin-bottom: 20px; text-align: right;">
-        <button onclick="window.print()" style="padding: 10px 20px; background-color: #06b6d4; border: none; color: white; font-weight: bold; cursor: pointer; border-radius: 4px;">🖨️ สั่งพิมพ์ใบงาน</button>
+        <button onclick="window.print()" style="padding: 10px 20px; background-color: #2563eb; border: none; color: white; font-weight: bold; cursor: pointer; border-radius: 4px;">🖨️ สั่งพิมพ์ใบงาน</button>
     </div>
 
     <!-- Header Section -->
@@ -125,7 +125,7 @@
     <table class="meta-table">
         <tr>
             <th>รหัสใบงานบริการ</th>
-            <td style="font-family: monospace; font-weight: bold; font-size: 15px; color: #06b6d4;"><?= $log['its_ticket_code'] ?></td>
+            <td style="font-family: monospace; font-weight: bold; font-size: 15px; color: #2563eb;"><?= $log['its_ticket_code'] ?></td>
             <th>วันที่ปฏิบัติงาน</th>
             <td><?= date('d/m/Y H:i', strtotime($log['its_date'])) ?> น.</td>
         </tr>
