@@ -9,7 +9,17 @@ class Auth extends Controller
 {
     public function login()
     {
+        $redirect = $this->request->getGet('redirect');
+        if ($redirect) {
+            session()->set('redirect_to', $redirect);
+        }
+
         if (session()->get('isLoggedIn')) {
+            $redirectTo = session()->get('redirect_to');
+            if ($redirectTo) {
+                session()->remove('redirect_to');
+                return redirect()->to(base_url($redirectTo));
+            }
             return redirect()->to(base_url('staff'));
         }
         return view('auth/login');
@@ -41,9 +51,18 @@ class Auth extends Controller
             ];
             session()->set($sessionData);
             
-            // Redirect based on role
+            // Redirect based on role and referrer
+            $redirectTo = session()->get('redirect_to');
+            if ($redirectTo) {
+                session()->remove('redirect_to');
+                return redirect()->to(base_url($redirectTo));
+            }
+
             if (strpos($user['u_role'] ?? '', 'superadmin') !== false) {
                 return redirect()->to(base_url('auth/select'));
+            }
+            if (strpos($user['u_role'] ?? '', 'science_week') !== false && strpos($user['u_role'] ?? '', 'admin') === false && strpos($user['u_role'] ?? '', 'superadmin') === false) {
+                return redirect()->to(base_url('staff/science-week'));
             }
             return redirect()->to(base_url('staff'));
         } else {
@@ -116,8 +135,18 @@ class Auth extends Controller
             ];
             session()->set($sessionData);
             
+            // Redirect based on role and referrer
+            $redirectTo = session()->get('redirect_to');
+            if ($redirectTo) {
+                session()->remove('redirect_to');
+                return redirect()->to(base_url($redirectTo));
+            }
+
             if (strpos($user['u_role'] ?? '', 'superadmin') !== false) {
                 return redirect()->to(base_url('auth/select'));
+            }
+            if (strpos($user['u_role'] ?? '', 'science_week') !== false && strpos($user['u_role'] ?? '', 'admin') === false && strpos($user['u_role'] ?? '', 'superadmin') === false) {
+                return redirect()->to(base_url('staff/science-week'));
             }
             return redirect()->to(base_url('staff'));
         } else {

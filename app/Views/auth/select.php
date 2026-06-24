@@ -51,8 +51,10 @@
             <?php 
                 $userRoles = session()->get('u_role') ?? ''; 
                 $isSuperAdmin = (strpos($userRoles, 'superadmin') !== false);
+                $isAdmin = (strpos($userRoles, 'admin') !== false);
                 $isIT = (strpos($userRoles, 'it_support') !== false);
                 $isITOfficer = ($isSuperAdmin || $isIT);
+                $isScienceWeek = ($isSuperAdmin || $isAdmin || strpos($userRoles, 'science_week') !== false);
             ?>
     
     <div class="w-full max-w-5xl transition-all duration-700 animate-[fadeIn_0.8s_ease-out]">
@@ -111,6 +113,7 @@
                     </span>
                 </a>
 
+                <?php if ($isScienceWeek): ?>
                 <!-- Science Week Portal -->
                 <a href="<?= base_url('staff/science-week') ?>" class="group bg-white p-8 rounded-[2rem] border border-slate-100 shadow-lg shadow-slate-200/50 hover:shadow-2xl hover:border-violet-200 transition-all duration-300 text-left relative overflow-hidden flex flex-col items-center text-center">
                     <div class="absolute -top-10 -right-10 w-32 h-32 bg-violet-50 rounded-full blur-2xl opacity-50 group-hover:opacity-100 transition-opacity"></div>
@@ -123,6 +126,7 @@
                         Sci Week Admin
                     </span>
                 </a>
+                <?php endif; ?>
 
             </div>
 

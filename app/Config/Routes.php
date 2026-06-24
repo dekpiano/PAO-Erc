@@ -146,6 +146,12 @@ $routes->group('staff/science-week', ['filter' => 'auth'], function($routes) {
     $routes->get('certificates', 'ScienceWeek::adminCertificates');
     $routes->post('certificates/save', 'ScienceWeek::saveCertConfig');
 
+    // Science Week Users/Staff Management
+    $routes->get('users', 'ScienceWeek::usersIndex');
+    $routes->post('users/store', 'ScienceWeek::usersStore');
+    $routes->post('users/update/(:num)', 'ScienceWeek::usersUpdate/$1');
+    $routes->get('users/delete/(:num)', 'ScienceWeek::usersDelete/$1');
+
     // Competitions CRUD
     $routes->get('competitions', 'ScienceWeek::compIndex');
     $routes->get('competitions/create', 'ScienceWeek::compCreate');

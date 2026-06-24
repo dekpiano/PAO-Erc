@@ -347,6 +347,11 @@ class ScienceWeek extends BaseController
         if (!$u_id) {
             return redirect()->to(base_url('auth/login'))->with('error', 'กรุณาเข้าสู่ระบบก่อนใช้งาน');
         }
+
+        $roles = session()->get('u_role') ?? '';
+        if (strpos($roles, 'superadmin') === false && strpos($roles, 'admin') === false && strpos($roles, 'science_week') === false) {
+            return redirect()->to(base_url('/'))->with('error', 'คุณไม่มีสิทธิ์เข้าถึงระบบสัปดาห์วิทยาศาสตร์');
+        }
         return true;
     }
 
@@ -2166,5 +2171,196 @@ class ScienceWeek extends BaseController
         } else {
             return $this->response->setJSON(['status' => 'error', 'message' => 'ไม่สามารถลบข้อมูลได้ กรุณาลองใหม่อีกครั้ง']);
         }
+    }
+
+    /**
+     * หน้าจอจัดการสิทธิ์เจ้าหน้าที่และผู้ใช้งาน (Staff/Admin)
+     */
+    public function usersIndex()
+    {
+        $access = $this->checkAccess();
+        if ($access !== true)
+            return $access;
+
+        $db = \Config\Database::connect();
+        $builder = $db->table('Tb_Users u');
+        $builder->select('u.*, p.pos_name as position_name');
+        $builder->join('Tb_Positions p', 'p.pos_id = u.u_position', 'left');
+        $builder->like('u.u_role', 'science_week');
+        $builder->where('u.u_status', 'active');
+        $builder->orderBy('u.u_id', 'DESC');
+        $data['users'] = $builder->get()->getResultArray();
+
+        $data['positions'] = $db->table('Tb_Positions')->orderBy('pos_name', 'ASC')->get()->getResultArray();
+        $data['title'] = 'จัดการสิทธิ์เจ้าหน้าที่วิทยาศาสตร์ | งานสัปดาห์วิทยาศาสตร์';
+        $data['fullname'] = session()->get('u_fullname');
+
+        return view('science_week/users_index', $data);
+    }
+
+    /**
+     * บันทึกข้อมูลเจ้าหน้าที่วิทยาศาสตร์ใหม่ (Staff/Admin)
+     */
+    public function usersStore()
+    {
+        $access = $this->checkAccess();
+        if ($access !== true) {
+            return $this->response->setJSON(['status' => 'error', 'message' => 'Unauthorized']);
+        }
+
+        $email = trim($this->request->getPost('u_email') ?? '');
+        $fullname = trim($this->request->getPost('u_fullname') ?? '');
+        $role = $this->request->getPost('u_role') ?: 'science_week';
+
+        if (empty($email) || empty($fullname)) {
+            return $this->response->setJSON(['status' => 'error', 'message' => 'กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน (ชื่อ-นามสกุล และ อีเมล)']);
+        }
+
+        $userModel = new \App\Models\UserModel();
+
+        // Check if email already exists
+        $existingUser = $userModel->where('u_email', $email)->first();
+        if ($existingUser) {
+            $existingRoles = explode(',', $existingUser['u_role'] ?? '');
+            $newRoles = explode(',', $role);
+            $mergedRoles = array_filter(array_unique(array_merge($existingRoles, $newRoles)));
+
+            $dataUpdate = [
+                'u_role' => implode(',', $mergedRoles),
+                'u_status' => 'active'
+            ];
+
+            if ($userModel->update($existingUser['u_id'], $dataUpdate)) {
+                return $this->response->setJSON(['status' => 'success', 'message' => 'พบอีเมลนี้ในระบบหลักแล้ว ได้ทำการอัปเดตและเปิดสิทธิ์เข้าใช้งานระบบวิทยาศาสตร์เพิ่มเติมให้เรียบร้อยแล้ว']);
+            }
+            return $this->response->setJSON(['status' => 'error', 'message' => 'เกิดข้อผิดพลาดในการอัปเดตสิทธิ์ผู้ใช้เดิม']);
+        }
+
+        // Generate username from email prefix
+        $emailParts = explode('@', $email);
+        $baseUsername = preg_replace('/[^a-zA-Z0-9_\-]/', '', $emailParts[0]);
+        $username = $baseUsername;
+        $counter = 1;
+        
+        while ($userModel->where('u_username', $username)->first()) {
+            $username = $baseUsername . $counter;
+            $counter++;
+        }
+
+        // Generate a random secure password (since they will use Google Login, but we still need a valid hash)
+        $randomPassword = bin2hex(random_bytes(16));
+
+        $dataInsert = [
+            'u_username' => $username,
+            'u_email'    => $email,
+            'u_fullname' => $fullname,
+            'u_position' => null,
+            'u_password' => password_hash($randomPassword, PASSWORD_DEFAULT),
+            'u_role'     => $role,
+            'u_status'   => 'active',
+            'u_sort'     => 99
+        ];
+
+        if ($userModel->insert($dataInsert)) {
+            return $this->response->setJSON(['status' => 'success', 'message' => 'เพิ่มเจ้าหน้าที่วิทยาศาสตร์เรียบร้อยแล้ว (สามารถใช้งาน Google Login ด้วยอีเมลนี้ได้ทันที)']);
+        }
+
+        return $this->response->setJSON(['status' => 'error', 'message' => 'ไม่สามารถบันทึกข้อมูลได้']);
+    }
+
+    /**
+     * อัปเดตข้อมูลเจ้าหน้าที่วิทยาศาสตร์ (Staff/Admin)
+     */
+    public function usersUpdate($id)
+    {
+        $access = $this->checkAccess();
+        if ($access !== true) {
+            return $this->response->setJSON(['status' => 'error', 'message' => 'Unauthorized']);
+        }
+
+        $userModel = new \App\Models\UserModel();
+        $user = $userModel->find($id);
+        if (!$user) {
+            return $this->response->setJSON(['status' => 'error', 'message' => 'ไม่พบข้อมูลผู้ใช้']);
+        }
+
+        $email = trim($this->request->getPost('u_email') ?? '');
+        $fullname = trim($this->request->getPost('u_fullname') ?? '');
+        $role = $this->request->getPost('u_role') ?: 'science_week';
+
+        if (empty($email) || empty($fullname)) {
+            return $this->response->setJSON(['status' => 'error', 'message' => 'กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน (ชื่อ-นามสกุล และ อีเมล)']);
+        }
+
+        // Check duplicates excluding self
+        $dupEmail = $userModel->where('u_email', $email)->where('u_id !=', $id)->first();
+        if ($dupEmail) {
+            return $this->response->setJSON(['status' => 'error', 'message' => 'อีเมลนี้มีในระบบแล้ว']);
+        }
+
+        $dataUpdate = [
+            'u_email'    => $email,
+            'u_fullname' => $fullname,
+            'u_role'     => $role,
+        ];
+
+        // Also update username if email changed, to keep it clean
+        if ($user['u_email'] !== $email) {
+            $emailParts = explode('@', $email);
+            $baseUsername = preg_replace('/[^a-zA-Z0-9_\-]/', '', $emailParts[0]);
+            $username = $baseUsername;
+            $counter = 1;
+            
+            while ($userModel->where('u_username', $username)->where('u_id !=', $id)->first()) {
+                $username = $baseUsername . $counter;
+                $counter++;
+            }
+            $dataUpdate['u_username'] = $username;
+        }
+
+        if ($userModel->update($id, $dataUpdate)) {
+            return $this->response->setJSON(['status' => 'success', 'message' => 'อัปเดตข้อมูลเจ้าหน้าที่วิทยาศาสตร์เรียบร้อยแล้ว']);
+        }
+
+        return $this->response->setJSON(['status' => 'error', 'message' => 'ไม่สามารถอัปเดตข้อมูลได้']);
+    }
+
+    /**
+     * ลบสิทธิ์/ลบบัญชีเจ้าหน้าที่วิทยาศาสตร์ (Staff/Admin)
+     */
+    public function usersDelete($id)
+    {
+        $access = $this->checkAccess();
+        if ($access !== true) {
+            return $this->response->setJSON(['status' => 'error', 'message' => 'Unauthorized']);
+        }
+
+        $userModel = new \App\Models\UserModel();
+        $user = $userModel->find($id);
+        if (!$user) {
+            return $this->response->setJSON(['status' => 'error', 'message' => 'ไม่พบข้อมูลผู้ใช้']);
+        }
+
+        // Prevent self-deletion
+        if ($id == session()->get('u_id')) {
+            return $this->response->setJSON(['status' => 'error', 'message' => 'ไม่สามารถลบบัญชีของตัวเองได้']);
+        }
+
+        $roles = explode(',', $user['u_role'] ?? '');
+        $roles = array_filter(array_diff($roles, ['science_week']));
+
+        if (empty($roles)) {
+            // User only had science_week role, safe to delete completely
+            if ($userModel->delete($id)) {
+                return $this->response->setJSON(['status' => 'success', 'message' => 'ลบบัญชีผู้ใช้งานเรียบร้อยแล้ว']);
+            }
+        } else {
+            // User has other roles, just strip science_week role
+            if ($userModel->update($id, ['u_role' => implode(',', $roles)])) {
+                return $this->response->setJSON(['status' => 'success', 'message' => 'ยกเลิกสิทธิ์การเข้าใช้งานระบบวิทยาศาสตร์ของพนักงานคนนี้แล้ว']);
+            }
+        }
+
+        return $this->response->setJSON(['status' => 'error', 'message' => 'ไม่สามารถลบข้อมูลได้']);
     }
 }

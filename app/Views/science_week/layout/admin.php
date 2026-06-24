@@ -121,6 +121,10 @@
                 <!-- Group 3: System Settings -->
                 <div class="text-[9px] font-black text-slate-500 uppercase tracking-widest px-4 pt-4 mb-2">ตั้งค่าระบบแอดมิน</div>
 
+                <a href="<?= base_url('staff/science-week/users') ?>" class="flex items-center gap-4 px-4 py-3.5 rounded-xl font-bold text-sm transition-all duration-200 <?= strpos(uri_string(), 'staff/science-week/users') !== false ? 'sidebar-item-active' : 'text-slate-400 hover:text-slate-100 hover:bg-slate-900/30' ?>">
+                    <i data-lucide="shield-check" class="w-5 h-5 text-cyan-400"></i><span>จัดการสิทธิ์เจ้าหน้าที่</span>
+                </a>
+
                 <a href="<?= base_url('staff/science-week/settings') ?>" class="flex items-center gap-4 px-4 py-3.5 rounded-xl font-bold text-sm transition-all duration-200 <?= strpos(uri_string(), 'staff/science-week/settings') !== false ? 'sidebar-item-active' : 'text-slate-400 hover:text-slate-100 hover:bg-slate-900/30' ?>">
                     <i data-lucide="settings" class="w-5 h-5 text-slate-400"></i><span>ตั้งค่าระบบนับถอยหลัง</span>
                 </a>
