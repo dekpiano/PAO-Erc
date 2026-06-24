@@ -68,7 +68,7 @@
             </div>
 
             <!-- Portal Selection -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 
                 <!-- Admin Portal -->
                 <a href="<?= base_url('admin') ?>" class="group bg-white p-8 rounded-[2rem] border border-slate-100 shadow-lg shadow-slate-200/50 hover:shadow-2xl hover:border-red-200 transition-all duration-300 text-left relative overflow-hidden flex flex-col items-center text-center">
@@ -111,7 +111,21 @@
                     </span>
                 </a>
 
+                <!-- Science Week Portal -->
+                <a href="<?= base_url('staff/science-week') ?>" class="group bg-white p-8 rounded-[2rem] border border-slate-100 shadow-lg shadow-slate-200/50 hover:shadow-2xl hover:border-violet-200 transition-all duration-300 text-left relative overflow-hidden flex flex-col items-center text-center">
+                    <div class="absolute -top-10 -right-10 w-32 h-32 bg-violet-50 rounded-full blur-2xl opacity-50 group-hover:opacity-100 transition-opacity"></div>
+                    <div class="w-16 h-16 bg-violet-100 text-violet-600 rounded-2xl flex items-center justify-center mb-6 group-hover-scale">
+                        <i data-lucide="orbit" class="w-8 h-8 text-violet-600"></i>
+                    </div>
+                    <h3 class="text-xl font-black text-slate-800 mb-2">ระบบสัปดาห์วิทยาศาสตร์</h3>
+                    <p class="text-xs text-slate-400 font-medium">จัดการผู้ลงสมัครแข่งขัน, อนุมัติสิทธิ์, รายงาน Excel</p>
+                    <span class="mt-6 px-4 py-1.5 bg-violet-50 text-violet-500 text-[10px] font-black uppercase tracking-widest rounded-full group-hover:bg-violet-600 group-hover:text-white transition-colors">
+                        Sci Week Admin
+                    </span>
+                </a>
+
             </div>
+
 
         </div>
 

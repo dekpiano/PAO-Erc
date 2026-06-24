@@ -115,3 +115,63 @@ $routes->group('itsupport', ['filter' => 'auth'], function($routes) {
     $routes->get('print/(:num)', 'ITSupport::printJob/$1');
     $routes->get('export', 'ITSupport::exportExcel');
 });
+
+// Science Week (ระบบวันสัปดาห์วิทยาศาสตร์)
+// Public routes
+$routes->get('science-week', 'ScienceWeek::index');
+$routes->get('science-week/register', 'ScienceWeek::register');
+$routes->get('science-week/register/form', 'ScienceWeek::registerForm');
+$routes->post('science-week/register/store', 'ScienceWeek::store');
+$routes->get('science-week/success/(:segment)', 'ScienceWeek::success/$1');
+$routes->get('science-week/check-status', 'ScienceWeek::checkStatus');
+$routes->get('science-week/check-status/search', 'ScienceWeek::searchStatus');
+$routes->get('science-week/results', 'ScienceWeek::publicResults');
+$routes->get('science-week/evaluation', 'ScienceWeek::publicEvaluation');
+$routes->post('science-week/evaluation/store', 'ScienceWeek::storeEvaluation');
+$routes->get('science-week/certificate/download/(:segment)/(:segment)', 'ScienceWeek::downloadCertificate/$1/$2');
+$routes->get('science-week/certificate/view-all/(:segment)/(:segment)', 'ScienceWeek::viewAllCertificates/$1/$2');
+
+// Staff/Admin routes
+$routes->group('staff/science-week', ['filter' => 'auth'], function($routes) {
+    $routes->get('/', 'ScienceWeek::adminIndex');
+    $routes->get('ranking', 'ScienceWeek::adminRanking');
+    $routes->get('edit/(:num)', 'ScienceWeek::adminEdit/$1');
+    $routes->post('update/(:num)', 'ScienceWeek::adminUpdate/$1');
+    $routes->post('update-status/(:num)', 'ScienceWeek::updateStatus/$1');
+    $routes->post('update-rank/(:num)', 'ScienceWeek::updateRank/$1');
+    $routes->post('toggle-publish-results', 'ScienceWeek::togglePublishResults');
+    $routes->get('export', 'ScienceWeek::export');
+
+    // Certificates Management
+    $routes->get('certificates', 'ScienceWeek::adminCertificates');
+    $routes->post('certificates/save', 'ScienceWeek::saveCertConfig');
+
+    // Competitions CRUD
+    $routes->get('competitions', 'ScienceWeek::compIndex');
+    $routes->get('competitions/create', 'ScienceWeek::compCreate');
+    $routes->post('competitions/store', 'ScienceWeek::compStore');
+    $routes->get('competitions/edit/(:num)', 'ScienceWeek::compEdit/$1');
+    $routes->post('competitions/update/(:num)', 'ScienceWeek::compUpdate/$1');
+    $routes->get('competitions/delete/(:num)', 'ScienceWeek::compDelete/$1');
+
+    // Settings (Countdown Date)
+    $routes->get('settings', 'ScienceWeek::adminSettings');
+    $routes->post('settings/save', 'ScienceWeek::settingsSave');
+
+    // Schedules CRUD
+    $routes->get('schedules', 'ScienceWeek::schIndex');
+    $routes->get('schedules/create', 'ScienceWeek::schCreate');
+    $routes->post('schedules/store', 'ScienceWeek::schStore');
+    $routes->get('schedules/edit/(:num)', 'ScienceWeek::schEdit/$1');
+    $routes->post('schedules/update/(:num)', 'ScienceWeek::schUpdate/$1');
+    $routes->get('schedules/delete/(:num)', 'ScienceWeek::schDelete/$1');
+
+    // Evaluations CRUD
+    $routes->get('evaluations', 'ScienceWeek::evalIndex');
+    $routes->get('evaluations/create', 'ScienceWeek::evalCreate');
+    $routes->post('evaluations/store', 'ScienceWeek::evalStore');
+    $routes->get('evaluations/edit/(:num)', 'ScienceWeek::evalEdit/$1');
+    $routes->post('evaluations/update/(:num)', 'ScienceWeek::evalUpdate/$1');
+    $routes->get('evaluations/delete/(:num)', 'ScienceWeek::evalDelete/$1');
+});
+

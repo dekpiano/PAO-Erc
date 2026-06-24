@@ -99,6 +99,13 @@
                             <i data-lucide="graduation-cap" class="w-5 h-5"></i><span class="sidebar-text">จัดการทุนการศึกษา</span>
                         </a>
                     <?php endif; ?>
+                    
+                    <?php if($isAdmin || strpos($userRoles, 'news') !== false || strpos($userRoles, 'scholarship') !== false): ?>
+                        <a href="<?= base_url('staff/science-week') ?>" class="sidebar-item <?= strpos(uri_string(), 'staff/science-week') === 0 ? 'active shadow-lg shadow-amber-100 bg-amber-50/50' : 'text-slate-500 hover:text-amber-600' ?> flex items-center gap-4 px-4 py-3 rounded-2xl font-bold text-sm">
+                            <i data-lucide="orbit" class="w-5 h-5 text-indigo-500 animate-pulse"></i><span class="sidebar-text">จัดการสัปดาห์วิทยาศาสตร์</span>
+                        </a>
+                    <?php endif; ?>
+
                 <?php endif; ?>
 
                 <!-- 4. ตั้งค่าระบบ (System Admin) -->
