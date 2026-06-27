@@ -372,31 +372,48 @@
                 altInput: true, 
                 altFormat: "d/m/Y H:i น.", 
                 locale: "th",
-                onReady: instance => applyBE(instance),
-                onValueUpdate: instance => applyBE(instance),
-                onOpen: instance => applyBE(instance),
-                onMonthChange: instance => setTimeout(() => applyBE(instance), 1),
-                onYearChange: instance => setTimeout(() => applyBE(instance), 1)
+                onReady: function(d, s, fp) { applyBE(fp); },
+                onValueUpdate: function(d, s, fp) { applyBE(fp); },
+                onOpen: function(d, s, fp) { applyBE(fp); },
+                onMonthChange: function(d, s, fp) { setTimeout(function(){ applyBE(fp); }, 10); },
+                onYearChange: function(d, s, fp) { setTimeout(function(){ applyBE(fp); }, 10); }
             };
             flatpickr(".datetimepicker-be", fpConfig);
         });
 
-        function applyBE(instance) {
-            if (!instance) return;
-            const years = instance.calendarContainer ? instance.calendarContainer.querySelectorAll(".cur-year") : [];
-            years.forEach(y => {
-                let val = parseInt(y.value);
-                if (val > 0 && val < 2400) y.value = val + 543;
-            });
-            if (instance.altInput && instance.selectedDates.length > 0) {
-                const d = instance.selectedDates[0];
-                const day = d.getDate().toString().padStart(2, '0');
-                const month = (d.getMonth() + 1).toString().padStart(2, '0');
-                const year = d.getFullYear() + 543;
-                const hour = d.getHours().toString().padStart(2, '0');
-                const minute = d.getMinutes().toString().padStart(2, '0');
-                instance.altInput.value = `${day}/${month}/${year} ${hour}:${minute} น.`;
-            }
+        function applyBE(fp) {
+            if (!fp || !fp.calendarContainer) return;
+            setTimeout(function() {
+                // เปลี่ยนเลขปีในปฏิทินป๊อปอัพโดยตรงเป็น พ.ศ.
+                var years = fp.calendarContainer.querySelectorAll(".cur-year");
+                years.forEach(function(y) {
+                    var val = parseInt(y.value);
+                    if (val > 0 && val < 2400) {
+                        y.value = val + 543;
+                    }
+                });
+
+                // --- 2. Alt Input (text box): แสดงวันเดือนปี พ.ศ. ---
+                if (fp.altInput) {
+                    var dateToUse = null;
+                    if (fp.selectedDates && fp.selectedDates.length > 0) {
+                        dateToUse = fp.selectedDates[0];
+                    } else if (fp.input && fp.input.value) {
+                        var parsed = new Date(fp.input.value.replace(/-/g, '/'));
+                        if (!isNaN(parsed.getTime())) {
+                            dateToUse = parsed;
+                        }
+                    }
+                    if (dateToUse) {
+                        var day = dateToUse.getDate().toString().padStart(2, '0');
+                        var month = (dateToUse.getMonth() + 1).toString().padStart(2, '0');
+                        var year = dateToUse.getFullYear() + 543;
+                        var hour = dateToUse.getHours().toString().padStart(2, '0');
+                        var minute = dateToUse.getMinutes().toString().padStart(2, '0');
+                        fp.altInput.value = day + '/' + month + '/' + year + ' ' + hour + ':' + minute + ' น.';
+                    }
+                }
+            }, 10);
         }
     </script>
     <?= $this->renderSection('scripts') ?>

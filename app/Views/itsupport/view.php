@@ -47,6 +47,11 @@
         <!-- Attached Images Gallery -->
         <?php 
             $images = !empty($log['its_images']) ? json_decode($log['its_images'], true) : [];
+            $imgUrls = [];
+            foreach($images as $img) {
+                $imgUrls[] = base_url('uploads/it_support/' . $img);
+            }
+            $imgJson = htmlspecialchars(json_encode($imgUrls), ENT_QUOTES, 'UTF-8');
         ?>
         <div class="glass-card p-8 rounded-[2.5rem] bg-white">
             <h3 class="text-xs font-black text-slate-500 uppercase tracking-widest mb-6 flex items-center gap-2">
@@ -59,8 +64,8 @@
                 </div>
             <?php else: ?>
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                    <?php foreach($images as $img): ?>
-                        <div class="relative rounded-2xl overflow-hidden aspect-video border border-slate-200 bg-slate-50 shadow-sm cursor-zoom-in group" onclick="zoomImage('<?= base_url('uploads/it_support/' . $img) ?>')">
+                    <?php foreach($images as $idx => $img): ?>
+                        <div class="relative rounded-2xl overflow-hidden aspect-video border border-slate-200 bg-slate-50 shadow-sm cursor-zoom-in group" onclick="zoomImage(<?= $imgJson ?>, <?= $idx ?>)">
                             <img src="<?= base_url('uploads/it_support/' . $img) ?>" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105">
                             <div class="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white">
                                 <i data-lucide="zoom-in" class="w-5 h-5"></i>
@@ -121,19 +126,149 @@
 
 <?= $this->section('scripts') ?>
 <script>
-    function zoomImage(url) {
-        Swal.fire({
-            imageUrl: url,
-            imageAlt: 'Work Image',
-            showConfirmButton: false,
-            background: '#ffffff',
-            color: '#1e293b',
-            width: 'auto',
-            padding: '10px',
-            customClass: {
-                popup: 'glass-card rounded-[2.5rem] max-w-4xl overflow-hidden'
+    function openImageGallery(images, startIndex) {
+        if (!images || images.length === 0) return;
+        
+        let currentIndex = startIndex;
+        
+        const modal = document.createElement('div');
+        modal.id = 'album-gallery-modal';
+        modal.className = 'fixed inset-0 bg-slate-950/95 backdrop-blur-md z-[200] flex flex-col justify-between p-4 select-none';
+        
+        modal.innerHTML = `
+            <!-- Top Bar -->
+            <div class="flex justify-between items-center text-white z-10 py-2 px-4 max-w-7xl mx-auto w-full">
+                <span class="text-xs sm:text-sm font-bold bg-slate-800/80 px-3.5 py-2 rounded-full border border-slate-700/50 backdrop-blur shadow-lg" id="gallery-counter">
+                    ${currentIndex + 1} / ${images.length}
+                </span>
+                <button id="gallery-close" class="p-2.5 bg-slate-800/80 border border-slate-700/50 hover:bg-rose-600 hover:border-rose-500 rounded-full text-white transition-all shadow-lg hover:scale-105" title="ปิดหน้าต่าง (Esc)">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- Main Content Container -->
+            <div class="flex-1 flex items-center justify-center relative max-w-5xl mx-auto w-full my-4">
+                <button id="gallery-prev" class="absolute left-2 sm:left-4 p-3.5 bg-slate-900/60 border border-slate-800/50 hover:bg-blue-600 hover:border-blue-500 hover:scale-110 rounded-full text-white transition-all z-20 shadow-xl ${images.length <= 1 ? 'hidden' : ''}">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                    </svg>
+                </button>
+                
+                <div class="w-full h-full flex items-center justify-center p-2">
+                    <img id="gallery-image" src="${images[currentIndex]}" class="max-w-full max-h-[72vh] object-contain rounded-2xl shadow-2xl transition-all duration-300 transform scale-100 ease-out">
+                </div>
+                
+                <button id="gallery-next" class="absolute right-2 sm:right-4 p-3.5 bg-slate-900/60 border border-slate-800/50 hover:bg-blue-600 hover:border-blue-500 hover:scale-110 rounded-full text-white transition-all z-20 shadow-xl ${images.length <= 1 ? 'hidden' : ''}">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- Bottom Thumbnails Carousel/Bar -->
+            <div class="z-10 py-3 flex justify-center gap-2 overflow-x-auto max-w-xl mx-auto w-full px-4 scrollbar-none">
+                ${images.map((img, idx) => `
+                    <div id="gallery-thumb-${idx}" onclick="window.setGalleryIndex(${idx})" class="w-12 h-12 sm:w-16 sm:h-16 rounded-xl overflow-hidden cursor-pointer border-2 transition-all shrink-0 ${idx === currentIndex ? 'border-blue-500 scale-105 shadow-md shadow-blue-500/20' : 'border-slate-800 opacity-50 hover:opacity-80'}">
+                        <img src="${img}" class="w-full h-full object-cover">
+                    </div>
+                `).join('')}
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        document.body.classList.add('overflow-hidden');
+        
+        const imgEl = modal.querySelector('#gallery-image');
+        const counterEl = modal.querySelector('#gallery-counter');
+        const prevBtn = modal.querySelector('#gallery-prev');
+        const nextBtn = modal.querySelector('#gallery-next');
+        
+        function updateView() {
+            imgEl.style.opacity = '0';
+            imgEl.style.transform = 'scale(0.96)';
+            
+            setTimeout(() => {
+                imgEl.src = images[currentIndex];
+                counterEl.innerText = `${currentIndex + 1} / ${images.length}`;
+                
+                images.forEach((_, idx) => {
+                    const thumb = modal.querySelector(`#gallery-thumb-${idx}`);
+                    if (thumb) {
+                        if (idx === currentIndex) {
+                            thumb.className = "w-12 h-12 sm:w-16 sm:h-16 rounded-xl overflow-hidden cursor-pointer border-2 transition-all shrink-0 border-blue-500 scale-105 shadow-md shadow-blue-500/20";
+                        } else {
+                            thumb.className = "w-12 h-12 sm:w-16 sm:h-16 rounded-xl overflow-hidden cursor-pointer border-2 transition-all shrink-0 border-slate-800 opacity-50 hover:opacity-80";
+                        }
+                    }
+                });
+                
+                imgEl.style.opacity = '1';
+                imgEl.style.transform = 'scale(1)';
+            }, 120);
+        }
+        
+        window.setGalleryIndex = function(idx) {
+            currentIndex = idx;
+            updateView();
+        };
+        
+        function next() {
+            currentIndex = (currentIndex + 1) % images.length;
+            updateView();
+        }
+        
+        function prev() {
+            currentIndex = (currentIndex - 1 + images.length) % images.length;
+            updateView();
+        }
+        
+        let isClosed = false;
+        function close() {
+            if (isClosed) return;
+            isClosed = true;
+            modal.style.transition = 'opacity 0.2s ease';
+            modal.style.opacity = '0';
+            setTimeout(() => {
+                modal.remove();
+                document.body.classList.remove('overflow-hidden');
+                delete window.setGalleryIndex;
+            }, 200);
+        }
+        
+        prevBtn.addEventListener('click', prev);
+        nextBtn.addEventListener('click', next);
+        modal.querySelector('#gallery-close').addEventListener('click', close);
+        
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal || e.target.closest('.flex-1') === e.target) {
+                close();
             }
         });
+        
+        const handleKeyDown = (e) => {
+            if (e.key === 'Escape') close();
+            if (images.length > 1) {
+                if (e.key === 'ArrowRight') next();
+                if (e.key === 'ArrowLeft') prev();
+            }
+        };
+        document.addEventListener('keydown', handleKeyDown);
+        
+        const originalClose = close;
+        close = () => {
+            document.removeEventListener('keydown', handleKeyDown);
+            originalClose();
+        };
+    }
+
+    function zoomImage(urlOrArray, index = 0) {
+        if (Array.isArray(urlOrArray)) {
+            openImageGallery(urlOrArray, index);
+        } else {
+            openImageGallery([urlOrArray], 0);
+        }
     }
 </script>
 <?= $this->endSection() ?>

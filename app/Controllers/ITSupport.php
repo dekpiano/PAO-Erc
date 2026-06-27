@@ -178,11 +178,15 @@ class ITSupport extends BaseController
         }
 
         if (!empty($startDate)) {
-            $query = $query->where('its_date >=', $startDate . ' 00:00:00');
+            $normalized = $this->normalizeDate($startDate);
+            $onlyDate = substr($normalized, 0, 10);
+            $query = $query->where('its_date >=', $onlyDate . ' 00:00:00');
         }
 
         if (!empty($endDate)) {
-            $query = $query->where('its_date <=', $endDate . ' 23:59:59');
+            $normalized = $this->normalizeDate($endDate);
+            $onlyDate = substr($normalized, 0, 10);
+            $query = $query->where('its_date <=', $onlyDate . ' 23:59:59');
         }
 
         // ดึงรายการสถานที่ทั้งหมดเพื่อออโต้ฟิลประวัติเก่า
@@ -291,6 +295,86 @@ class ITSupport extends BaseController
     }
 
     /**
+     * รับ chunk ของไฟล์ภาพ แล้วเอามารวมกันเมื่อครบชิ้นส่วน
+     */
+    public function uploadChunk()
+    {
+        $access = $this->checkAccess();
+        if ($access !== true) {
+            return $this->response->setStatusCode(403)->setJSON(['status' => 'error', 'message' => 'คุณไม่มีสิทธิ์ทำงานนี้']);
+        }
+
+        $fileId = $this->request->getPost('file_id');
+        $chunkIndex = (int)$this->request->getPost('chunk_index');
+        $totalChunks = (int)$this->request->getPost('total_chunks');
+        $filename = $this->request->getPost('filename');
+        $file = $this->request->getFile('chunk');
+
+        if (empty($fileId) || empty($filename) || !$file) {
+            return $this->response->setStatusCode(400)->setJSON(['status' => 'error', 'message' => 'ข้อมูล Chunk ไม่ครบถ้วน']);
+        }
+
+        // ล้างไฟล์ขยะชั่วคราวที่มีอายุเกิน 24 ชั่วโมง
+        $this->cleanOldTempChunks();
+
+        // โฟลเดอร์ชั่วคราวสำหรับเก็บ chunks
+        $tempDir = WRITEPATH . 'uploads/temp_chunks/' . $fileId . '/';
+        if (!is_dir($tempDir)) {
+            mkdir($tempDir, 0777, true);
+        }
+
+        // บันทึก chunk ปัจจุบัน
+        $file->move($tempDir, (string)$chunkIndex);
+
+        // ตรวจสอบว่าได้รับ chunks ครบถ้วนหรือยัง
+        $chunksReceived = count(glob($tempDir . '*'));
+        if ($chunksReceived === $totalChunks) {
+            // รวมไฟล์
+            $targetDir = FCPATH . 'uploads/it_support/';
+            if (!is_dir($targetDir)) {
+                mkdir($targetDir, 0755, true);
+            }
+
+            $ext = pathinfo($filename, PATHINFO_EXTENSION);
+            $newName = bin2hex(random_bytes(16)) . '.' . ($ext ?: 'jpg');
+            $finalPath = $targetDir . $newName;
+
+            $out = fopen($finalPath, 'wb');
+            if ($out) {
+                for ($i = 0; $i < $totalChunks; $i++) {
+                    $chunkFile = $tempDir . $i;
+                    $in = fopen($chunkFile, 'rb');
+                    if ($in) {
+                        while ($buff = fread($in, 4096)) {
+                            fwrite($out, $buff);
+                        }
+                        fclose($in);
+                    }
+                }
+                fclose($out);
+            }
+
+            // ลบ temp directory
+            array_map('unlink', glob($tempDir . '*'));
+            rmdir($tempDir);
+
+            // ออโต้ออเรียนเทชัน ย่อรูปเหลือ 1200px ชัดแจ๋วเบาสบาย
+            $this->autoOrientAndResize($finalPath, 1200, 85);
+
+            return $this->response->setJSON([
+                'status' => 'success',
+                'message' => 'อัปโหลดเสร็จสมบูรณ์',
+                'filename' => $newName
+            ]);
+        }
+
+        return $this->response->setJSON([
+            'status' => 'uploading',
+            'message' => 'ได้รับ Chunk ' . ($chunkIndex + 1) . '/' . $totalChunks
+        ]);
+    }
+
+    /**
      * บันทึกข้อมูลงานบริการใหม่ (Store Action)
      */
     public function store()
@@ -309,23 +393,25 @@ class ITSupport extends BaseController
         }
 
         $uploadedImages = [];
-        $imageFiles = $this->request->getFiles();
+        $preUploaded = $this->request->getPost('uploaded_images');
 
-        if (isset($imageFiles['images'])) {
-            $targetDir = FCPATH . 'uploads/it_support/';
-            if (!is_dir($targetDir)) {
-                @mkdir($targetDir, 0777, true);
-            }
+        if (!empty($preUploaded)) {
+            $uploadedImages = json_decode($preUploaded, true) ?: [];
+        } else {
+            $imageFiles = $this->request->getFiles();
+            if (isset($imageFiles['images'])) {
+                $targetDir = FCPATH . 'uploads/it_support/';
+                if (!is_dir($targetDir)) {
+                    @mkdir($targetDir, 0777, true);
+                }
 
-            foreach ($imageFiles['images'] as $img) {
-                if ($img->isValid() && !$img->hasMoved()) {
-                    $newName = $img->getRandomName();
-                    $img->move($targetDir, $newName);
-
-                    // ออโต้ออเรียนเทชัน ย่อรูปเหลือ 1200px ชัดแจ๋วเบาสบาย
-                    $this->autoOrientAndResize($targetDir . $newName, 1200, 85);
-
-                    $uploadedImages[] = $newName;
+                foreach ($imageFiles['images'] as $img) {
+                    if ($img->isValid() && !$img->hasMoved()) {
+                        $newName = $img->getRandomName();
+                        $img->move($targetDir, $newName);
+                        $this->autoOrientAndResize($targetDir . $newName, 1200, 85);
+                        $uploadedImages[] = $newName;
+                    }
                 }
             }
         }
@@ -412,76 +498,101 @@ class ITSupport extends BaseController
             }
 
             $uploadedImages = !empty($log['its_images']) ? json_decode($log['its_images'], true) : [];
-            $imageFiles = $this->request->getFiles();
-
-            // ★ ตรวจจับไฟล์รูปภาพใหม่อย่างปลอดภัย (รองรับทั้ง form submit ปกติ และ fetch+FormData)
-            $hasNewImages = false;
-            if (isset($imageFiles['images']) && is_array($imageFiles['images'])) {
-                foreach ($imageFiles['images'] as $img) {
-                    if ($img->isValid() && $img->getSize() > 0) {
-                        $hasNewImages = true;
-                        break;
+            
+            // 1. จัดการรูปภาพเดิมที่ผู้ใช้เลือกสั่งลบ
+            $deletedExisting = $this->request->getPost('deleted_existing_images');
+            if (!empty($deletedExisting)) {
+                $deletedList = json_decode($deletedExisting, true) ?: [];
+                foreach ($deletedList as $delImg) {
+                    $key = array_search($delImg, $uploadedImages);
+                    if ($key !== false) {
+                        unset($uploadedImages[$key]);
+                        @unlink(FCPATH . 'uploads/it_support/' . $delImg);
                     }
                 }
+                $uploadedImages = array_values($uploadedImages); // รีเซ็ตคีย์อาร์เรย์
             }
 
-            log_message('debug', 'ITSupport::update images check: hasNewImages=' . ($hasNewImages ? 'YES' : 'NO') . ' existingImages=' . json_encode($uploadedImages));
+            // 2. จัดการรูปภาพใหม่ที่มาจากการอัปโหลดแบบ Chunk
+            $preUploaded = $this->request->getPost('uploaded_images');
 
-            if ($hasNewImages) {
-                // ลบรูปเก่าออกจากดิสก์
-                if (!empty($uploadedImages)) {
-                    foreach ($uploadedImages as $oldImg) {
-                        @unlink(FCPATH . 'uploads/it_support/' . $oldImg);
-                    }
+            if (!empty($preUploaded)) {
+                $newImages = json_decode($preUploaded, true) ?: [];
+                if (!empty($newImages)) {
+                    $uploadedImages = array_merge($uploadedImages, $newImages);
                 }
+            } else {
+                $imageFiles = $this->request->getFiles();
 
-                $uploadedImages = [];
-                $targetDir = FCPATH . 'uploads/it_support/';
-
-                // ★ สร้างโฟลเดอร์พร้อมตั้ง permission ให้ถูกต้อง (umask อาจบล็อก 0777 ใน mkdir)
-                if (!is_dir($targetDir)) {
-                    mkdir($targetDir, 0755, true);
-                    @chmod($targetDir, 0755);
-                }
-                // ★ ตรวจสอบสิทธิ์เขียนก่อนดำเนินการ
-                if (!is_writable($targetDir)) {
-                    @chmod($targetDir, 0755);
-                    // ลองสร้าง parent ด้วย
-                    @chmod(FCPATH . 'uploads/', 0755);
-                    if (!is_writable($targetDir)) {
-                        log_message('error', 'ITSupport::update uploads directory not writable: ' . $targetDir);
-                        throw new \RuntimeException('โฟลเดอร์อัปโหลดไม่มีสิทธิ์เขียน กรุณาเรียก: sudo chown -R www-data:www-data ' . $targetDir);
-                    }
-                }
-
-                foreach ($imageFiles['images'] as $img) {
-                    if ($img->isValid() && !$img->hasMoved() && $img->getSize() > 0) {
-                        $newName = $img->getRandomName();
-
-                        // ★ ลอง move() ปกติก่อน ถ้าไม่ได้ให้ fallback ด้วย copy+unlink
-                        try {
-                            $img->move($targetDir, $newName);
-                        } catch (\Throwable $moveErr) {
-                            log_message('warning', 'ITSupport::update move() failed, trying copy fallback: ' . $moveErr->getMessage());
-                            // Fallback: copy จาก temp file แล้วลบ temp
-                            $tmpPath = $img->getTempName();
-                            if ($tmpPath && file_exists($tmpPath)) {
-                                if (!copy($tmpPath, $targetDir . $newName)) {
-                                    throw new \RuntimeException('ไม่สามารถคัดลอกไฟล์ภาพไปยัง ' . $targetDir . ' ได้ — ตรวจสอบสิทธิ์โฟลเดอร์ด้วย: sudo chown -R www-data:www-data ' . FCPATH . 'uploads/');
-                                }
-                                @chmod($targetDir . $newName, 0644);
-                            } else {
-                                throw new \RuntimeException('ไม่พบไฟล์ temp ที่อัปโหลด: ' . ($tmpPath ?: 'null'));
-                            }
+                // ★ ตรวจจับไฟล์รูปภาพใหม่อย่างปลอดภัย (รองรับทั้ง form submit ปกติ และ fetch+FormData)
+                $hasNewImages = false;
+                if (isset($imageFiles['images']) && is_array($imageFiles['images'])) {
+                    foreach ($imageFiles['images'] as $img) {
+                        if ($img->isValid() && $img->getSize() > 0) {
+                            $hasNewImages = true;
+                            break;
                         }
-
-                        // ออโต้ออเรียนเทชัน ย่อรูปเหลือ 1200px ชัดแจ๋วเบาสบาย
-                        $this->autoOrientAndResize($targetDir . $newName, 1200, 85);
-
-                        $uploadedImages[] = $newName;
                     }
                 }
-                log_message('debug', 'ITSupport::update new images saved: ' . json_encode($uploadedImages));
+
+                log_message('debug', 'ITSupport::update images check: hasNewImages=' . ($hasNewImages ? 'YES' : 'NO') . ' existingImages=' . json_encode($uploadedImages));
+
+                if ($hasNewImages) {
+                    // หากส่งรูปมาแบบธรรมดา (legacy) ให้ล้างรูปเดิมออกทั้งหมดแล้วแทนที่
+                    if (!empty($uploadedImages)) {
+                        foreach ($uploadedImages as $oldImg) {
+                            @unlink(FCPATH . 'uploads/it_support/' . $oldImg);
+                        }
+                    }
+
+                    $uploadedImages = [];
+                    $targetDir = FCPATH . 'uploads/it_support/';
+
+                    // ★ สร้างโฟลเดอร์พร้อมตั้ง permission ให้ถูกต้อง (umask อาจบล็อก 0777 ใน mkdir)
+                    if (!is_dir($targetDir)) {
+                        mkdir($targetDir, 0755, true);
+                        @chmod($targetDir, 0755);
+                    }
+                    // ★ ตรวจสอบสิทธิ์เขียนก่อนดำเนินการ
+                    if (!is_writable($targetDir)) {
+                        @chmod($targetDir, 0755);
+                        // ลองสร้าง parent ด้วย
+                        @chmod(FCPATH . 'uploads/', 0755);
+                        if (!is_writable($targetDir)) {
+                            log_message('error', 'ITSupport::update uploads directory not writable: ' . $targetDir);
+                            throw new \RuntimeException('โฟลเดอร์อัปโหลดไม่มีสิทธิ์เขียน กรุณาเรียก: sudo chown -R www-data:www-data ' . $targetDir);
+                        }
+                    }
+
+                    foreach ($imageFiles['images'] as $img) {
+                        if ($img->isValid() && !$img->hasMoved() && $img->getSize() > 0) {
+                            $newName = $img->getRandomName();
+
+                            // ★ ลอง move() ปกติก่อน ถ้าไม่ได้ให้ fallback ด้วย copy+unlink
+                            try {
+                                $img->move($targetDir, $newName);
+                            } catch (\Throwable $moveErr) {
+                                log_message('warning', 'ITSupport::update move() failed, trying copy fallback: ' . $moveErr->getMessage());
+                                // Fallback: copy จาก temp file แล้วลบ temp
+                                $tmpPath = $img->getTempName();
+                                if ($tmpPath && file_exists($tmpPath)) {
+                                    if (!copy($tmpPath, $targetDir . $newName)) {
+                                        throw new \RuntimeException('ไม่สามารถคัดลอกไฟล์ภาพไปยัง ' . $targetDir . ' ได้ — ตรวจสอบสิทธิ์โฟลเดอร์ด้วย: sudo chown -R www-data:www-data ' . FCPATH . 'uploads/');
+                                    }
+                                    @chmod($targetDir . $newName, 0644);
+                                } else {
+                                    throw new \RuntimeException('ไม่พบไฟล์ temp ที่อัปโหลด: ' . ($tmpPath ?: 'null'));
+                                }
+                            }
+
+                            // ออโต้ออเรียนเทชัน ย่อรูปเหลือ 1200px ชัดแจ๋วเบาสบาย
+                            $this->autoOrientAndResize($targetDir . $newName, 1200, 85);
+
+                            $uploadedImages[] = $newName;
+                        }
+                    }
+                    log_message('debug', 'ITSupport::update new images saved: ' . json_encode($uploadedImages));
+                }
             }
 
             $normalizedDate = $this->normalizeDate($this->request->getPost('its_date'));
@@ -576,6 +687,7 @@ class ITSupport extends BaseController
         }
 
         $data['log'] = $log;
+        $data['position'] = session()->get('u_position') ?? 'เจ้าหน้าที่บริการสารสนเทศ';
         return view('itsupport/print', $data);
     }
 
@@ -590,36 +702,41 @@ class ITSupport extends BaseController
         $searchTerm = $this->request->getGet('search');
         $category = $this->request->getGet('category');
         $location = $this->request->getGet('location');
-        $startDate = $this->request->getGet('start_date');
-        $endDate = $this->request->getGet('end_date');
+        $startDate = trim($this->request->getGet('start_date') ?? '');
+        $endDate = trim($this->request->getGet('end_date') ?? '');
 
-        $query = $this->itsModel;
+        $db = \Config\Database::connect();
+        $builder = $db->table('Tb_It_Support_Logs');
 
         if (!empty($searchTerm)) {
-            $query = $query->groupStart()
-                           ->like('its_task', $searchTerm)
-                           ->orLike('its_recorded_by', $searchTerm)
-                           ->orLike('its_ticket_code', $searchTerm)
-                           ->groupEnd();
+            $builder->groupStart()
+                    ->like('its_task', $searchTerm)
+                    ->orLike('its_recorded_by', $searchTerm)
+                    ->orLike('its_ticket_code', $searchTerm)
+                    ->groupEnd();
         }
 
         if (!empty($category)) {
-            $query = $query->where('its_category', $category);
+            $builder->where('its_category', $category);
         }
 
         if (!empty($location)) {
-            $query = $query->like('its_location', $location);
+            $builder->like('its_location', $location);
         }
 
         if (!empty($startDate)) {
-            $query = $query->where('its_date >=', $startDate . ' 00:00:00');
+            if (preg_match('/^(\d{4}-\d{2}-\d{2})/', $startDate, $m)) {
+                $builder->where('its_date >=', $m[1] . ' 00:00:00');
+            }
         }
 
         if (!empty($endDate)) {
-            $query = $query->where('its_date <=', $endDate . ' 23:59:59');
+            if (preg_match('/^(\d{4}-\d{2}-\d{2})/', $endDate, $m)) {
+                $builder->where('its_date <=', $m[1] . ' 23:59:59');
+            }
         }
 
-        $results = $query->orderBy('its_date', 'DESC')->findAll();
+        $results = $builder->orderBy('its_date', 'DESC')->get()->getResultArray();
 
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
@@ -664,5 +781,92 @@ class ITSupport extends BaseController
         $writer = new Xlsx($spreadsheet);
         $writer->save('php://output');
         exit;
+    }
+
+    /**
+     * พิมพ์รายงานสรุปข้อมูลแยกตามฟิลเตอร์ในรูปแบบ A4
+     */
+    public function printReport()
+    {
+        $access = $this->checkAccess();
+        if ($access !== true) return $access;
+
+        $searchTerm = $this->request->getGet('search');
+        $category = $this->request->getGet('category');
+        $location = $this->request->getGet('location');
+        $startDate = trim($this->request->getGet('start_date') ?? '');
+        $endDate = trim($this->request->getGet('end_date') ?? '');
+
+        // ใช้ DB Builder ตรง ๆ เพื่อป้องกัน CI4 Model shared builder state
+        $db = \Config\Database::connect();
+        $builder = $db->table('Tb_It_Support_Logs');
+
+        if (!empty($searchTerm)) {
+            $builder->groupStart()
+                    ->like('its_task', $searchTerm)
+                    ->orLike('its_recorded_by', $searchTerm)
+                    ->orLike('its_ticket_code', $searchTerm)
+                    ->groupEnd();
+        }
+
+        if (!empty($category)) {
+            $builder->where('its_category', $category);
+        }
+
+        if (!empty($location)) {
+            $builder->like('its_location', $location);
+        }
+
+        if (!empty($startDate)) {
+            // ดึงเฉพาะส่วนวันที่ Y-m-d (10 ตัวแรก) จากค่าที่ Flatpickr ส่งมา
+            if (preg_match('/^(\d{4}-\d{2}-\d{2})/', $startDate, $m)) {
+                $builder->where('its_date >=', $m[1] . ' 00:00:00');
+            }
+        }
+
+        if (!empty($endDate)) {
+            if (preg_match('/^(\d{4}-\d{2}-\d{2})/', $endDate, $m)) {
+                $builder->where('its_date <=', $m[1] . ' 23:59:59');
+            }
+        }
+
+        $results = $builder->orderBy('its_date', 'DESC')->get()->getResultArray();
+
+        log_message('debug', 'printReport filters: start_date=[' . $startDate . '] end_date=[' . $endDate . '] results=' . count($results));
+
+        $data['results'] = $results;
+        $data['filters'] = [
+            'search'     => $searchTerm,
+            'category'   => $category,
+            'location'   => $location,
+            'start_date' => $startDate,
+            'end_date'   => $endDate
+        ];
+        $data['fullname'] = session()->get('u_fullname');
+        $data['position'] = session()->get('u_position') ?? 'เจ้าหน้าที่บริการสารสนเทศ';
+
+        return view('itsupport/print_report', $data);
+    }
+
+    /**
+     * ล้างโฟลเดอร์ขยะสำหรับชิ้นส่วนรูปภาพ Temp ที่มีอายุเกิน 24 ชั่วโมง
+     */
+    private function cleanOldTempChunks()
+    {
+        $tempParent = WRITEPATH . 'uploads/temp_chunks/';
+        if (is_dir($tempParent)) {
+            $dirs = glob($tempParent . '*', GLOB_ONLYDIR);
+            $now = time();
+            foreach ($dirs as $dir) {
+                // ถ้าโฟลเดอร์ไม่ได้ถูกอัปเดตเกิน 24 ชั่วโมง (86400 วินาที)
+                if ($now - filemtime($dir) > 86400) {
+                    $files = glob($dir . '/*');
+                    foreach ($files as $file) {
+                        @unlink($file);
+                    }
+                    @rmdir($dir);
+                }
+            }
+        }
     }
 }

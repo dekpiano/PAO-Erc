@@ -98,11 +98,21 @@
         ?>
         <?php if(!empty($images)): ?>
             <div class="space-y-2">
-                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest pl-2">รูปภาพประกอบเดิมในระบบ</label>
+                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest pl-2">รูปภาพประกอบเดิมในระบบ (คลิกเพื่อเลือกรูปที่จะลบออก)</label>
                 <div class="grid grid-cols-3 sm:grid-cols-5 gap-4">
                     <?php foreach($images as $img): ?>
-                        <div class="relative rounded-2xl overflow-hidden aspect-video border border-slate-200 bg-slate-50 shadow-sm">
+                        <div id="existing-img-container-<?= md5($img) ?>" class="relative rounded-2xl overflow-hidden aspect-video border border-slate-200 bg-slate-50 shadow-sm transition-all duration-300 group">
                             <img src="<?= base_url('uploads/it_support/' . $img) ?>" class="w-full h-full object-cover">
+                            
+                            <!-- Overlay and Trash Button -->
+                            <button type="button" onclick="toggleDeleteExisting('<?= esc($img) ?>', '<?= md5($img) ?>')" class="absolute top-1.5 right-1.5 w-6 h-6 bg-rose-600 hover:bg-rose-700 text-white rounded-full flex items-center justify-center shadow-md transition-all z-10" title="เลือกเพื่อลบรูปนี้">
+                                <span class="text-[10px] font-bold">✕</span>
+                            </button>
+                            
+                            <!-- Red indicator overlay -->
+                            <div id="existing-overlay-<?= md5($img) ?>" class="hidden absolute inset-0 bg-rose-900/60 backdrop-blur-[1px] flex items-center justify-center transition-all animate-[fadeIn_0.2s_ease]">
+                                <span class="px-2 py-1 bg-white text-rose-600 text-[9px] font-black uppercase rounded-md tracking-wider shadow-md">จะถูกลบออก</span>
+                            </div>
                         </div>
                     <?php endforeach; ?>
                 </div>
@@ -111,18 +121,29 @@
 
         <!-- Multi-Images Upload with Thumbnails Preview -->
         <div class="space-y-2">
-            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest pl-2 block">แนบภาพประกอบผลงานใหม่ (เลือกเพื่อลบและแทนที่รูปภาพชุดเดิมทั้งหมด)</label>
+            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest pl-2 block">แนบภาพประกอบผลงานเพิ่มเติม (เลือกเพื่ออัปโหลดใหม่เข้ามาเสริม)</label>
             <div class="flex items-center justify-center w-full">
                 <label for="dropzone-file" class="flex flex-col items-center justify-center w-full h-40 border-2 border-slate-200 border-dashed rounded-3xl cursor-pointer bg-slate-50 hover:bg-slate-100/50 hover:border-slate-350 transition-all duration-300">
                     <div class="flex flex-col items-center justify-center pt-5 pb-6">
                         <i data-lucide="cloud-upload" class="w-10 h-10 text-slate-400 mb-2"></i>
-                        <p class="mb-2 text-sm text-slate-500"><span class="font-bold text-blue-600">คลิกเพื่ออัปโหลดรูปชุดใหม่</span> แทนที่ชุดเดิม</p>
+                        <p class="mb-2 text-sm text-slate-500"><span class="font-bold text-blue-600">คลิกเพื่อเพิ่มรูปภาพใหม่</span> รวมกับรูปภาพเดิม</p>
                         <p class="text-xs text-slate-400">รองรับนามสกุล JPG, JPEG, PNG (ไม่เกิน 10 รูป)</p>
                     </div>
                     <input id="dropzone-file" type="file" name="images[]" multiple accept="image/*" class="hidden" onchange="previewImages(event)">
                 </label>
             </div>
             
+            <!-- Progress Bar Container -->
+            <div id="edit-progress-container" class="hidden mt-3 space-y-1.5">
+                <div class="flex justify-between text-[10px] font-extrabold text-slate-500">
+                    <span id="edit-progress-label" class="text-blue-600">กำลังอัปโหลด...</span>
+                    <span id="edit-progress-percent">0%</span>
+                </div>
+                <div class="w-full bg-slate-150 dark:bg-slate-800 rounded-full h-2 overflow-hidden shadow-inner">
+                    <div id="edit-progress-bar" class="bg-gradient-to-r from-blue-500 to-blue-600 h-full rounded-full transition-all duration-300 w-0"></div>
+                </div>
+            </div>
+
             <!-- Thumbnail list container -->
             <div id="image-preview-container" class="grid grid-cols-3 sm:grid-cols-5 gap-4 pt-4"></div>
         </div>
@@ -144,6 +165,27 @@
 <script>
     // --- File Queue Manager for Edit Form ---
     let editFilesQueue = [];
+    let deletedExistingImages = [];
+
+    function toggleDeleteExisting(filename, md5Hash) {
+        const idx = deletedExistingImages.indexOf(filename);
+        const container = document.getElementById(`existing-img-container-${md5Hash}`);
+        const overlay = document.getElementById(`existing-overlay-${md5Hash}`);
+        
+        if (idx === -1) {
+            deletedExistingImages.push(filename);
+            if (overlay) overlay.classList.remove('hidden');
+            if (container) {
+                container.classList.add('border-rose-500', 'opacity-70');
+            }
+        } else {
+            deletedExistingImages.splice(idx, 1);
+            if (overlay) overlay.classList.add('hidden');
+            if (container) {
+                container.classList.remove('border-rose-500', 'opacity-70');
+            }
+        }
+    }
 
     function previewImages(event) {
         handleNewEditFiles(event.target.files);
@@ -238,11 +280,67 @@
         return match ? decodeURIComponent(match[1]) : null;
     }
 
+    // --- Chunked Upload Helper ---
+    function uploadFileInChunks(file, progressCallback) {
+        return new Promise((resolve, reject) => {
+            const chunkSize = 256 * 1024; // 256KB Chunks
+            const totalChunks = Math.ceil(file.size / chunkSize);
+            const fileId = Date.now().toString() + Math.random().toString(36).substring(2, 8);
+            let chunkIndex = 0;
+
+            function uploadNextChunk() {
+                const start = chunkIndex * chunkSize;
+                const end = Math.min(start + chunkSize, file.size);
+                const chunk = file.slice(start, end);
+
+                const formData = new FormData();
+                formData.append('file_id', fileId);
+                formData.append('chunk_index', chunkIndex);
+                formData.append('total_chunks', totalChunks);
+                formData.append('filename', file.name);
+                formData.append('chunk', chunk);
+                
+                const csrfInput = document.querySelector('input[name="csrf_test_name"]');
+                if (csrfInput) {
+                    formData.append('csrf_test_name', csrfInput.value);
+                }
+
+                fetch('<?= base_url("itsupport/upload_chunk") ?>', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) throw new Error('การอัปโหลดไฟล์ล้มเหลว');
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.status === 'success') {
+                        progressCallback(100);
+                        resolve(data.filename);
+                    } else if (data.status === 'uploading') {
+                        const percent = Math.round(((chunkIndex + 1) / totalChunks) * 100);
+                        progressCallback(percent);
+                        chunkIndex++;
+                        uploadNextChunk();
+                    } else {
+                        reject(new Error(data.message || 'Unknown upload error'));
+                    }
+                })
+                .catch(err => reject(err));
+            }
+
+            uploadNextChunk();
+        });
+    }
+
     // --- Edit Form Submit: compress + fetch ---
     document.addEventListener('DOMContentLoaded', function() {
         const editForm = document.getElementById('edit-form');
         if (editForm) {
-            editForm.addEventListener('submit', function(e) {
+            editForm.addEventListener('submit', async function(e) {
                 e.preventDefault();
 
                 const submitBtn = editForm.querySelector('button[type="submit"]');
@@ -254,15 +352,59 @@
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
-                        กำลังย่อและบันทึก...
+                        <span id="edit-upload-status">กำลังบันทึก...</span>
                     </span>
                 `;
 
-                const compressPromises = editFilesQueue.map(file => compressImageClientSide(file));
+                // Progress Bar elements
+                const progressContainer = document.getElementById('edit-progress-container');
+                const progressBar = document.getElementById('edit-progress-bar');
+                const progressPercent = document.getElementById('edit-progress-percent');
+                const progressLabel = document.getElementById('edit-progress-label');
 
-                Promise.all(compressPromises).then(compressedFiles => {
+                try {
+                    // 1. Compress images
+                    const compressedFiles = [];
+                    if (editFilesQueue.length > 0) {
+                        progressContainer.classList.remove('hidden');
+                        progressBar.style.width = '0%';
+                        progressPercent.innerText = '0%';
+
+                        for(let i=0; i<editFilesQueue.length; i++) {
+                            progressLabel.innerText = `กำลังลดขนาดรูปภาพที่ ${i+1}/${editFilesQueue.length}...`;
+                            const compressed = await compressImageClientSide(editFilesQueue[i]);
+                            compressedFiles.push(compressed);
+
+                            const compPercent = Math.round(((i + 1) / editFilesQueue.length) * 20);
+                            progressBar.style.width = `${compPercent}%`;
+                            progressPercent.innerText = `${compPercent}%`;
+                        }
+                    }
+
+                    // 2. Upload chunked files (only if there are files selected)
+                    const finalFilenames = [];
+                    for(let i=0; i<compressedFiles.length; i++) {
+                        const file = compressedFiles[i];
+                        const filename = await uploadFileInChunks(file, (percent) => {
+                            const basePercent = 20;
+                            const range = 80;
+                            const currentFileContribution = (percent / 100) * (range / compressedFiles.length);
+                            const overallPercent = Math.round(basePercent + (i * (range / compressedFiles.length)) + currentFileContribution);
+                            
+                            progressBar.style.width = `${overallPercent}%`;
+                            progressPercent.innerText = `${overallPercent}%`;
+                            progressLabel.innerText = `กำลังอัปโหลดรูปที่ ${i+1}/${compressedFiles.length} (${percent}%)...`;
+                        });
+                        finalFilenames.push(filename);
+                    }
+
+                    if (editFilesQueue.length > 0) {
+                        progressBar.style.width = '100%';
+                        progressPercent.innerText = '100%';
+                        progressLabel.innerText = 'อัปโหลดรูปภาพใหม่เรียบร้อยแล้ว!';
+                    }
+
                     const formData = new FormData();
-
                     const csrfInput = editForm.querySelector('input[name="csrf_test_name"]');
                     if (csrfInput) {
                         formData.append('csrf_test_name', csrfInput.value);
@@ -276,9 +418,17 @@
                         }
                     }
 
-                    compressedFiles.forEach(file => {
-                        formData.append('images[]', file);
-                    });
+                    // ส่งชื่อไฟล์ใหม่
+                    if (finalFilenames.length > 0) {
+                        formData.append('uploaded_images', JSON.stringify(finalFilenames));
+                    }
+
+                    // ส่งชื่อไฟล์เดิมที่ผู้ใช้เลือกให้ลบออก
+                    if (deletedExistingImages.length > 0) {
+                        formData.append('deleted_existing_images', JSON.stringify(deletedExistingImages));
+                    }
+
+                    editForm.querySelector('#edit-upload-status').innerText = `กำลังบันทึกข้อมูล...`;
 
                     const headers = {
                         'X-Requested-With': 'XMLHttpRequest'
@@ -327,6 +477,9 @@
                             window.location.href = '<?= base_url('itsupport') ?>';
                             return;
                         }
+
+                        // Hide progress bar on failure
+                        progressContainer.classList.add('hidden');
 
                         let errorTitle = 'เกิดข้อผิดพลาดในการบันทึก';
                         let errorDetail = 'ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่อีกครั้ง';
@@ -425,6 +578,7 @@
                         console.error('Fetch network error:', err);
                         submitBtn.disabled = false;
                         submitBtn.innerHTML = originalBtnHTML;
+                        progressContainer.classList.add('hidden');
 
                         Swal.fire({
                             icon: 'error',
@@ -435,7 +589,20 @@
                             customClass: { popup: 'glass-card rounded-[2rem]' }
                         });
                     });
-                });
+                } catch (uploadError) {
+                    console.error('Upload error:', uploadError);
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnHTML;
+                    progressContainer.classList.add('hidden');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'อัปโหลดรูปภาพล้มเหลว',
+                        text: 'เกิดข้อผิดพลาดขณะอัปโหลดไฟล์ภาพ: ' + uploadError.message,
+                        background: '#ffffff',
+                        color: '#1e293b',
+                        customClass: { popup: 'glass-card rounded-[2rem]' }
+                    });
+                }
             });
         }
     });

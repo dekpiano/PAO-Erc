@@ -114,6 +114,8 @@ $routes->group('itsupport', ['filter' => 'auth'], function($routes) {
     $routes->get('delete/(:num)', 'ITSupport::delete/$1');
     $routes->get('print/(:num)', 'ITSupport::printJob/$1');
     $routes->get('export', 'ITSupport::exportExcel');
+    $routes->get('report_print', 'ITSupport::printReport');
+    $routes->post('upload_chunk', 'ITSupport::uploadChunk');
 });
 
 // Science Week (ระบบวันสัปดาห์วิทยาศาสตร์)
