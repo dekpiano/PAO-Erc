@@ -13,6 +13,7 @@ class ScienceWeekCompetitionModel extends Model
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
     protected $allowedFields    = [
+        'comp_year',
         'comp_name',
         'comp_icon',
         'comp_level',

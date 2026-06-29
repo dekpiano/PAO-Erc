@@ -26,6 +26,9 @@ class ScienceWeek extends BaseController
         // Automatically verify and update database table schema for rules, links, and custom fields
         $db = \Config\Database::connect();
         if ($db->tableExists('Tb_ScienceWeek_Competitions')) {
+            if (!$db->fieldExists('comp_year', 'Tb_ScienceWeek_Competitions')) {
+                $db->query("ALTER TABLE Tb_ScienceWeek_Competitions ADD COLUMN comp_year INT NULL DEFAULT 2569 AFTER comp_id");
+            }
             if (!$db->fieldExists('comp_rule_file', 'Tb_ScienceWeek_Competitions')) {
                 $db->query("ALTER TABLE Tb_ScienceWeek_Competitions ADD COLUMN comp_rule_file VARCHAR(255) NULL AFTER comp_description");
             }
@@ -52,6 +55,9 @@ class ScienceWeek extends BaseController
             }
         }
         if ($db->tableExists('Tb_ScienceWeek_Registrations')) {
+            if (!$db->fieldExists('reg_year', 'Tb_ScienceWeek_Registrations')) {
+                $db->query("ALTER TABLE Tb_ScienceWeek_Registrations ADD COLUMN reg_year INT NULL DEFAULT 2569 AFTER reg_id");
+            }
             if (!$db->fieldExists('reg_custom_fields', 'Tb_ScienceWeek_Registrations')) {
                 $db->query("ALTER TABLE Tb_ScienceWeek_Registrations ADD COLUMN reg_custom_fields TEXT NULL AFTER reg_status");
             }
@@ -68,9 +74,15 @@ class ScienceWeek extends BaseController
                 $db->query("ALTER TABLE Tb_ScienceWeek_Registrations ADD COLUMN reg_rank VARCHAR(100) NULL DEFAULT NULL AFTER reg_score");
             }
         }
+        if ($db->tableExists('Tb_ScienceWeek_Schedules')) {
+            if (!$db->fieldExists('sch_year', 'Tb_ScienceWeek_Schedules')) {
+                $db->query("ALTER TABLE Tb_ScienceWeek_Schedules ADD COLUMN sch_year INT NULL DEFAULT 2569 AFTER sch_id");
+            }
+        }
         if (!$db->tableExists('Tb_ScienceWeek_Evaluations')) {
             $db->query("CREATE TABLE Tb_ScienceWeek_Evaluations (
                 eval_id INT AUTO_INCREMENT PRIMARY KEY,
+                eval_year INT NULL DEFAULT 2569,
                 eval_name VARCHAR(255) NOT NULL,
                 eval_school VARCHAR(255) NULL,
                 eval_province VARCHAR(100) NULL,
@@ -79,7 +91,42 @@ class ScienceWeek extends BaseController
                 eval_code VARCHAR(50) NOT NULL UNIQUE,
                 eval_created_at DATETIME NOT NULL
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+        } else {
+            if (!$db->fieldExists('eval_year', 'Tb_ScienceWeek_Evaluations')) {
+                $db->query("ALTER TABLE Tb_ScienceWeek_Evaluations ADD COLUMN eval_year INT NULL DEFAULT 2569 AFTER eval_id");
+            }
         }
+    }
+
+    /**
+     * ดึงปีการศึกษาปัจจุบันที่เปิดใช้งานอยู่
+     */
+    private function getActiveYear(): int
+    {
+        $settingsModel = new \App\Models\SettingsModel();
+        return (int)($settingsModel->getVal('science_week_active_year') ?: 2569);
+    }
+
+    /**
+     * ดึงปีการศึกษาที่แอดมินเลือกสลับข้อมูลดูอยู่ (สิทธิ์แอดมิน)
+     */
+    private function getSelectedYear(): int
+    {
+        $session = session();
+        $selectedYear = $this->request->getGet('year');
+        if ($selectedYear !== null && is_numeric($selectedYear)) {
+            $selectedYear = (int)$selectedYear;
+            $session->set('science_week_selected_year', $selectedYear);
+        } else {
+            $selectedYear = $session->get('science_week_selected_year');
+        }
+
+        if (empty($selectedYear)) {
+            $selectedYear = $this->getActiveYear();
+            $session->set('science_week_selected_year', $selectedYear);
+        }
+
+        return (int)$selectedYear;
     }
 
     /**
@@ -89,52 +136,66 @@ class ScienceWeek extends BaseController
     {
         $settingsModel = new \App\Models\SettingsModel();
         $targetDate = $settingsModel->getVal('science_week_countdown') ?: '2026-08-18T09:00:00';
+        $activeYear = $this->getActiveYear();
 
         // Query real database stats
         $db = \Config\Database::connect();
 
         // 1. STEAM Branches count (distinct comp_color or fixed count of STEAM = 5)
-        $steamCountQuery = $db->query("SELECT COUNT(DISTINCT comp_color) as total FROM Tb_ScienceWeek_Competitions");
+        $steamCountQuery = $db->query("SELECT COUNT(DISTINCT comp_color) as total FROM Tb_ScienceWeek_Competitions WHERE comp_year = ?", [$activeYear]);
         $steamCount = $steamCountQuery->getRowArray()['total'] ?? 0;
         if ($steamCount === 0)
             $steamCount = 5; // fallback to 5 STEAM branches
 
         // 2. Competition Types count
-        $compCount = $this->compModel->countAllResults();
+        $compCount = $this->compModel->where('comp_year', $activeYear)->countAllResults();
 
         // 3. Registered Teams count (where status is not rejected)
-        $teamCount = $this->regModel->where('reg_status !=', 'rejected')->countAllResults();
+        $teamCount = $this->regModel->where('reg_year', $activeYear)->where('reg_status !=', 'rejected')->countAllResults();
 
         // 4. Participating Students count (sum of all members array size)
-        $registrations = $this->regModel->where('reg_status !=', 'rejected')->findAll();
+        $registrations = $this->regModel->where('reg_year', $activeYear)->where('reg_status !=', 'rejected')->findAll();
         $studentCount = 0;
         foreach ($registrations as $reg) {
             $members = json_decode($reg['reg_members'], true) ?: [];
             $studentCount += count($members);
         }
 
+        $popularCompetitions = $db->query("
+            SELECT c.*, COUNT(r.reg_id) AS reg_count
+            FROM Tb_ScienceWeek_Competitions c
+            LEFT JOIN Tb_ScienceWeek_Registrations r ON r.reg_competition_type = c.comp_name AND r.reg_status != 'rejected' AND r.reg_year = c.comp_year
+            WHERE c.comp_year = ?
+            GROUP BY c.comp_id
+            ORDER BY reg_count DESC, c.comp_id ASC
+            LIMIT 4
+        ", [$activeYear])->getResultArray();
+
         $data['title'] = 'งานสัปดาห์วิทยาศาสตร์ 2026 - กองการศึกษา อบจ.นครสวรรค์ & โรงเรียนสวนกุหลาบวิทยาลัย (จิรประวัติ) นครสวรรค์ ';
         $data['countdown_date'] = $targetDate;
-        $data['schedules'] = $this->schModel->orderBy('sch_id', 'ASC')->findAll();
+        $data['schedules'] = $this->schModel->where('sch_year', $activeYear)->orderBy('sch_id', 'ASC')->findAll();
 
         $data['stat_steam'] = $steamCount;
         $data['stat_comp'] = $compCount;
         $data['stat_team'] = $teamCount;
         $data['stat_student'] = $studentCount;
+        $data['popular_competitions'] = $popularCompetitions;
+        $data['active_year'] = $activeYear;
 
         return view('science_week/index', $data);
     }
 
-    /**
-     * หน้าหลักเลือกประเภทการแข่งขัน (การ์ดเลือก)
-     */
     public function register()
     {
+        $activeYear = $this->getActiveYear();
+        $settingsModel = new \App\Models\SettingsModel();
         $data['title'] = 'ประเภทการแข่งขันทั้งหมด | งานสัปดาห์วิทยาศาสตร์';
-        $competitions = $this->compModel->orderBy('comp_id', 'ASC')->findAll();
+        $data['registration_open'] = $settingsModel->getVal('science_week_registration_open') !== '0';
+        $competitions = $this->compModel->where('comp_year', $activeYear)->orderBy('comp_id', 'ASC')->findAll();
 
         foreach ($competitions as &$comp) {
             $comp['reg_count'] = $this->regModel->where('reg_competition_type', $comp['comp_name'])
+                ->where('reg_year', $activeYear)
                 ->where('reg_status !=', 'rejected')
                 ->countAllResults();
         }
@@ -143,17 +204,20 @@ class ScienceWeek extends BaseController
         return view('science_week/register', $data);
     }
 
-    /**
-     * หน้ากรอกรายละเอียดฟอร์มสมัครการแข่งขัน
-     */
     public function registerForm()
     {
+        $settingsModel = new \App\Models\SettingsModel();
+        if ($settingsModel->getVal('science_week_registration_open') === '0') {
+            return redirect()->to(base_url('science-week/register'))->with('error', 'ขออภัย ระบบปิดรับสมัครการแข่งขันแล้ว');
+        }
+
+        $activeYear = $this->getActiveYear();
         $type = $this->request->getGet('type');
         if (empty($type)) {
             return redirect()->to(base_url('science-week/register'));
         }
 
-        $comp = $this->compModel->where('comp_name', $type)->first();
+        $comp = $this->compModel->where('comp_name', $type)->where('comp_year', $activeYear)->first();
         if (!$comp) {
             return redirect()->to(base_url('science-week/register'));
         }
@@ -165,6 +229,7 @@ class ScienceWeek extends BaseController
                 $allFull = true;
                 foreach ($levelLimits as $lvl) {
                     $activeRegLevelCount = $this->regModel->where('reg_competition_type', $comp['comp_name'])
+                        ->where('reg_year', $activeYear)
                         ->where('reg_level', $lvl['level'])
                         ->where('reg_status !=', 'rejected')
                         ->countAllResults();
@@ -179,6 +244,7 @@ class ScienceWeek extends BaseController
             }
         } else {
             $activeRegCount = $this->regModel->where('reg_competition_type', $comp['comp_name'])
+                ->where('reg_year', $activeYear)
                 ->where('reg_status !=', 'rejected')
                 ->countAllResults();
             if (!empty($comp['comp_limit']) && $comp['comp_limit'] > 0 && $activeRegCount >= $comp['comp_limit']) {
@@ -197,8 +263,15 @@ class ScienceWeek extends BaseController
      */
     public function store()
     {
+        $settingsModel = new \App\Models\SettingsModel();
+        if ($settingsModel->getVal('science_week_registration_open') === '0') {
+            $msg = 'ขออภัย ระบบปิดรับสมัครการแข่งขันแล้ว';
+            return $this->request->isAJAX() ? $this->response->setJSON(['status' => 'error', 'message' => $msg]) : redirect()->to(base_url('science-week/register'))->with('error', $msg);
+        }
+
+        $activeYear = $this->getActiveYear();
         $compType = $this->request->getPost('competition_type');
-        $comp = $this->compModel->where('comp_name', $compType)->first();
+        $comp = $this->compModel->where('comp_name', $compType)->where('comp_year', $activeYear)->first();
         
         // Quota Limit Check
         $selectedLevel = $this->request->getPost('reg_level');
@@ -218,6 +291,7 @@ class ScienceWeek extends BaseController
                 }
                 if ($foundLevelLimit !== null) {
                     $activeRegLevelCount = $this->regModel->where('reg_competition_type', $compType)
+                        ->where('reg_year', $activeYear)
                         ->where('reg_level', $selectedLevel)
                         ->where('reg_status !=', 'rejected')
                         ->countAllResults();
@@ -229,6 +303,7 @@ class ScienceWeek extends BaseController
             }
         } else {
             $activeRegCount = $this->regModel->where('reg_competition_type', $compType)
+                ->where('reg_year', $activeYear)
                 ->where('reg_status !=', 'rejected')
                 ->countAllResults();
             if (!empty($comp['comp_limit']) && $comp['comp_limit'] > 0 && $activeRegCount >= $comp['comp_limit']) {
@@ -293,7 +368,7 @@ class ScienceWeek extends BaseController
         }
 
         $compType = $this->request->getPost('competition_type');
-        $comp = $this->compModel->where('comp_name', $compType)->first();
+        $comp = $this->compModel->where('comp_name', $compType)->where('comp_year', $activeYear)->first();
         if (!$comp) {
             $msg = 'ไม่พบข้อมูลประเภทการแข่งขัน';
             return $this->request->isAJAX() ? $this->response->setJSON(['status' => 'error', 'message' => $msg]) : redirect()->back()->withInput()->with('error', $msg);
@@ -317,6 +392,7 @@ class ScienceWeek extends BaseController
                 }
                 if ($foundLevelLimit !== null) {
                     $activeRegLevelCount = $this->regModel->where('reg_competition_type', $compType)
+                        ->where('reg_year', $activeYear)
                         ->where('reg_level', $selectedLevel)
                         ->where('reg_status !=', 'rejected')
                         ->countAllResults();
@@ -328,6 +404,7 @@ class ScienceWeek extends BaseController
             }
         } else {
             $activeRegCount = $this->regModel->where('reg_competition_type', $compType)
+                ->where('reg_year', $activeYear)
                 ->where('reg_status !=', 'rejected')
                 ->countAllResults();
             if (!empty($comp['comp_limit']) && $comp['comp_limit'] > 0 && $activeRegCount >= $comp['comp_limit']) {
@@ -382,6 +459,7 @@ class ScienceWeek extends BaseController
         $regCode = $this->regModel->generateRegistrationCode();
 
         $dataInsert = [
+            'reg_year' => $activeYear,
             'reg_code' => $regCode,
             'reg_competition_type' => $this->request->getPost('competition_type'),
             'reg_level' => $this->request->getPost('reg_level') ?: null,
@@ -453,11 +531,12 @@ class ScienceWeek extends BaseController
         if ($access !== true)
             return $access;
 
+        $selectedYear = $this->getSelectedYear();
         $searchTerm = $this->request->getGet('search');
         $compType = $this->request->getGet('competition_type');
         $status = $this->request->getGet('status');
 
-        $query = $this->regModel;
+        $query = $this->regModel->where('reg_year', $selectedYear);
 
         if (!empty($searchTerm)) {
             $query = $query->groupStart()
@@ -484,7 +563,8 @@ class ScienceWeek extends BaseController
         $data['compType_active'] = $compType;
         $data['status_active'] = $status;
         $data['fullname'] = session()->get('u_fullname');
-        $data['competitions'] = $this->compModel->orderBy('comp_id', 'ASC')->findAll();
+        $data['competitions'] = $this->compModel->where('comp_year', $selectedYear)->orderBy('comp_id', 'ASC')->findAll();
+        $data['selected_year'] = $selectedYear;
 
         return view('science_week/admin_index', $data);
     }
@@ -498,11 +578,12 @@ class ScienceWeek extends BaseController
         if ($access !== true)
             return $access;
 
+        $selectedYear = $this->getSelectedYear();
         $searchTerm = $this->request->getGet('search');
         $compType = $this->request->getGet('competition_type');
 
-        // Only rank approved registrations
-        $query = $this->regModel->where('reg_status', 'approved');
+        // Only rank approved registrations of selected year
+        $query = $this->regModel->where('reg_year', $selectedYear)->where('reg_status', 'approved');
 
         if (!empty($searchTerm)) {
             $query = $query->groupStart()
@@ -527,7 +608,8 @@ class ScienceWeek extends BaseController
         $data['search'] = $searchTerm;
         $data['compType_active'] = $compType;
         $data['fullname'] = session()->get('u_fullname');
-        $data['competitions'] = $this->compModel->orderBy('comp_id', 'ASC')->findAll();
+        $data['competitions'] = $this->compModel->where('comp_year', $selectedYear)->orderBy('comp_id', 'ASC')->findAll();
+        $data['selected_year'] = $selectedYear;
 
         $settingsModel = new \App\Models\SettingsModel();
         $data['publish_results'] = $settingsModel->getVal('science_week_publish_results') === '1';
@@ -828,42 +910,6 @@ class ScienceWeek extends BaseController
     }
 
     /**
-     * หน้าตรวจสอบสถานะการสมัครแข่งขัน (Public)
-     */
-    public function checkStatus()
-    {
-        $data['title'] = 'ตรวจสอบสถานะการสมัครแข่งขัน | งานสัปดาห์วิทยาศาสตร์';
-        $data['search'] = '';
-        $data['results'] = null;
-        return view('science_week/check_status', $data);
-    }
-
-    /**
-     * ค้นหาและตรวจสอบสถานะการสมัครแข่งขัน (Public)
-     */
-    public function searchStatus()
-    {
-        $search = $this->request->getGet('search');
-
-        $results = null;
-        if (!empty($search)) {
-            $results = $this->regModel->groupStart()
-                ->where('reg_code', trim($search))
-                ->orLike('reg_school_name', trim($search))
-                ->orLike('reg_team_name', trim($search))
-                ->groupEnd()
-                ->orderBy('reg_created_at', 'DESC')
-                ->findAll();
-        }
-
-        $data['title'] = 'ผลการตรวจสอบสถานะการสมัครแข่งขัน | งานสัปดาห์วิทยาศาสตร์';
-        $data['search'] = $search;
-        $data['results'] = $results;
-
-        return view('science_week/check_status', $data);
-    }
-
-    /**
      * รายการประเภทการแข่งขัน ทั้งหมด
      */
     public function compIndex()
@@ -872,9 +918,11 @@ class ScienceWeek extends BaseController
         if ($access !== true)
             return $access;
 
+        $selectedYear = $this->getSelectedYear();
         $data['title'] = 'จัดการประเภทการแข่งขัน | งานสัปดาห์วิทยาศาสตร์';
-        $data['competitions'] = $this->compModel->orderBy('comp_id', 'ASC')->findAll();
+        $data['competitions'] = $this->compModel->where('comp_year', $selectedYear)->orderBy('comp_id', 'ASC')->findAll();
         $data['fullname'] = session()->get('u_fullname');
+        $data['selected_year'] = $selectedYear;
 
         return view('science_week/competitions_index', $data);
     }
@@ -890,6 +938,7 @@ class ScienceWeek extends BaseController
 
         $data['title'] = 'เพิ่มประเภทการแข่งขัน | งานสัปดาห์วิทยาศาสตร์';
         $data['comp'] = null;
+        $data['selected_year'] = $this->getSelectedYear();
         $data['fullname'] = session()->get('u_fullname');
 
         return view('science_week/competitions_form', $data);
@@ -975,6 +1024,7 @@ class ScienceWeek extends BaseController
         }
 
         $dataInsert = [
+            'comp_year' => $selectedYear,
             'comp_name' => $this->request->getPost('comp_name'),
             'comp_icon' => $this->request->getPost('comp_icon'),
             'comp_level' => $this->request->getPost('comp_level'),
@@ -1013,6 +1063,7 @@ class ScienceWeek extends BaseController
 
         $data['title'] = 'แก้ไขประเภทการแข่งขัน | งานสัปดาห์วิทยาศาสตร์';
         $data['comp'] = $comp;
+        $data['selected_year'] = $comp['comp_year'];
         $data['fullname'] = session()->get('u_fullname');
 
         return view('science_week/competitions_form', $data);
@@ -1171,7 +1222,7 @@ class ScienceWeek extends BaseController
     }
 
     /**
-     * หน้าจอตั้งค่าระบบนับถอยหลัง
+     * หน้าจอตั้งค่าระบบนับถอยหลังและปีการศึกษา
      */
     public function adminSettings()
     {
@@ -1181,16 +1232,95 @@ class ScienceWeek extends BaseController
 
         $settingsModel = new \App\Models\SettingsModel();
         $targetDate = $settingsModel->getVal('science_week_countdown') ?: '2026-08-18T09:00:00';
+        $activeYear = $this->getActiveYear();
 
-        $data['title'] = 'ตั้งค่าระบบนับถอยหลัง | งานสัปดาห์วิทยาศาสตร์';
+        $db = \Config\Database::connect();
+        // ดึงรายการปีการศึกษาทั้งหมดที่มีในระบบ เพื่อทำตารางสถิติสรุป
+        $yearsQuery = $db->query("
+            SELECT DISTINCT year_val FROM (
+                SELECT comp_year AS year_val FROM Tb_ScienceWeek_Competitions WHERE comp_year IS NOT NULL
+                UNION
+                SELECT reg_year AS year_val FROM Tb_ScienceWeek_Registrations WHERE reg_year IS NOT NULL
+                UNION
+                SELECT sch_year AS year_val FROM Tb_ScienceWeek_Schedules WHERE sch_year IS NOT NULL
+                UNION
+                SELECT eval_year AS year_val FROM Tb_ScienceWeek_Evaluations WHERE eval_year IS NOT NULL
+            ) t ORDER BY year_val DESC
+        ");
+        $years = array_column($yearsQuery->getResultArray(), 'year_val');
+        if (empty($years)) {
+            $years = [$activeYear];
+        } else if (!in_array($activeYear, $years)) {
+            $years[] = $activeYear;
+            rsort($years);
+        }
+
+        $yearStats = [];
+        foreach ($years as $yr) {
+            $compCount = $db->table('Tb_ScienceWeek_Competitions')->where('comp_year', $yr)->countAllResults();
+            $regCount = $db->table('Tb_ScienceWeek_Registrations')->where('reg_year', $yr)->countAllResults();
+            $approvedCount = $db->table('Tb_ScienceWeek_Registrations')->where('reg_year', $yr)->where('reg_status', 'approved')->countAllResults();
+            $evalCount = $db->table('Tb_ScienceWeek_Evaluations')->where('eval_year', $yr)->countAllResults();
+
+            $yearStats[] = [
+                'year' => $yr,
+                'competitions' => $compCount,
+                'registrations' => $regCount,
+                'approved' => $approvedCount,
+                'evaluations' => $evalCount
+            ];
+        }
+
+        // Fetch Live Stats for Settings Hub
+        $staffCount = $db->table('Tb_Users')
+            ->like('u_role', 'science_week')
+            ->where('u_status', 'active')
+            ->countAllResults();
+
+        $activeCompCount = $db->table('Tb_ScienceWeek_Competitions')->where('comp_year', $activeYear)->countAllResults();
+        $activeSchCount = $db->table('Tb_ScienceWeek_Schedules')->where('sch_year', $activeYear)->countAllResults();
+
+        // Eval Config Stats
+        $evalConfig = $this->getEvaluationConfig();
+        $evalFieldCount = count($evalConfig['fields'] ?? []);
+        $evalQuestionCount = count($evalConfig['questions'] ?? []);
+
+        // Cert Config Statuses
+        $checkCertConfig = function($key) use ($settingsModel) {
+            $configJson = $settingsModel->getVal($key);
+            if ($configJson) {
+                $config = json_decode($configJson, true);
+                return !empty($config['bg_image']) && file_exists(FCPATH . $config['bg_image']);
+            }
+            return false;
+        };
+
+        $certCompConfigured = $checkCertConfig('science_week_cert_competition_config');
+        $certTrainConfigured = $checkCertConfig('science_week_cert_trainer_config');
+        $certEvalConfigured = $checkCertConfig('science_week_cert_evaluation_config');
+
+        $data['title'] = 'ศูนย์รวมการตั้งค่าระบบ | งานสัปดาห์วิทยาศาสตร์';
         $data['countdown_date'] = $targetDate;
+        $data['active_year'] = $activeYear;
+        $data['registration_open'] = $settingsModel->getVal('science_week_registration_open') !== '0';
+        $data['year_stats'] = $yearStats;
         $data['fullname'] = session()->get('u_fullname');
+
+        // Settings Hub specific variables
+        $data['staff_count'] = $staffCount;
+        $data['active_comp_count'] = $activeCompCount;
+        $data['active_sch_count'] = $activeSchCount;
+        $data['eval_field_count'] = $evalFieldCount;
+        $data['eval_question_count'] = $evalQuestionCount;
+        $data['cert_comp_configured'] = $certCompConfigured;
+        $data['cert_train_configured'] = $certTrainConfigured;
+        $data['cert_eval_configured'] = $certEvalConfigured;
 
         return view('science_week/settings', $data);
     }
 
     /**
-     * บันทึกข้อมูลการตั้งค่าระบบนับถอยหลัง
+     * บันทึกข้อมูลการตั้งค่าระบบ (นับถอยหลัง & ปีการศึกษา & เปิด-ปิดการสมัคร)
      */
     public function settingsSave()
     {
@@ -1199,23 +1329,53 @@ class ScienceWeek extends BaseController
             return $access;
 
         $targetDate = $this->request->getPost('countdown_date');
+        $activeYear = $this->request->getPost('active_year');
+        $regOpenVal = $this->request->getPost('registration_open') === '1' ? '1' : '0';
 
         $settingsModel = new \App\Models\SettingsModel();
-        $existing = $settingsModel->where('s_key', 'science_week_countdown')->first();
 
-        $dataSave = [
+        // 1. Save countdown date
+        $existingCountdown = $settingsModel->where('s_key', 'science_week_countdown')->first();
+        $dataCountdown = [
             's_key' => 'science_week_countdown',
             's_value' => $targetDate,
             's_description' => 'วันเวลากำหนดการเริ่มงานสัปดาห์วิทยาศาสตร์ สำหรับระบบนับถอยหลัง'
         ];
-
-        if ($existing) {
-            $settingsModel->update($existing['s_id'], $dataSave);
+        if ($existingCountdown) {
+            $settingsModel->update($existingCountdown['s_id'], $dataCountdown);
         } else {
-            $settingsModel->insert($dataSave);
+            $settingsModel->insert($dataCountdown);
         }
 
-        return redirect()->to(base_url('staff/science-week/settings'))->with('success', 'บันทึกวันเวลานับถอยหลังเรียบร้อยแล้ว');
+        // 2. Save active academic year
+        if (!empty($activeYear) && is_numeric($activeYear)) {
+            $existingYear = $settingsModel->where('s_key', 'science_week_active_year')->first();
+            $dataYear = [
+                's_key' => 'science_week_active_year',
+                's_value' => (int)$activeYear,
+                's_description' => 'ปีการศึกษาปัจจุบันที่เปิดใช้งานและรับสมัครงานวันวิทยาศาสตร์'
+            ];
+            if ($existingYear) {
+                $settingsModel->update($existingYear['s_id'], $dataYear);
+            } else {
+                $settingsModel->insert($dataYear);
+            }
+        }
+
+        // 3. Save registration open status
+        $existingRegOpen = $settingsModel->where('s_key', 'science_week_registration_open')->first();
+        $dataRegOpen = [
+            's_key' => 'science_week_registration_open',
+            's_value' => $regOpenVal,
+            's_description' => 'สถานะการเปิดรับสมัครแข่งขัน (1 = เปิด, 0 = ปิด)'
+        ];
+        if ($existingRegOpen) {
+            $settingsModel->update($existingRegOpen['s_id'], $dataRegOpen);
+        } else {
+            $settingsModel->insert($dataRegOpen);
+        }
+
+        return redirect()->to(base_url('staff/science-week/settings'))->with('success', 'บันทึกข้อมูลการตั้งค่าระบบเรียบร้อยแล้ว');
     }
 
     /**
@@ -1227,9 +1387,11 @@ class ScienceWeek extends BaseController
         if ($access !== true)
             return $access;
 
+        $selectedYear = $this->getSelectedYear();
         $data['title'] = 'จัดการกำหนดการกิจกรรม | งานสัปดาห์วิทยาศาสตร์';
-        $data['schedules'] = $this->schModel->orderBy('sch_id', 'ASC')->findAll();
+        $data['schedules'] = $this->schModel->where('sch_year', $selectedYear)->orderBy('sch_id', 'ASC')->findAll();
         $data['fullname'] = session()->get('u_fullname');
+        $data['selected_year'] = $selectedYear;
 
         return view('science_week/schedules_index', $data);
     }
@@ -1245,6 +1407,7 @@ class ScienceWeek extends BaseController
 
         $data['title'] = 'เพิ่มกำหนดการ | งานสัปดาห์วิทยาศาสตร์';
         $data['sch'] = null;
+        $data['selected_year'] = $this->getSelectedYear();
         $data['fullname'] = session()->get('u_fullname');
 
         return view('science_week/schedules_form', $data);
@@ -1259,6 +1422,8 @@ class ScienceWeek extends BaseController
         if ($access !== true)
             return $access;
 
+        $selectedYear = $this->getSelectedYear();
+
         $rules = [
             'sch_date' => 'required|min_length[3]|max_length[255]',
             'sch_title' => 'required|min_length[3]|max_length[255]',
@@ -1271,6 +1436,7 @@ class ScienceWeek extends BaseController
         }
 
         $dataInsert = [
+            'sch_year' => $selectedYear,
             'sch_date' => $this->request->getPost('sch_date'),
             'sch_title' => $this->request->getPost('sch_title'),
             'sch_description' => $this->request->getPost('sch_description') ?: null,
@@ -1284,9 +1450,6 @@ class ScienceWeek extends BaseController
         return redirect()->back()->withInput()->with('error', 'ไม่สามารถบันทึกข้อมูลได้');
     }
 
-    /**
-     * หน้าจอแก้ไขกำหนดการ
-     */
     public function schEdit($id)
     {
         $access = $this->checkAccess();
@@ -1300,6 +1463,7 @@ class ScienceWeek extends BaseController
 
         $data['title'] = 'แก้ไขกำหนดการ | งานสัปดาห์วิทยาศาสตร์';
         $data['sch'] = $sch;
+        $data['selected_year'] = $sch['sch_year'] ?? $this->getSelectedYear();
         $data['fullname'] = session()->get('u_fullname');
 
         return view('science_week/schedules_form', $data);
@@ -1394,10 +1558,11 @@ class ScienceWeek extends BaseController
      */
     public function publicResults()
     {
+        $activeYear = $this->getActiveYear();
         $compType = $this->request->getGet('competition_type');
         $searchTerm = $this->request->getGet('search');
 
-        $query = $this->regModel->where('reg_status', 'approved'); // Only show approved/valid teams
+        $query = $this->regModel->where('reg_year', $activeYear)->where('reg_status', 'approved'); // Only show approved/valid teams of active year
 
         if (!empty($searchTerm)) {
             $query = $query->groupStart()
@@ -1426,10 +1591,48 @@ class ScienceWeek extends BaseController
         $data['results'] = $results;
         $data['search'] = $searchTerm;
         $data['compType_active'] = $compType;
-        $data['competitions'] = $this->compModel->orderBy('comp_id', 'ASC')->findAll();
+        $data['competitions'] = $this->compModel->where('comp_year', $activeYear)->orderBy('comp_id', 'ASC')->findAll();
         $data['publish_results'] = $isPublished;
 
         return view('science_week/results', $data);
+    }
+
+    /**
+     * หน้าประกาศรายชื่อผู้มีสิทธิ์เข้าร่วมแข่งขัน (Public Approved List)
+     */
+    public function publicApprovedList()
+    {
+        $activeYear = $this->getActiveYear();
+        $compType = $this->request->getGet('competition_type');
+        $searchTerm = $this->request->getGet('search');
+
+        $query = $this->regModel->where('reg_year', $activeYear)->where('reg_status', 'approved');
+
+        if (!empty($searchTerm)) {
+            $query = $query->groupStart()
+                ->like('reg_school_name', trim($searchTerm))
+                ->orLike('reg_team_name', trim($searchTerm))
+                ->orLike('reg_members', trim($searchTerm))
+                ->orLike('reg_code', trim($searchTerm))
+                ->groupEnd();
+        }
+
+        if (!empty($compType)) {
+            $query = $query->where('reg_competition_type', $compType);
+        }
+
+        $registrations = $query->orderBy('reg_competition_type', 'ASC')
+                               ->orderBy('reg_level', 'ASC')
+                               ->orderBy('reg_id', 'ASC')
+                               ->findAll();
+
+        $data['title'] = 'ประกาศรายชื่อผู้มีสิทธิ์เข้าร่วมแข่งขัน | งานสัปดาห์วิทยาศาสตร์';
+        $data['registrations'] = $registrations;
+        $data['search'] = $searchTerm;
+        $data['compType_active'] = $compType;
+        $data['competitions'] = $this->compModel->where('comp_year', $activeYear)->orderBy('comp_id', 'ASC')->findAll();
+
+        return view('science_week/approved_list', $data);
     }
 
     /**
@@ -2065,9 +2268,11 @@ class ScienceWeek extends BaseController
             'custom_fields' => $extractedFields
         ];
 
+        $activeYear = $this->getActiveYear();
         $evalCode = $this->evalModel->generateEvaluationCode();
 
         $dataInsert = [
+            'eval_year'       => $activeYear,
             'eval_name'       => $fullname,
             'eval_school'     => $schoolVal,
             'eval_province'   => $provinceVal,
@@ -2100,9 +2305,10 @@ class ScienceWeek extends BaseController
         if ($access !== true)
             return $access;
 
+        $selectedYear = $this->getSelectedYear();
         $searchTerm = $this->request->getGet('search');
 
-        $query = $this->evalModel;
+        $query = $this->evalModel->where('eval_year', $selectedYear);
 
         if (!empty($searchTerm)) {
             $query = $query->groupStart()
@@ -2118,6 +2324,7 @@ class ScienceWeek extends BaseController
         $data['evaluations'] = $query->orderBy('eval_created_at', 'DESC')->paginate(20, 'default');
         $data['pager'] = $this->evalModel->pager;
         $data['search'] = $searchTerm;
+        $data['selected_year'] = $selectedYear;
 
         return view('science_week/evaluations_index', $data);
     }

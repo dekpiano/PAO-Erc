@@ -438,12 +438,12 @@
                         <p class="text-[8px] sm:text-[9px] text-indigo-400 font-bold uppercase tracking-wider mt-0.5 sm:mt-1">สนุกคิด ติดปีกจินตนาการ</p>
                     </div>
                 </a>
-
                 <!-- Desktop Menu -->
                 <div class="hidden md:flex items-center gap-8">
                     <a href="<?= base_url('science-week') ?>" class="sci-nav-link text-xs font-black uppercase tracking-wider text-slate-600 hover:text-slate-900 <?= uri_string() == 'science-week' ? 'active text-indigo-650' : '' ?>">หน้าแรกกิจกรรม</a>
                     <a href="<?= base_url('science-week/register') ?>" class="sci-nav-link text-xs font-black uppercase tracking-wider text-slate-600 hover:text-slate-900 <?= uri_string() == 'science-week/register' ? 'active text-indigo-650' : '' ?>">สมัครแข่งขัน</a>
-                    <a href="<?= base_url('science-week/check-status') ?>" class="sci-nav-link text-xs font-black uppercase tracking-wider text-slate-600 hover:text-slate-900 <?= strpos(uri_string(), 'science-week/check-status') === 0 ? 'active text-indigo-650' : '' ?>">ตรวจสอบสถานะ</a>
+                    <a href="<?= base_url('science-week/approved-list') ?>" class="sci-nav-link text-xs font-black uppercase tracking-wider text-slate-600 hover:text-slate-900 <?= strpos(uri_string(), 'science-week/approved-list') === 0 ? 'active text-indigo-650' : '' ?>">รายชื่อผู้มีสิทธิ์แข่ง</a>
+                    <a href="<?= base_url('science-week/results') ?>" class="sci-nav-link text-xs font-black uppercase tracking-wider text-slate-600 hover:text-slate-900 <?= strpos(uri_string(), 'science-week/results') === 0 ? 'active text-indigo-650' : '' ?>">ประกาศผลการแข่งขัน</a>
                     <a href="<?= base_url('science-week/evaluation') ?>" class="sci-nav-link text-xs font-black uppercase tracking-wider text-slate-600 hover:text-slate-900 <?= strpos(uri_string(), 'science-week/evaluation') === 0 ? 'active text-indigo-650' : '' ?>">ทำแบบประเมิน</a>
                 </div>
 
@@ -466,15 +466,17 @@
             <a href="<?= base_url('science-week/register') ?>" class="text-xl font-bold text-slate-200 border-b border-slate-800/80 pb-4 flex items-center justify-between hover:text-white transition-colors">
                 สมัครแข่งขัน <i data-lucide="chevron-right" class="w-5 h-5 text-slate-400"></i>
             </a>
-            <a href="<?= base_url('science-week/check-status') ?>" class="text-xl font-bold text-slate-200 border-b border-slate-800/80 pb-4 flex items-center justify-between hover:text-white transition-colors">
-                ตรวจสอบสถานะ <i data-lucide="chevron-right" class="w-5 h-5 text-slate-400"></i>
+            <a href="<?= base_url('science-week/approved-list') ?>" class="text-xl font-bold text-slate-200 border-b border-slate-800/80 pb-4 flex items-center justify-between hover:text-white transition-colors">
+                รายชื่อผู้มีสิทธิ์แข่ง <i data-lucide="chevron-right" class="w-5 h-5 text-slate-400"></i>
+            </a>
+            <a href="<?= base_url('science-week/results') ?>" class="text-xl font-bold text-slate-200 border-b border-slate-800/80 pb-4 flex items-center justify-between hover:text-white transition-colors">
+                ประกาศผลการแข่งขัน <i data-lucide="chevron-right" class="w-5 h-5 text-slate-400"></i>
             </a>
             <a href="<?= base_url('science-week/evaluation') ?>" class="text-xl font-bold text-slate-200 border-b border-slate-800/80 pb-4 flex items-center justify-between hover:text-white transition-colors">
                 ทำแบบประเมิน <i data-lucide="chevron-right" class="w-5 h-5 text-slate-400"></i>
             </a>
         </div>
     </div>
-
     <!-- Main Content Area -->
     <main class="pt-20 flex-1">
         <?= $this->renderSection('content') ?>

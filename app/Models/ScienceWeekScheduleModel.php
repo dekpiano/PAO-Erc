@@ -13,6 +13,7 @@ class ScienceWeekScheduleModel extends Model
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
     protected $allowedFields    = [
+        'sch_year',
         'sch_date',
         'sch_title',
         'sch_description',

@@ -126,7 +126,7 @@
                 </a>
 
                 <a href="<?= base_url('staff/science-week/settings') ?>" class="flex items-center gap-4 px-4 py-3.5 rounded-xl font-bold text-sm transition-all duration-200 <?= strpos(uri_string(), 'staff/science-week/settings') !== false ? 'sidebar-item-active' : 'text-slate-400 hover:text-slate-100 hover:bg-slate-900/30' ?>">
-                    <i data-lucide="settings" class="w-5 h-5 text-slate-400"></i><span>ตั้งค่าระบบนับถอยหลัง</span>
+                    <i data-lucide="settings" class="w-5 h-5 text-slate-400"></i><span>ตั้งค่าระบบ</span>
                 </a>
 
                 <!-- Group 4: Navigation -->
@@ -164,8 +164,45 @@
                     </h1>
                 </div>
                 
-                <!-- Profile details -->
+                <!-- Profile & Year Switcher -->
                 <div class="flex items-center gap-4">
+                    <?php
+                    $layoutDb = \Config\Database::connect();
+                    $layoutActiveYear = $layoutDb->table('Tb_Settings')->where('s_key', 'science_week_active_year')->get()->getRowArray()['s_value'] ?? 2569;
+                    $layoutSelectedYear = session()->get('science_week_selected_year') ?: $layoutActiveYear;
+
+                    $layoutYearsQuery = $layoutDb->query("
+                        SELECT DISTINCT year_val FROM (
+                            SELECT comp_year AS year_val FROM Tb_ScienceWeek_Competitions WHERE comp_year IS NOT NULL
+                            UNION
+                            SELECT reg_year AS year_val FROM Tb_ScienceWeek_Registrations WHERE reg_year IS NOT NULL
+                            UNION
+                            SELECT sch_year AS year_val FROM Tb_ScienceWeek_Schedules WHERE sch_year IS NOT NULL
+                            UNION
+                            SELECT eval_year AS year_val FROM Tb_ScienceWeek_Evaluations WHERE eval_year IS NOT NULL
+                        ) t ORDER BY year_val DESC
+                    ");
+                    $layoutAvailableYears = array_column($layoutYearsQuery->getResultArray(), 'year_val');
+                    if (empty($layoutAvailableYears)) {
+                        $layoutAvailableYears = [$layoutSelectedYear];
+                    } else if (!in_array($layoutSelectedYear, $layoutAvailableYears)) {
+                        $layoutAvailableYears[] = $layoutSelectedYear;
+                        rsort($layoutAvailableYears);
+                    }
+                    ?>
+                    <!-- Year Switcher Dropdown -->
+                    <div class="flex items-center gap-2 bg-slate-900/90 border border-slate-800 px-3 py-2 rounded-2xl shadow-inner shadow-black/40">
+                        <label for="layout_year_switcher" class="hidden sm:inline text-[9px] font-bold text-slate-400 uppercase tracking-widest">ปีการศึกษา:</label>
+                        <select id="layout_year_switcher" onchange="switchAcademicYear(this.value)" class="bg-transparent text-xs text-indigo-400 font-extrabold outline-none border-none cursor-pointer hover:text-cyan-400 transition-colors pr-1">
+                            <?php foreach ($layoutAvailableYears as $yr): ?>
+                                <option value="<?= $yr ?>" class="bg-slate-950 text-slate-300 font-bold" <?= $yr == $layoutSelectedYear ? 'selected' : '' ?>>
+                                    <?= $yr ?> <?= $yr == $layoutActiveYear ? '(ปัจจุบัน)' : '' ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
+                    <!-- Profile details -->
                     <div class="flex items-center gap-3">
                         <div class="hidden md:flex flex-col items-end">
                             <span class="text-xs font-extrabold text-slate-200"><?= session()->get('u_fullname') ?></span>
@@ -198,6 +235,12 @@
         function toggleSidebar() {
             document.getElementById('sidebar-menu').classList.toggle('-translate-x-full');
             document.getElementById('sidebar-overlay').classList.toggle('hidden');
+        }
+
+        function switchAcademicYear(year) {
+            const url = new URL(window.location.href);
+            url.searchParams.set('year', year);
+            window.location.href = url.toString();
         }
 
         function getSwalColors() {

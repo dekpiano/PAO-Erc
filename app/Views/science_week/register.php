@@ -246,7 +246,11 @@
                                 <?php endif; ?>
                             </div>
                             
-                            <?php if ($isFull): ?>
+                                                        <?php if (!$registration_open): ?>
+                                <button disabled class="w-full py-3 rounded-xl text-center text-rose-300 bg-rose-950/20 border border-rose-900/35 text-xs font-bold cursor-not-allowed flex items-center justify-center gap-2">
+                                    <i data-lucide="lock" class="w-4 h-4 text-rose-450 animate-pulse"></i> ปิดรับสมัครแข่งขันแล้ว
+                                </button>
+                            <?php elseif ($isFull): ?>
                                 <button disabled class="w-full py-3 rounded-xl text-center text-slate-500 bg-slate-900/80 border border-slate-800 text-xs font-bold cursor-not-allowed flex items-center justify-center gap-2">
                                     <i data-lucide="minus-circle" class="w-4 h-4"></i> เต็มแล้ว (Full)
                                 </button>

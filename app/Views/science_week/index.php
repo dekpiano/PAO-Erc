@@ -476,16 +476,39 @@
                     เปิดโลกแห่งการเรียนรู้ยุคใหม่ผ่านแนวคิด <strong class="text-white">STEAM Education</strong> ผสมผสานวิทยาศาสตร์ เทคโนโลยี วิศวกรรมศาสตร์ ศิลปะ และคณิตศาสตร์ — ร่วมแข่งขันชิงถ้วยรางวัล เกียรติบัตร และทุนการศึกษา!
                 </p>
 
+                <!-- Hero Cute Mini Countdown -->
+                <div class="hero-countdown flex flex-wrap items-center justify-center lg:justify-start gap-3 py-3">
+                    <span class="text-xs font-black uppercase tracking-wider text-pink-300 flex items-center gap-1.5 bg-pink-500/10 border border-pink-500/30 px-3.5 py-1.5 rounded-full shadow-sm">
+                        <span class="animate-bounce">🚀</span> เริ่มงานในอีก:
+                    </span>
+                    <div class="flex gap-2 text-center text-white text-xs font-black">
+                        <!-- Days -->
+                        <div class="relative overflow-hidden px-3.5 py-2 rounded-2xl bg-gradient-to-b from-indigo-500/25 to-indigo-600/10 border border-indigo-400/40 shadow-[0_0_15px_rgba(99,102,241,0.2)] min-w-[58px]">
+                            <span id="countdown-days" class="font-mono text-base text-cyan-300 tabular-nums">00</span>
+                            <span class="text-[9px] text-slate-300 block mt-0.5 font-bold">วัน</span>
+                        </div>
+                        <!-- Hours -->
+                        <div class="relative overflow-hidden px-3.5 py-2 rounded-2xl bg-gradient-to-b from-purple-500/25 to-purple-600/10 border border-purple-400/40 shadow-[0_0_15px_rgba(168,85,247,0.2)] min-w-[58px]">
+                            <span id="countdown-hours" class="font-mono text-base text-purple-300 tabular-nums">00</span>
+                            <span class="text-[9px] text-slate-300 block mt-0.5 font-bold">ชม.</span>
+                        </div>
+                        <!-- Minutes -->
+                        <div class="relative overflow-hidden px-3.5 py-2 rounded-2xl bg-gradient-to-b from-pink-500/25 to-pink-600/10 border border-pink-400/40 shadow-[0_0_15px_rgba(236,72,153,0.2)] min-w-[58px]">
+                            <span id="countdown-minutes" class="font-mono text-base text-pink-300 tabular-nums">00</span>
+                            <span class="text-[9px] text-slate-300 block mt-0.5 font-bold">นาที</span>
+                        </div>
+                        <!-- Seconds -->
+                        <div class="relative overflow-hidden px-3.5 py-2 rounded-2xl bg-gradient-to-b from-rose-500/35 to-rose-600/20 border border-rose-400/50 shadow-[0_0_20px_rgba(244,63,94,0.35)] min-w-[58px]">
+                            <span id="countdown-seconds" class="font-mono text-base text-rose-300 tabular-nums animate-pulse">00</span>
+                            <span class="text-[9px] text-slate-300 block mt-0.5 font-bold">วิ</span>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- CTA Buttons -->
                 <div class="hero-cta flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-2">
-                    <a href="<?= base_url('science-week/register') ?>" class="hero-btn-primary px-8 py-4 rounded-2xl font-bold text-base flex items-center gap-3 shadow-xl">
-                        <i data-lucide="clipboard-edit" class="w-5 h-5"></i> สมัครแข่งขันออนไลน์
-                    </a>
-                    <a href="<?= base_url('science-week/results') ?>" class="hero-btn-primary px-8 py-4 rounded-2xl font-bold text-base flex items-center gap-3 shadow-xl" style="background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); border-color: #f59e0b; box-shadow: 0 8px 25px rgba(245, 158, 11, 0.25);">
-                        <i data-lucide="award" class="w-5 h-5"></i> ประกาศผลการแข่งขัน
-                    </a>
-                    <a href="<?= base_url('science-week/evaluation') ?>" class="hero-btn-primary px-8 py-4 rounded-2xl font-bold text-base flex items-center gap-3 shadow-xl" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-color: #059669; box-shadow: 0 8px 25px rgba(16, 185, 129, 0.25);">
-                        <i data-lucide="clipboard-list" class="w-5 h-5"></i> ทำแบบประเมินรับเกียรติบัตร
+                    <a href="#action-menu" class="hero-btn-primary px-8 py-4 rounded-2xl font-bold text-base flex items-center gap-3 shadow-xl">
+                        <i data-lucide="layout-grid" class="w-5 h-5"></i> พอร์ทัลระบบออนไลน์ทั้งหมด
                     </a>
                     <a href="#activities" class="hero-btn-outline px-6 py-4 rounded-2xl font-semibold text-base flex items-center gap-2">
                         <i data-lucide="arrow-down" class="w-4 h-4 scroll-indicator"></i> ดูรายละเอียดกิจกรรม
@@ -552,34 +575,81 @@
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
 
-        <!-- ===== COUNTDOWN TIMER ===== -->
-        <div class="mt-16 mb-20 scroll-reveal" data-delay="100">
-            <div class="glass-sci-card rounded-3xl p-8 sm:p-10 max-w-4xl mx-auto relative overflow-hidden">
-                <!-- Rainbow top border -->
-                <div class="rainbow-divider absolute top-0 left-0 right-0"></div>
-                <div class="pt-4">
-                    <h3 class="text-center text-slate-400 font-black uppercase tracking-[0.2em] mb-8 text-sm flex items-center justify-center gap-2">
-                        <i data-lucide="timer" class="w-4 h-4 text-indigo-500 animate-pulse"></i> นับถอยหลังสู่วันงาน
-                    </h3>
-                    <div class="grid grid-cols-4 gap-3 sm:gap-6 text-center">
-                        <div class="countdown-cell bg-gradient-to-br from-cyan-50 to-sky-100 p-4 sm:p-6 rounded-2xl border border-cyan-200/50 shadow-sm">
-                            <div id="countdown-days" class="text-3xl sm:text-5xl font-black text-cyan-600 tabular-nums">00</div>
-                            <div class="text-[10px] sm:text-xs text-cyan-500 uppercase mt-2 font-black tracking-widest">วัน</div>
+        <!-- ===== SERVICES / ACTION MENU ===== -->
+        <div id="action-menu" class="mt-16 mb-12 scroll-reveal" data-delay="100">
+            <div class="text-center space-y-4 mb-8">
+                <span class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/25 text-indigo-300 text-xs font-black uppercase tracking-widest">
+                    <i data-lucide="layout-grid" class="w-3.5 h-3.5 animate-pulse"></i> Services Portal
+                </span>
+                <h2 class="text-3xl sm:text-4xl font-black section-heading section-heading-cyan">เมนูบริการและระบบออนไลน์</h2>
+                <p class="text-slate-400 max-w-xl mx-auto text-sm font-semibold">เข้าถึงระบบการสมัคร ค้นหารายชื่อผู้มีสิทธิ์และพิมพ์บัตรประจำตัวทีม และทำแบบประเมินความพึงพอใจ</p>
+                <div class="rainbow-divider max-w-20 mx-auto"></div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
+                <!-- 1. Register -->
+                <a href="<?= base_url('science-week/register') ?>" class="glass-sci-card rounded-3xl p-6 flex flex-col justify-between glow-border border border-indigo-500/20 hover:scale-105 transition-all text-left">
+                    <div class="space-y-4">
+                        <div class="icon-container w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shadow-md">
+                            <i data-lucide="clipboard-edit" class="w-6 h-6"></i>
                         </div>
-                        <div class="countdown-cell bg-gradient-to-br from-emerald-50 to-green-100 p-4 sm:p-6 rounded-2xl border border-emerald-200/50 shadow-sm">
-                            <div id="countdown-hours" class="text-3xl sm:text-5xl font-black text-emerald-600 tabular-nums">00</div>
-                            <div class="text-[10px] sm:text-xs text-emerald-500 uppercase mt-2 font-black tracking-widest">ชั่วโมง</div>
-                        </div>
-                        <div class="countdown-cell bg-gradient-to-br from-amber-50 to-yellow-100 p-4 sm:p-6 rounded-2xl border border-amber-200/50 shadow-sm">
-                            <div id="countdown-minutes" class="text-3xl sm:text-5xl font-black text-amber-600 tabular-nums">00</div>
-                            <div class="text-[10px] sm:text-xs text-amber-500 uppercase mt-2 font-black tracking-widest">นาที</div>
-                        </div>
-                        <div class="countdown-cell bg-gradient-to-br from-rose-50 to-pink-100 p-4 sm:p-6 rounded-2xl border border-rose-200/50 shadow-sm">
-                            <div id="countdown-seconds" class="text-3xl sm:text-5xl font-black text-rose-600 tabular-nums">00</div>
-                            <div class="text-[10px] sm:text-xs text-rose-500 uppercase mt-2 font-black tracking-widest">วินาที</div>
-                        </div>
+                        <h3 class="text-lg font-black text-white">สมัครแข่งขัน</h3>
+                        <p class="text-slate-400 text-xs leading-relaxed">
+                            ลงทะเบียนข้อมูลโรงเรียน ทีม และผู้เข้าแข่งขันเพื่อจองสิทธิ์เข้าร่วม
+                        </p>
                     </div>
-                </div>
+                    <div class="mt-6 flex items-center gap-1.5 text-xs font-bold text-indigo-400">
+                        <span>ดำเนินการสมัคร</span> <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                    </div>
+                </a>
+
+                <!-- 2. Approved List -->
+                <a href="<?= base_url('science-week/approved-list') ?>" class="glass-sci-card rounded-3xl p-6 flex flex-col justify-between glow-border border border-indigo-500/20 hover:scale-105 transition-all text-left">
+                    <div class="space-y-4">
+                        <div class="icon-container w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shadow-md">
+                            <i data-lucide="users" class="w-6 h-6"></i>
+                        </div>
+                        <h3 class="text-lg font-black text-white">รายชื่อผู้มีสิทธิ์ & พิมพ์บัตร</h3>
+                        <p class="text-slate-400 text-xs leading-relaxed">
+                            ตรวจสอบประกาศรายชื่อทีมที่ได้รับการอนุมัติ และพิมพ์บัตรประจำตัวทีมเพื่อเข้าร่วมงาน
+                        </p>
+                    </div>
+                    <div class="mt-6 flex items-center gap-1.5 text-xs font-bold text-emerald-400">
+                        <span>ดูประกาศ & พิมพ์บัตร</span> <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                    </div>
+                </a>
+
+                <!-- 3. Results -->
+                <a href="<?= base_url('science-week/results') ?>" class="glass-sci-card rounded-3xl p-6 flex flex-col justify-between glow-border border border-indigo-500/20 hover:scale-105 transition-all text-left">
+                    <div class="space-y-4">
+                        <div class="icon-container w-12 h-12 rounded-2xl bg-gradient-to-br from-yellow-500/20 to-amber-500/20 border border-yellow-500/30 flex items-center justify-center text-yellow-400 shadow-md">
+                            <i data-lucide="award" class="w-6 h-6"></i>
+                        </div>
+                        <h3 class="text-lg font-black text-white">ประกาศผลรางวัล</h3>
+                        <p class="text-slate-400 text-xs leading-relaxed">
+                            สรุปและประกาศผลรางวัลชนะเลิศตามลำดับกิจกรรมงานวิทยาศาสตร์ทั้งหมด
+                        </p>
+                    </div>
+                    <div class="mt-6 flex items-center gap-1.5 text-xs font-bold text-yellow-400">
+                        <span>เช็คผลรางวัล</span> <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                    </div>
+                </a>
+
+                <!-- 4. Evaluation -->
+                <a href="<?= base_url('science-week/evaluation') ?>" class="glass-sci-card rounded-3xl p-6 flex flex-col justify-between glow-border border border-indigo-500/20 hover:scale-105 transition-all text-left">
+                    <div class="space-y-4">
+                        <div class="icon-container w-12 h-12 rounded-2xl bg-gradient-to-br from-rose-500/20 to-pink-500/20 border border-rose-500/30 flex items-center justify-center text-rose-400 shadow-md">
+                            <i data-lucide="clipboard-list" class="w-6 h-6"></i>
+                        </div>
+                        <h3 class="text-lg font-black text-white">ทำแบบประเมิน</h3>
+                        <p class="text-slate-400 text-xs leading-relaxed">
+                            ร่วมทำแบบประเมินความพึงพอใจการจัดกิจกรรม เพื่อรับเกียรติบัตรผู้เข้าร่วม
+                        </p>
+                    </div>
+                    <div class="mt-6 flex items-center gap-1.5 text-xs font-bold text-rose-400">
+                        <span>ทำแบบประเมิน</span> <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                    </div>
+                </a>
             </div>
         </div>
 
@@ -595,73 +665,36 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <!-- Activity 1: Engineering -->
-                <div class="glass-sci-card rounded-3xl p-6 flex flex-col justify-between glow-border scroll-reveal" data-delay="100">
-                    <div class="space-y-4">
-                        <div class="icon-container w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-100 to-emerald-200 border border-emerald-300/50 flex items-center justify-center text-emerald-600 shadow-sm">
-                            <i data-lucide="settings" class="w-7 h-7 animate-spin" style="animation-duration: 8s;"></i>
+                <?php if (!empty($popular_competitions)): ?>
+                    <?php $delay = 100; foreach ($popular_competitions as $comp): 
+                        $compColor = $comp['comp_color'] ?? '#6366f1';
+                        $compIcon = $comp['comp_icon'] ?? 'award';
+                        $compLevel = $comp['comp_level'] ?? 'ทุกระดับชั้น';
+                    ?>
+                        <div class="glass-sci-card rounded-3xl p-6 flex flex-col justify-between glow-border scroll-reveal" data-delay="<?= $delay ?>">
+                            <div class="space-y-4">
+                                <div class="icon-container w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-md" style="background: <?= esc($compColor) ?>; box-shadow: 0 0 15px <?= esc($compColor) ?>40">
+                                    <i data-lucide="<?= esc($compIcon) ?>" class="w-7 h-7"></i>
+                                </div>
+                                <h3 class="text-xl font-black text-white"><?= esc($comp['comp_name']) ?></h3>
+                                <p class="text-slate-500 text-sm leading-relaxed line-clamp-3">
+                                    <?= esc(strip_tags($comp['comp_description'] ?? 'ร่วมแข่งขันชิงถ้วยรางวัล เกียรติบัตร และทุนการศึกษา!')) ?>
+                                </p>
+                            </div>
+                            <div class="mt-6 flex flex-col gap-2">
+                                <div class="flex items-center justify-between text-xs text-slate-400 font-semibold">
+                                    <span>ระดับ: <?= esc($compLevel) ?></span>
+                                </div>
+                                <div class="flex items-center justify-between border-t border-slate-800/40 pt-2 text-[11px] text-slate-400 font-bold">
+                                    <span>สมัครแล้ว:</span>
+                                    <span class="text-indigo-400 font-black font-mono"><?= esc($comp['reg_count']) ?> ทีม</span>
+                                </div>
+                            </div>
                         </div>
-                        <h3 class="text-xl font-black">การแข่งขันจรวดขวดน้ำ</h3>
-                        <span class="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Engineering</span>
-                        <p class="text-slate-500 text-sm leading-relaxed">
-                            ท้าทายจินตนาการและหลักการวิทยาศาสตร์ ออกแบบจรวดและยิงทะลวงฟ้าเพื่อพิชิตระยะทางและความแม่นยำสูงสุด
-                        </p>
-                    </div>
-                    <div class="mt-6">
-                        <span class="activity-badge text-xs font-bold text-emerald-700 bg-emerald-100 px-3 py-1.5 rounded-full border border-emerald-200">มัธยมศึกษาตอนต้น-ปลาย</span>
-                    </div>
-                </div>
-
-                <!-- Activity 2: Science -->
-                <div class="glass-sci-card rounded-3xl p-6 flex flex-col justify-between glow-border scroll-reveal" data-delay="200">
-                    <div class="space-y-4">
-                        <div class="icon-container w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-100 to-purple-200 border border-purple-300/50 flex items-center justify-center text-purple-600 shadow-sm">
-                            <i data-lucide="flask-conical" class="w-7 h-7"></i>
-                        </div>
-                        <h3 class="text-xl font-black">Science Show</h3>
-                        <span class="text-[10px] font-black text-purple-600 uppercase tracking-widest">Science</span>
-                        <p class="text-slate-500 text-sm leading-relaxed">
-                            การประกวดแสดงโชว์ทางวิทยาศาสตร์สุดสร้างสรรค์ ถ่ายทอดเรื่องราวยากๆ ให้สนุกสนานและน่าตื่นเต้นผ่านการทดลอง
-                        </p>
-                    </div>
-                    <div class="mt-6">
-                        <span class="activity-badge text-xs font-bold text-purple-700 bg-purple-100 px-3 py-1.5 rounded-full border border-purple-200">ประถมศึกษา - มัธยมศึกษา</span>
-                    </div>
-                </div>
-
-                <!-- Activity 3: Technology -->
-                <div class="glass-sci-card rounded-3xl p-6 flex flex-col justify-between glow-border scroll-reveal" data-delay="300">
-                    <div class="space-y-4">
-                        <div class="icon-container w-14 h-14 rounded-2xl bg-gradient-to-br from-sky-100 to-sky-200 border border-sky-300/50 flex items-center justify-center text-sky-600 shadow-sm">
-                            <i data-lucide="cpu" class="w-7 h-7 animate-pulse"></i>
-                        </div>
-                        <h3 class="text-xl font-black">การประกวดโครงงาน</h3>
-                        <span class="text-[10px] font-black text-sky-600 uppercase tracking-widest">Technology</span>
-                        <p class="text-slate-500 text-sm leading-relaxed">
-                            นำเสนอผลงานสิ่งประดิษฐ์และโครงงานวิทยาศาสตร์ ทั้งประเภททดลอง ประเภททฤษฎี และประเภทการสร้างสิ่งประดิษฐ์
-                        </p>
-                    </div>
-                    <div class="mt-6">
-                        <span class="activity-badge text-xs font-bold text-sky-700 bg-sky-100 px-3 py-1.5 rounded-full border border-sky-200">มัธยมศึกษาตอนต้น-ปลาย</span>
-                    </div>
-                </div>
-
-                <!-- Activity 4: Arts -->
-                <div class="glass-sci-card rounded-3xl p-6 flex flex-col justify-between glow-border scroll-reveal" data-delay="400">
-                    <div class="space-y-4">
-                        <div class="icon-container w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-100 to-yellow-200 border border-amber-300/50 flex items-center justify-center text-amber-600 shadow-sm">
-                            <i data-lucide="palette" class="w-7 h-7"></i>
-                        </div>
-                        <h3 class="text-xl font-black">วาดภาพทางวิทยาศาสตร์</h3>
-                        <span class="text-[10px] font-black text-amber-600 uppercase tracking-widest">Arts</span>
-                        <p class="text-slate-500 text-sm leading-relaxed">
-                            ปลดปล่อยจินตนาการถ่ายทอดหัวข้อวิทยาศาสตร์แห่งอนาคตลงบนผืนผ้าใบหรือกระดาษอย่างวิจิตรบรรจง
-                        </p>
-                    </div>
-                    <div class="mt-6">
-                        <span class="activity-badge text-xs font-bold text-amber-700 bg-amber-100 px-3 py-1.5 rounded-full border border-amber-200">ทุกระดับชั้น</span>
-                    </div>
-                </div>
+                    <?php $delay += 100; endforeach; ?>
+                <?php else: ?>
+                    <div class="col-span-full text-center text-slate-400 py-8 font-medium">ไม่มีข้อมูลหัวข้อการแข่งขัน</div>
+                <?php endif; ?>
             </div>
 
             <!-- View All Competitions Button -->

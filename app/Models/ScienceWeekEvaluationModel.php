@@ -13,6 +13,7 @@ class ScienceWeekEvaluationModel extends Model
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
     protected $allowedFields    = [
+        'eval_year',
         'eval_name',
         'eval_school',
         'eval_province',

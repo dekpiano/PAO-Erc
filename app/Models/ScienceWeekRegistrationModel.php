@@ -13,6 +13,7 @@ class ScienceWeekRegistrationModel extends Model
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
     protected $allowedFields    = [
+        'reg_year',
         'reg_code',
         'reg_competition_type',
         'reg_level',
