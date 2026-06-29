@@ -300,6 +300,51 @@ if (strpos($compName, 'จรวด') !== false || strpos($compName, 'water rock
                     <input type="hidden" name="competition_type" value="<?= esc($competition_type) ?>">
                 </div>
 
+                <!-- Selected Level -->
+                <?php
+                $levelLimits = [];
+                if (!empty($comp['comp_level_limits'])) {
+                    $levelLimits = json_decode($comp['comp_level_limits'], true) ?: [];
+                }
+                if (!empty($levelLimits)):
+                ?>
+                    <div class="form-field space-y-2" style="animation-delay: 0.45s">
+                        <label for="reg_level" class="block text-sm font-bold text-slate-200 flex items-center gap-2">
+                            <span>เลือกระดับชั้นที่จะสมัครแข่งขัน</span> <span class="text-rose-450">*</span>
+                        </label>
+                        <div class="neon-input-wrapper">
+                            <select name="reg_level" id="reg_level" required class="neon-input w-full p-4 rounded-2xl font-medium shadow-inner cursor-pointer appearance-none">
+                                <option value="" disabled selected>-- เลือกระดับชั้น --</option>
+                                <?php foreach ($levelLimits as $lvl): 
+                                    $db = \Config\Database::connect();
+                                    $activeRegForLevel = $db->table('Tb_ScienceWeek_Registrations')
+                                        ->where('reg_competition_type', $comp['comp_name'])
+                                        ->where('reg_level', $lvl['level'])
+                                        ->where('reg_status !=', 'rejected')
+                                        ->countAllResults();
+                                    
+                                    $isFull = false;
+                                    $quotaText = '';
+                                    if ($lvl['limit'] > 0) {
+                                        $quotaText = " (โควตา {$activeRegForLevel}/{$lvl['limit']} ทีม)";
+                                        if ($activeRegForLevel >= $lvl['limit']) {
+                                            $isFull = true;
+                                            $quotaText = " (เต็มจำนวนโควตา {$lvl['limit']} ทีม)";
+                                        }
+                                    } else {
+                                        $quotaText = " (ไม่จำกัดจำนวน)";
+                                    }
+                                ?>
+                                    <option value="<?= esc($lvl['level']) ?>" <?= $isFull ? 'disabled' : '' ?>>
+                                        <?= esc($lvl['level']) ?><?= $quotaText ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                            <i data-lucide="graduation-cap" class="input-icon-left w-5 h-5"></i>
+                        </div>
+                    </div>
+                <?php endif; ?>
+
                 <!-- Row: School Name and Province -->
                 <div class="form-field grid grid-cols-1 md:grid-cols-2 gap-4" style="animation-delay: 0.5s">
                     <div class="space-y-2">

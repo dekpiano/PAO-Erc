@@ -28,7 +28,6 @@
                     <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 w-[80px]">ไอคอน</th>
                     <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">ชื่อประเภทการแข่งขัน</th>
                     <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">ระดับชั้น</th>
-                    <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 text-center">โควตา</th>
                     <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 text-center">สมาชิก/ทีม</th>
                     <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">ธีมสี</th>
                     <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">คำอธิบายย่อ</th>
@@ -38,7 +37,7 @@
             <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                 <?php if (empty($competitions)): ?>
                     <tr>
-                        <td colspan="8" class="px-6 py-12 text-center text-slate-400 font-medium bg-white dark:bg-transparent">
+                        <td colspan="7" class="px-6 py-12 text-center text-slate-400 font-medium bg-white dark:bg-transparent">
                             ยังไม่มีข้อมูลประเภทการแข่งขันในระบบ คลิกปุ่ม "เพิ่มประเภทการแข่งขัน" เพื่อสร้างรายการใหม่
                         </td>
                     </tr>
@@ -65,11 +64,6 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <span class="text-xs font-semibold text-slate-600 dark:text-slate-350"><?= esc($comp['comp_level']) ?></span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-center">
-                                <span class="text-xs font-bold text-slate-700 dark:text-slate-350">
-                                    <?= !empty($comp['comp_limit']) ? esc($comp['comp_limit']) . ' ทีม' : 'ไม่จำกัด' ?>
-                                </span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-center">
                                 <span class="text-xs font-bold text-slate-700 dark:text-slate-350">

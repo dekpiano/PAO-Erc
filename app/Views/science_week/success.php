@@ -220,7 +220,12 @@
             <div class="space-y-4">
                 <div>
                     <span class="text-xs text-slate-500 block uppercase font-bold tracking-wider">การแข่งขัน</span>
-                    <p class="text-slate-800 font-black text-base mt-0.5"><?= $reg['reg_competition_type'] ?></p>
+                    <p class="text-slate-800 font-black text-base mt-0.5">
+                        <?= $reg['reg_competition_type'] ?>
+                        <?php if (!empty($reg['reg_level'])): ?>
+                            <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-100 text-indigo-700 border border-indigo-200 ml-2 align-middle"><?= esc($reg['reg_level']) ?></span>
+                        <?php endif; ?>
+                    </p>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
@@ -296,6 +301,25 @@
                 <?php endif; ?>
 
                 <div class="border-t border-dashed border-slate-200 my-4"></div>
+
+                <?php if (!empty($comp['comp_group_link']) || !empty($comp['comp_group_qr'])): ?>
+                    <div class="border-t border-dashed border-slate-200 my-4 no-print"></div>
+                    <div class="bg-indigo-50/50 dark:bg-slate-900/40 p-4 rounded-2xl border border-indigo-100 dark:border-indigo-950/30 text-center space-y-3 no-print">
+                        <span class="text-xs text-indigo-700 dark:text-indigo-400 font-black block uppercase tracking-wider">ช่องทางการติดต่อประสานงานสำหรับการแข่งขัน</span>
+                        
+                        <?php if (!empty($comp['comp_group_qr'])): ?>
+                            <div class="mx-auto w-32 h-32 rounded-xl overflow-hidden border border-indigo-200 shadow-sm bg-white p-1">
+                                <img src="<?= base_url($comp['comp_group_qr']) ?>" alt="Group QR Code" class="w-full h-full object-contain">
+                            </div>
+                        <?php endif; ?>
+
+                        <?php if (!empty($comp['comp_group_link'])): ?>
+                            <a href="<?= esc($comp['comp_group_link']) ?>" target="_blank" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs transition-colors shadow-sm">
+                                <i data-lucide="message-square" class="w-4 h-4"></i> เข้าร่วมกลุ่มติดต่อสื่อสาร
+                            </a>
+                        <?php endif; ?>
+                    </div>
+                <?php endif; ?>
 
                 <div class="flex justify-between items-center text-xs">
                     <div>

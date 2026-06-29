@@ -196,7 +196,12 @@
                                             </span>
                                         <?php endif; ?>
                                     </div>
-                                    <h4 class="text-lg font-black text-slate-800 truncate"><?= esc($reg['reg_competition_type']) ?></h4>
+                                    <h4 class="text-lg font-black text-slate-800 truncate">
+                                        <?= esc($reg['reg_competition_type']) ?>
+                                        <?php if (!empty($reg['reg_level'])): ?>
+                                            <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-100 text-indigo-700 border border-indigo-200 ml-2 align-middle"><?= esc($reg['reg_level']) ?></span>
+                                        <?php endif; ?>
+                                    </h4>
                                     <p class="text-xs text-slate-500 font-semibold">
                                         โรงเรียน: <span class="text-slate-700 font-bold"><?= esc($reg['reg_school_name']) ?></span> 
                                         <?= $reg['reg_team_name'] ? ' | ทีม: <span class="text-slate-700 font-bold">'.esc($reg['reg_team_name']).'</span>' : '' ?>

@@ -85,6 +85,9 @@
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <span class="text-xs font-black text-cyan-600 dark:text-cyan-400 block font-mono"><?= $reg['reg_code'] ?></span>
                                 <span class="text-[10px] text-slate-500 block mt-1 font-bold truncate max-w-[180px]"><?= $reg['reg_competition_type'] ?></span>
+                                <?php if (!empty($reg['reg_level'])): ?>
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[9px] font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 mt-1"><?= esc($reg['reg_level']) ?></span>
+                                <?php endif; ?>
                             </td>
                             <td class="px-6 py-4">
                                 <span class="text-xs font-extrabold text-slate-800 dark:text-slate-200 block">

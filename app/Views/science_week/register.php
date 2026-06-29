@@ -176,19 +176,63 @@
                             </p>
                             
                             <!-- Quota Progress Indicator -->
-                            <div class="pt-2">
-                                <div class="flex justify-between items-center text-[10px] font-bold mb-1">
-                                    <span class="text-slate-500">สถานะการรับสมัคร</span>
-                                    <span class="<?= $isFull ? 'text-rose-400' : 'text-cyan-400' ?>">
-                                        <?= $comp['reg_count'] ?> / <?= !empty($comp['comp_limit']) ? esc($comp['comp_limit']) : 'ไม่จำกัด' ?> ทีม
-                                    </span>
-                                </div>
-                                <?php if (!empty($comp['comp_limit']) && $comp['comp_limit'] > 0): 
-                                    $pct = min(100, ($comp['reg_count'] / $comp['comp_limit']) * 100);
+                            <div class="pt-2 space-y-2">
+                                <?php
+                                $levelLimits = [];
+                                if (!empty($comp['comp_level_limits'])) {
+                                    $levelLimits = json_decode($comp['comp_level_limits'], true) ?: [];
+                                }
                                 ?>
-                                    <div class="w-full bg-slate-950/60 rounded-full h-1.5 overflow-hidden border border-slate-900">
-                                        <div class="h-full rounded-full transition-all <?= $isFull ? 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]' : 'bg-cyan-500 shadow-[0_0_8px_rgba(6,182,212,0.5)]' ?>" style="width: <?= $pct ?>%"></div>
+                                <?php if (!empty($levelLimits)): ?>
+                                    <span class="text-slate-500 text-[10px] font-bold block mb-1">สถานะการรับสมัครแบ่งตามระดับชั้น:</span>
+                                    <?php 
+                                    $allFull = true;
+                                    foreach ($levelLimits as $lvl): 
+                                        $db = \Config\Database::connect();
+                                        $activeCount = $db->table('Tb_ScienceWeek_Registrations')
+                                            ->where('reg_competition_type', $comp['comp_name'])
+                                            ->where('reg_level', $lvl['level'])
+                                            ->where('reg_status !=', 'rejected')
+                                            ->countAllResults();
+                                        
+                                        $lvlLimit = (int)$lvl['limit'];
+                                        $lvlFull = $lvlLimit > 0 && $activeCount >= $lvlLimit;
+                                        if (!$lvlFull) {
+                                            $allFull = false;
+                                        }
+                                        
+                                        $limitText = $lvlLimit > 0 ? "{$lvlLimit} ทีม" : "ไม่จำกัด";
+                                        $pct = $lvlLimit > 0 ? min(100, ($activeCount / $lvlLimit) * 100) : 0;
+                                    ?>
+                                        <div class="space-y-1">
+                                            <div class="flex justify-between items-center text-[10px] font-medium">
+                                                <span class="text-slate-400 font-semibold"><?= esc($lvl['level']) ?></span>
+                                                <span class="<?= $lvlFull ? 'text-rose-400 font-bold' : 'text-cyan-400' ?>">
+                                                    <?= $activeCount ?> / <?= $limitText ?>
+                                                </span>
+                                            </div>
+                                            <?php if ($lvlLimit > 0): ?>
+                                                <div class="w-full bg-slate-950/60 rounded-full h-1 overflow-hidden border border-slate-900">
+                                                    <div class="h-full rounded-full transition-all <?= $lvlFull ? 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]' : 'bg-cyan-500 shadow-[0_0_8px_rgba(6,182,212,0.5)]' ?>" style="width: <?= $pct ?>%"></div>
+                                                </div>
+                                            <?php endif; ?>
+                                        </div>
+                                    <?php endforeach; ?>
+                                    <?php $isFull = $allFull; ?>
+                                <?php else: ?>
+                                    <div class="flex justify-between items-center text-[10px] font-bold mb-1">
+                                        <span class="text-slate-500">สถานะการรับสมัคร</span>
+                                        <span class="<?= $isFull ? 'text-rose-450' : 'text-cyan-400' ?>">
+                                            <?= $comp['reg_count'] ?> / <?= !empty($comp['comp_limit']) ? esc($comp['comp_limit']) : 'ไม่จำกัด' ?> ทีม
+                                        </span>
                                     </div>
+                                    <?php if (!empty($comp['comp_limit']) && $comp['comp_limit'] > 0): 
+                                        $pct = min(100, ($comp['reg_count'] / $comp['comp_limit']) * 100);
+                                    ?>
+                                        <div class="w-full bg-slate-950/60 rounded-full h-1.5 overflow-hidden border border-slate-900">
+                                            <div class="h-full rounded-full transition-all <?= $isFull ? 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]' : 'bg-cyan-500 shadow-[0_0_8px_rgba(6,182,212,0.5)]' ?>" style="width: <?= $pct ?>%"></div>
+                                        </div>
+                                    <?php endif; ?>
                                 <?php endif; ?>
                             </div>
                         </div>

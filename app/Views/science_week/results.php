@@ -215,7 +215,12 @@
                                     ?>
                                         <tr class="hover:bg-slate-900/30 transition-colors row-anim <?= $rowClass ?>" style="animation-delay: <?= $delay ?>ms">
                                             <td class="px-6 py-5">
-                                                <span class="text-[10px] text-indigo-400 font-bold block uppercase tracking-wider"><?= esc($reg['reg_competition_type']) ?></span>
+                                                <span class="text-[10px] text-indigo-400 font-bold block uppercase tracking-wider">
+                                                    <?= esc($reg['reg_competition_type']) ?>
+                                                    <?php if (!empty($reg['reg_level'])): ?>
+                                                        <span class="inline-block px-1.5 py-0.5 rounded text-[8px] font-bold bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 ml-1.5 align-middle"><?= esc($reg['reg_level']) ?></span>
+                                                    <?php endif; ?>
+                                                </span>
                                                 <span class="text-sm font-extrabold text-white block mt-1"><?= $reg['reg_team_name'] ? esc($reg['reg_team_name']) : 'ทั่วไป (บุคคลเดี่ยว)' ?></span>
                                             </td>
                                             <td class="px-6 py-5">
@@ -286,7 +291,12 @@
                             <div class="glass-sci-card rounded-3xl p-5 border <?= $cardBorderClass ?> space-y-4 row-anim" style="animation-delay: <?= $delay ?>ms">
                                 <div class="flex justify-between items-start gap-4">
                                     <div class="space-y-1">
-                                        <span class="text-[9px] text-indigo-400 font-extrabold block uppercase tracking-widest"><?= esc($reg['reg_competition_type']) ?></span>
+                                        <span class="text-[9px] text-indigo-400 font-extrabold block uppercase tracking-widest">
+                                            <?= esc($reg['reg_competition_type']) ?>
+                                            <?php if (!empty($reg['reg_level'])): ?>
+                                                <span class="inline-block px-1.5 py-0.5 rounded text-[8px] font-bold bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 ml-1.5 align-middle"><?= esc($reg['reg_level']) ?></span>
+                                            <?php endif; ?>
+                                        </span>
                                         <h4 class="text-sm font-black text-white"><?= $reg['reg_team_name'] ? esc($reg['reg_team_name']) : 'ทั่วไป (บุคคลเดี่ยว)' ?></h4>
                                     </div>
                                     <?php if ($reg['reg_score'] !== null): ?>

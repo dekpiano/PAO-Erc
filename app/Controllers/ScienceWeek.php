@@ -32,6 +32,12 @@ class ScienceWeek extends BaseController
             if (!$db->fieldExists('comp_rule_link', 'Tb_ScienceWeek_Competitions')) {
                 $db->query("ALTER TABLE Tb_ScienceWeek_Competitions ADD COLUMN comp_rule_link VARCHAR(255) NULL AFTER comp_rule_file");
             }
+            if (!$db->fieldExists('comp_group_link', 'Tb_ScienceWeek_Competitions')) {
+                $db->query("ALTER TABLE Tb_ScienceWeek_Competitions ADD COLUMN comp_group_link VARCHAR(255) NULL AFTER comp_rule_link");
+            }
+            if (!$db->fieldExists('comp_group_qr', 'Tb_ScienceWeek_Competitions')) {
+                $db->query("ALTER TABLE Tb_ScienceWeek_Competitions ADD COLUMN comp_group_qr VARCHAR(255) NULL AFTER comp_group_link");
+            }
             if (!$db->fieldExists('comp_custom_fields', 'Tb_ScienceWeek_Competitions')) {
                 $db->query("ALTER TABLE Tb_ScienceWeek_Competitions ADD COLUMN comp_custom_fields TEXT NULL AFTER comp_color");
             }
@@ -41,6 +47,9 @@ class ScienceWeek extends BaseController
             if (!$db->fieldExists('comp_member_limit', 'Tb_ScienceWeek_Competitions')) {
                 $db->query("ALTER TABLE Tb_ScienceWeek_Competitions ADD COLUMN comp_member_limit INT NULL DEFAULT 0 AFTER comp_limit");
             }
+            if (!$db->fieldExists('comp_level_limits', 'Tb_ScienceWeek_Competitions')) {
+                $db->query("ALTER TABLE Tb_ScienceWeek_Competitions ADD COLUMN comp_level_limits TEXT NULL AFTER comp_level");
+            }
         }
         if ($db->tableExists('Tb_ScienceWeek_Registrations')) {
             if (!$db->fieldExists('reg_custom_fields', 'Tb_ScienceWeek_Registrations')) {
@@ -48,6 +57,9 @@ class ScienceWeek extends BaseController
             }
             if (!$db->fieldExists('reg_school_province', 'Tb_ScienceWeek_Registrations')) {
                 $db->query("ALTER TABLE Tb_ScienceWeek_Registrations ADD COLUMN reg_school_province VARCHAR(100) NULL AFTER reg_school_name");
+            }
+            if (!$db->fieldExists('reg_level', 'Tb_ScienceWeek_Registrations')) {
+                $db->query("ALTER TABLE Tb_ScienceWeek_Registrations ADD COLUMN reg_level VARCHAR(255) NULL AFTER reg_competition_type");
             }
             if (!$db->fieldExists('reg_score', 'Tb_ScienceWeek_Registrations')) {
                 $db->query("ALTER TABLE Tb_ScienceWeek_Registrations ADD COLUMN reg_score DECIMAL(5,2) NULL DEFAULT NULL AFTER reg_custom_fields");
@@ -147,11 +159,31 @@ class ScienceWeek extends BaseController
         }
 
         // Quota Limit Check
-        $activeRegCount = $this->regModel->where('reg_competition_type', $comp['comp_name'])
-            ->where('reg_status !=', 'rejected')
-            ->countAllResults();
-        if (!empty($comp['comp_limit']) && $comp['comp_limit'] > 0 && $activeRegCount >= $comp['comp_limit']) {
-            return redirect()->to(base_url('science-week/register'))->with('error', 'ขออภัย การแข่งขันนี้มีผู้สมัครครบเต็มจำนวนโควตาแล้ว');
+        if ($comp && !empty($comp['comp_level_limits'])) {
+            $levelLimits = json_decode($comp['comp_level_limits'], true) ?: [];
+            if (!empty($levelLimits)) {
+                $allFull = true;
+                foreach ($levelLimits as $lvl) {
+                    $activeRegLevelCount = $this->regModel->where('reg_competition_type', $comp['comp_name'])
+                        ->where('reg_level', $lvl['level'])
+                        ->where('reg_status !=', 'rejected')
+                        ->countAllResults();
+                    if ($lvl['limit'] == 0 || $activeRegLevelCount < $lvl['limit']) {
+                        $allFull = false;
+                        break;
+                    }
+                }
+                if ($allFull) {
+                    return redirect()->to(base_url('science-week/register'))->with('error', 'ขออภัย การแข่งขันนี้มีผู้สมัครครบเต็มจำนวนโควตาแล้ว (ทุกระดับชั้นเต็มแล้ว)');
+                }
+            }
+        } else {
+            $activeRegCount = $this->regModel->where('reg_competition_type', $comp['comp_name'])
+                ->where('reg_status !=', 'rejected')
+                ->countAllResults();
+            if (!empty($comp['comp_limit']) && $comp['comp_limit'] > 0 && $activeRegCount >= $comp['comp_limit']) {
+                return redirect()->to(base_url('science-week/register'))->with('error', 'ขออภัย การแข่งขันนี้มีผู้สมัครครบเต็มจำนวนโควตาแล้ว');
+            }
         }
 
         $data['title'] = 'ลงทะเบียนข้อมูลผู้สมัครแข่งขัน | งานสัปดาห์วิทยาศาสตร์';
@@ -169,12 +201,40 @@ class ScienceWeek extends BaseController
         $comp = $this->compModel->where('comp_name', $compType)->first();
         
         // Quota Limit Check
-        $activeRegCount = $this->regModel->where('reg_competition_type', $compType)
-            ->where('reg_status !=', 'rejected')
-            ->countAllResults();
-        if (!empty($comp['comp_limit']) && $comp['comp_limit'] > 0 && $activeRegCount >= $comp['comp_limit']) {
-            $msg = 'ขออภัย การแข่งขันนี้มีผู้สมัครครบเต็มจำนวนโควตาแล้ว';
-            return $this->request->isAJAX() ? $this->response->setJSON(['status' => 'error', 'message' => $msg]) : redirect()->to(base_url('science-week/register'))->with('error', $msg);
+        $selectedLevel = $this->request->getPost('reg_level');
+        if ($comp && !empty($comp['comp_level_limits'])) {
+            $levelLimits = json_decode($comp['comp_level_limits'], true) ?: [];
+            if (!empty($levelLimits)) {
+                if (empty($selectedLevel)) {
+                    $msg = 'กรุณาเลือกระดับชั้นที่ต้องการสมัครแข่งขัน';
+                    return $this->request->isAJAX() ? $this->response->setJSON(['status' => 'error', 'message' => $msg]) : redirect()->back()->withInput()->with('error', $msg);
+                }
+                $foundLevelLimit = null;
+                foreach ($levelLimits as $lvl) {
+                    if ($lvl['level'] === $selectedLevel) {
+                        $foundLevelLimit = (int)$lvl['limit'];
+                        break;
+                    }
+                }
+                if ($foundLevelLimit !== null) {
+                    $activeRegLevelCount = $this->regModel->where('reg_competition_type', $compType)
+                        ->where('reg_level', $selectedLevel)
+                        ->where('reg_status !=', 'rejected')
+                        ->countAllResults();
+                    if ($foundLevelLimit > 0 && $activeRegLevelCount >= $foundLevelLimit) {
+                        $msg = "ขออภัย ระดับชั้น {$selectedLevel} มีผู้สมัครครบเต็มจำนวนโควตา ({$foundLevelLimit} ทีม) แล้ว";
+                        return $this->request->isAJAX() ? $this->response->setJSON(['status' => 'error', 'message' => $msg]) : redirect()->back()->withInput()->with('error', $msg);
+                    }
+                }
+            }
+        } else {
+            $activeRegCount = $this->regModel->where('reg_competition_type', $compType)
+                ->where('reg_status !=', 'rejected')
+                ->countAllResults();
+            if (!empty($comp['comp_limit']) && $comp['comp_limit'] > 0 && $activeRegCount >= $comp['comp_limit']) {
+                $msg = 'ขออภัย การแข่งขันนี้มีผู้สมัครครบเต็มจำนวนโควตาแล้ว';
+                return $this->request->isAJAX() ? $this->response->setJSON(['status' => 'error', 'message' => $msg]) : redirect()->to(base_url('science-week/register'))->with('error', $msg);
+            }
         }
 
         $rules = [
@@ -240,12 +300,40 @@ class ScienceWeek extends BaseController
         }
 
         // Quota Limit Check
-        $activeRegCount = $this->regModel->where('reg_competition_type', $comp['comp_name'])
-            ->where('reg_status !=', 'rejected')
-            ->countAllResults();
-        if (!empty($comp['comp_limit']) && $comp['comp_limit'] > 0 && $activeRegCount >= $comp['comp_limit']) {
-            $msg = 'ขออภัย การแข่งขันนี้มีผู้สมัครครบเต็มจำนวนโควตาแล้ว';
-            return $this->request->isAJAX() ? $this->response->setJSON(['status' => 'error', 'message' => $msg]) : redirect()->to(base_url('science-week/register'))->with('error', $msg);
+        $selectedLevel = $this->request->getPost('reg_level');
+        if ($comp && !empty($comp['comp_level_limits'])) {
+            $levelLimits = json_decode($comp['comp_level_limits'], true) ?: [];
+            if (!empty($levelLimits)) {
+                if (empty($selectedLevel)) {
+                    $msg = 'กรุณาเลือกระดับชั้นที่ต้องการสมัครแข่งขัน';
+                    return $this->request->isAJAX() ? $this->response->setJSON(['status' => 'error', 'message' => $msg]) : redirect()->back()->withInput()->with('error', $msg);
+                }
+                $foundLevelLimit = null;
+                foreach ($levelLimits as $lvl) {
+                    if ($lvl['level'] === $selectedLevel) {
+                        $foundLevelLimit = (int)$lvl['limit'];
+                        break;
+                    }
+                }
+                if ($foundLevelLimit !== null) {
+                    $activeRegLevelCount = $this->regModel->where('reg_competition_type', $compType)
+                        ->where('reg_level', $selectedLevel)
+                        ->where('reg_status !=', 'rejected')
+                        ->countAllResults();
+                    if ($foundLevelLimit > 0 && $activeRegLevelCount >= $foundLevelLimit) {
+                        $msg = "ขออภัย ระดับชั้น {$selectedLevel} มีผู้สมัครครบเต็มจำนวนโควตา ({$foundLevelLimit} ทีม) แล้ว";
+                        return $this->request->isAJAX() ? $this->response->setJSON(['status' => 'error', 'message' => $msg]) : redirect()->back()->withInput()->with('error', $msg);
+                    }
+                }
+            }
+        } else {
+            $activeRegCount = $this->regModel->where('reg_competition_type', $compType)
+                ->where('reg_status !=', 'rejected')
+                ->countAllResults();
+            if (!empty($comp['comp_limit']) && $comp['comp_limit'] > 0 && $activeRegCount >= $comp['comp_limit']) {
+                $msg = 'ขออภัย การแข่งขันนี้มีผู้สมัครครบเต็มจำนวนโควตาแล้ว';
+                return $this->request->isAJAX() ? $this->response->setJSON(['status' => 'error', 'message' => $msg]) : redirect()->to(base_url('science-week/register'))->with('error', $msg);
+            }
         }
 
         // Member Count Limit Check
@@ -296,6 +384,7 @@ class ScienceWeek extends BaseController
         $dataInsert = [
             'reg_code' => $regCode,
             'reg_competition_type' => $this->request->getPost('competition_type'),
+            'reg_level' => $this->request->getPost('reg_level') ?: null,
             'reg_school_name' => $this->request->getPost('school_name'),
             'reg_school_province' => $this->request->getPost('school_province'),
             'reg_team_name' => $this->request->getPost('team_name') ?: null,
@@ -322,9 +411,6 @@ class ScienceWeek extends BaseController
         return $this->request->isAJAX() ? $this->response->setJSON(['status' => 'error', 'message' => $msg]) : redirect()->back()->withInput()->with('error', $msg);
     }
 
-    /**
-     * หน้าบัตรยืนยันการสมัครแข่งขันสำเร็จ
-     */
     public function success($regCode)
     {
         $registration = $this->regModel->where('reg_code', $regCode)->first();
@@ -332,8 +418,11 @@ class ScienceWeek extends BaseController
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('ไม่พบข้อมูลการลงทะเบียน');
         }
 
+        $comp = $this->compModel->where('comp_name', $registration['reg_competition_type'])->first();
+
         $data['title'] = "ใบสมัครสำเร็จ {$regCode} | งานสัปดาห์วิทยาศาสตร์";
         $data['reg'] = $registration;
+        $data['comp'] = $comp;
 
         return view('science_week/success', $data);
     }
@@ -611,6 +700,7 @@ class ScienceWeek extends BaseController
             'reg_school_name' => $this->request->getPost('school_name'),
             'reg_school_province' => $this->request->getPost('school_province'),
             'reg_team_name' => $this->request->getPost('team_name') ?: null,
+            'reg_level' => $this->request->getPost('reg_level') ?: null,
             'reg_members' => json_encode(array_values($members), JSON_UNESCAPED_UNICODE),
             'reg_advisors' => json_encode(array_values($advisors), JSON_UNESCAPED_UNICODE),
             'reg_contact_phone' => $this->request->getPost('contact_phone'),
@@ -822,7 +912,8 @@ class ScienceWeek extends BaseController
             'comp_color' => 'required',
             'comp_limit' => 'permit_empty|integer',
             'comp_member_limit' => 'permit_empty|integer',
-            'comp_rule_file' => 'max_size[comp_rule_file,10240]|ext_in[comp_rule_file,pdf,doc,docx,zip]'
+            'comp_rule_file' => 'max_size[comp_rule_file,10240]|ext_in[comp_rule_file,pdf,doc,docx,zip]',
+            'comp_group_qr' => 'max_size[comp_group_qr,10240]|is_image[comp_group_qr]'
         ];
 
         if (!$this->validate($rules)) {
@@ -838,6 +929,17 @@ class ScienceWeek extends BaseController
             $newName = $ruleFile->getRandomName();
             $ruleFile->move(FCPATH . 'uploads/science_week/rules', $newName);
             $ruleFilePath = 'uploads/science_week/rules/' . $newName;
+        }
+
+        $groupQrPath = null;
+        $groupQrFile = $this->request->getFile('comp_group_qr');
+        if ($groupQrFile && $groupQrFile->isValid() && !$groupQrFile->hasMoved()) {
+            if (!is_dir(FCPATH . 'uploads/science_week/qr')) {
+                mkdir(FCPATH . 'uploads/science_week/qr', 0777, true);
+            }
+            $newName = $groupQrFile->getRandomName();
+            $groupQrFile->move(FCPATH . 'uploads/science_week/qr', $newName);
+            $groupQrPath = 'uploads/science_week/qr/' . $newName;
         }
 
         $customFields = $this->request->getPost('custom_fields');
@@ -857,13 +959,31 @@ class ScienceWeek extends BaseController
             $customFieldsJson = json_encode($cleanedFields, JSON_UNESCAPED_UNICODE);
         }
 
+        $levelLimits = $this->request->getPost('level_limits');
+        $levelLimitsJson = null;
+        if (!empty($levelLimits) && is_array($levelLimits)) {
+            $cleanedLevels = [];
+            foreach ($levelLimits as $lvl) {
+                if (!empty($lvl['level'])) {
+                    $cleanedLevels[] = [
+                        'level' => trim($lvl['level']),
+                        'limit' => isset($lvl['limit']) && trim($lvl['limit']) !== '' ? (int)$lvl['limit'] : 0
+                    ];
+                }
+            }
+            $levelLimitsJson = json_encode($cleanedLevels, JSON_UNESCAPED_UNICODE);
+        }
+
         $dataInsert = [
             'comp_name' => $this->request->getPost('comp_name'),
             'comp_icon' => $this->request->getPost('comp_icon'),
             'comp_level' => $this->request->getPost('comp_level'),
+            'comp_level_limits' => $levelLimitsJson,
             'comp_description' => $this->request->getPost('comp_description') ?: null,
             'comp_rule_file' => $ruleFilePath,
             'comp_rule_link' => $this->request->getPost('comp_rule_link') ?: null,
+            'comp_group_link' => $this->request->getPost('comp_group_link') ?: null,
+            'comp_group_qr' => $groupQrPath,
             'comp_color' => $this->request->getPost('comp_color'),
             'comp_custom_fields' => $customFieldsJson,
             'comp_limit' => (int) $this->request->getPost('comp_limit'),
@@ -920,7 +1040,8 @@ class ScienceWeek extends BaseController
             'comp_color' => 'required',
             'comp_limit' => 'permit_empty|integer',
             'comp_member_limit' => 'permit_empty|integer',
-            'comp_rule_file' => 'max_size[comp_rule_file,10240]|ext_in[comp_rule_file,pdf,doc,docx,zip]'
+            'comp_rule_file' => 'max_size[comp_rule_file,10240]|ext_in[comp_rule_file,pdf,doc,docx,zip]',
+            'comp_group_qr' => 'max_size[comp_group_qr,10240]|is_image[comp_group_qr]'
         ];
 
         if (!$this->validate($rules)) {
@@ -951,6 +1072,30 @@ class ScienceWeek extends BaseController
             $ruleFilePath = 'uploads/science_week/rules/' . $newName;
         }
 
+        $groupQrPath = $comp['comp_group_qr'];
+
+        // Handle deleting the group QR code if requested
+        if ($this->request->getPost('delete_group_qr') == '1') {
+            if (!empty($groupQrPath) && file_exists(FCPATH . $groupQrPath)) {
+                @unlink(FCPATH . $groupQrPath);
+            }
+            $groupQrPath = null;
+        }
+
+        $groupQrFile = $this->request->getFile('comp_group_qr');
+        if ($groupQrFile && $groupQrFile->isValid() && !$groupQrFile->hasMoved()) {
+            // Delete old file if exists
+            if (!empty($comp['comp_group_qr']) && file_exists(FCPATH . $comp['comp_group_qr'])) {
+                @unlink(FCPATH . $comp['comp_group_qr']);
+            }
+            if (!is_dir(FCPATH . 'uploads/science_week/qr')) {
+                mkdir(FCPATH . 'uploads/science_week/qr', 0777, true);
+            }
+            $newName = $groupQrFile->getRandomName();
+            $groupQrFile->move(FCPATH . 'uploads/science_week/qr', $newName);
+            $groupQrPath = 'uploads/science_week/qr/' . $newName;
+        }
+
         $customFields = $this->request->getPost('custom_fields');
         $customFieldsJson = null;
         if (!empty($customFields) && is_array($customFields)) {
@@ -968,13 +1113,31 @@ class ScienceWeek extends BaseController
             $customFieldsJson = json_encode($cleanedFields, JSON_UNESCAPED_UNICODE);
         }
 
+        $levelLimits = $this->request->getPost('level_limits');
+        $levelLimitsJson = null;
+        if (!empty($levelLimits) && is_array($levelLimits)) {
+            $cleanedLevels = [];
+            foreach ($levelLimits as $lvl) {
+                if (!empty($lvl['level'])) {
+                    $cleanedLevels[] = [
+                        'level' => trim($lvl['level']),
+                        'limit' => isset($lvl['limit']) && trim($lvl['limit']) !== '' ? (int)$lvl['limit'] : 0
+                    ];
+                }
+            }
+            $levelLimitsJson = json_encode($cleanedLevels, JSON_UNESCAPED_UNICODE);
+        }
+
         $dataUpdate = [
             'comp_name' => $this->request->getPost('comp_name'),
             'comp_icon' => $this->request->getPost('comp_icon'),
             'comp_level' => $this->request->getPost('comp_level'),
+            'comp_level_limits' => $levelLimitsJson,
             'comp_description' => $this->request->getPost('comp_description') ?: null,
             'comp_rule_file' => $ruleFilePath,
             'comp_rule_link' => $this->request->getPost('comp_rule_link') ?: null,
+            'comp_group_link' => $this->request->getPost('comp_group_link') ?: null,
+            'comp_group_qr' => $groupQrPath,
             'comp_color' => $this->request->getPost('comp_color'),
             'comp_custom_fields' => $customFieldsJson,
             'comp_limit' => (int) $this->request->getPost('comp_limit'),
@@ -1362,7 +1525,7 @@ class ScienceWeek extends BaseController
 
         // Handle Fields Coordinates
         $fields = ($type === 'competition' || $type === 'trainer')
-            ? ['name', 'school', 'comp', 'rank', 'code']
+            ? ['name', 'school', 'level', 'comp', 'rank', 'code']
             : ['name', 'text', 'date', 'code'];
 
         foreach ($fields as $field) {
@@ -1372,6 +1535,7 @@ class ScienceWeek extends BaseController
             $config["size_{$field}"] = (int) $this->request->getPost("size_{$field}");
             $config["align_{$field}"] = $this->request->getPost("align_{$field}") ?: 'center';
             $config["color_{$field}"] = $this->request->getPost("color_{$field}") ?: '#000000';
+            $config["parent_{$field}"] = $this->request->getPost("parent_{$field}") ?: 'none';
         }
 
         $s_description = "การตั้งค่าเกียรติบัตรประเภท {$type} (พิกัด ขนาดอักษร สีตัวหนังสือ ภาพพื้นหลัง)";
@@ -1419,6 +1583,7 @@ class ScienceWeek extends BaseController
         // 2. Fetch Recipient Data
         $recipientName = '';
         $schoolName = '';
+        $levelName = '';
         $compName = '';
         $rankName = '';
         $certCode = $code;
@@ -1428,12 +1593,13 @@ class ScienceWeek extends BaseController
             if ($code === 'demo') {
                 $recipientName = $this->request->getGet('name') ?: ($type === 'trainer' ? 'ครูสมหญิง ฝึกซ้อมดี' : 'นายสมศักดิ์ รักดี');
                 $schoolName = 'โรงเรียนตัวอย่างวิทยาคม จังหวัดนครสวรรค์';
-                $compName = 'การประกวด/แข่งขัน: การแข่งขันจรวดขวดน้ำประเภทสร้างสรรค์';
+                $levelName = 'ระดับมัธยมศึกษาตอนต้น';
+                $compName = 'การแข่งขันจรวดขวดน้ำประเภทสร้างสรรค์';
                 $certCode = 'SW-COMP-DEMO';
                 if ($type === 'trainer') {
-                    $rankName = 'ในฐานะครูผู้ฝึกสอน/ควบคุมทีม ที่ได้รับรางวัลชนะเลิศ';
+                    $rankName = 'ผู้ควบคุมทีม ที่ได้รับรางวัลชนะเลิศ';
                 } else {
-                    $rankName = 'ได้รับรางวัล: รางวัลชนะเลิศ';
+                    $rankName = 'ได้รับรางวัลชนะเลิศ';
                 }
             } else {
                 $reg = $this->regModel->where('reg_code', $code)->where('reg_status', 'approved')->first();
@@ -1460,17 +1626,18 @@ class ScienceWeek extends BaseController
                     $schoolName .= " จังหวัด{$reg['reg_school_province']}";
                 }
 
-                $compName = "การประกวด/แข่งขัน: " . $reg['reg_competition_type'];
+                $levelName = $reg['reg_level'] ?? '';
+                $compName = $reg['reg_competition_type'];
                 
                 if ($type === 'trainer') {
                     if (!empty($reg['reg_rank'])) {
-                        $rankName = "ในฐานะครูผู้ฝึกสอน/ควบคุมทีม ที่ได้รับ" . $reg['reg_rank'];
+                        $rankName = "ผู้ควบคุมทีม ที่ได้รับ" . $reg['reg_rank'];
                     } else {
-                        $rankName = "ในฐานะครูผู้ฝึกสอน/ควบคุมทีม ที่เข้าร่วมการแข่งขัน";
+                        $rankName = "ผู้ควบคุมทีม ที่เข้าร่วมการแข่งขัน";
                     }
                 } else {
                     if (!empty($reg['reg_rank'])) {
-                        $rankName = "ได้รับรางวัล: " . $reg['reg_rank'];
+                        $rankName = "ได้รับ" . $reg['reg_rank'];
                     } else {
                         $rankName = "ได้เข้าร่วมการประกวดและแข่งขัน";
                     }
@@ -1534,6 +1701,7 @@ class ScienceWeek extends BaseController
             $drawFields = [
                 'name' => $recipientName,
                 'school' => $schoolName,
+                'level' => $levelName,
                 'comp' => $compName,
                 'rank' => $rankName,
                 'code' => "เลขที่: " . $certCode
@@ -1547,15 +1715,38 @@ class ScienceWeek extends BaseController
             ];
         }
 
+        // Helper closure to recursively construct concatenated texts
+        $getFieldText = function($fieldKey) use (&$getFieldText, $drawFields, $config) {
+            $text = $drawFields[$fieldKey] ?? '';
+            foreach ($drawFields as $f => $val) {
+                $parentVal = $config["parent_{$f}"] ?? 'none';
+                $enabled = !isset($config["enabled_{$f}"]) || $config["enabled_{$f}"];
+                if ($enabled && $parentVal === $fieldKey) {
+                    $childText = $getFieldText($f);
+                    if (!empty($childText)) {
+                        $text .= " " . $childText;
+                    }
+                }
+            }
+            return $text;
+        };
+
         foreach ($drawFields as $field => $text) {
             $enabled = !isset($config["enabled_{$field}"]) || $config["enabled_{$field}"];
-            if (!$enabled || empty($text)) {
+            $parentVal = $config["parent_{$field}"] ?? 'none';
+
+            // Only draw root fields (where parent is 'none')
+            if (!$enabled || $parentVal !== 'none') {
                 continue;
             }
 
-            // GD imagettftext expects points, whereas CSS preview uses pixels.
-            // 1 point is approx 96/72 = 1.33 pixels, so points = pixels * 0.75.
-            $fontSize = ($config["size_{$field}"] ?? 24) * 0.75;
+            // Resolve full concatenated text
+            $text = $getFieldText($field);
+            if (empty(trim($text))) {
+                continue;
+            }
+
+            $fontSize = ($config["size_{$field}"] ?? 24);
             $x = $config["x_{$field}"] ?? 500;
             $y = $config["y_{$field}"] ?? 500;
             $align = $config["align_{$field}"] ?? 'center';
@@ -1567,19 +1758,21 @@ class ScienceWeek extends BaseController
             // Adjust Thai text vowels and tone marks for GD rendering using thsarabunnew's PUA mappings to prevent overlapping/dropping
             $text = $this->adjustThaiText($text);
 
-            // Calculate text offset for alignment
+            // Calculate text offset for precise alignment
             $bbox = imagettfbbox($fontSize, 0, $fontPath, $text);
-            $textWidth = abs($bbox[2] - $bbox[0]);
-
+            
             if ($align === 'center') {
-                $drawX = $x - ($textWidth / 2);
+                $drawX = $x - ($bbox[2] + $bbox[0]) / 2;
             } elseif ($align === 'right') {
-                $drawX = $x - $textWidth;
+                $drawX = $x - $bbox[2];
             } else {
-                $drawX = $x;
+                $drawX = $x - $bbox[0];
             }
 
-            imagettftext($image, $fontSize, 0, $drawX, $y, $colorAlloc, $fontPath, $text);
+            // Precisely center the text vertically around $y by offseting the baseline
+            $drawY = $y - ($bbox[7] + $bbox[1]) / 2;
+
+            imagettftext($image, (int)$fontSize, 0, (int)$drawX, (int)$drawY, $colorAlloc, $fontPath, $text);
         }
 
         // 4. Output Image as PNG stream for download

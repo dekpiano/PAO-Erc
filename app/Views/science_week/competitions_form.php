@@ -46,12 +46,30 @@
             <input type="text" name="comp_name" id="comp_name" required value="<?= old('comp_name', $comp['comp_name'] ?? '') ?>" placeholder="เช่น การแข่งขันเขียนโปรแกรมควบคุม..." class="w-full px-4 py-3 neon-input rounded-2xl text-xs outline-none transition-colors">
         </div>
 
-        <!-- Level -->
-        <div class="space-y-2">
-            <label for="comp_level" class="block text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-350 flex items-center gap-2">
-                <i data-lucide="graduation-cap" class="w-4 h-4 text-indigo-400"></i> ระดับชั้นที่เปิดรับสมัคร <span class="text-rose-450">*</span>
-            </label>
-            <input type="text" name="comp_level" id="comp_level" required value="<?= old('comp_level', $comp['comp_level'] ?? '') ?>" placeholder="เช่น มัธยมศึกษาตอนต้น-ปลาย, ทุกระดับชั้น..." class="w-full px-4 py-3 neon-input rounded-2xl text-xs outline-none transition-colors">
+        <!-- Level & Quotas per Level -->
+        <?php
+        $levelLimits = [];
+        if (!empty($comp['comp_level_limits'])) {
+            $levelLimits = json_decode($comp['comp_level_limits'], true) ?: [];
+        }
+        ?>
+        <div class="space-y-4 border-t border-slate-200 dark:border-slate-800 pt-4">
+            <div class="flex justify-between items-center">
+                <label class="block text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-350 flex items-center gap-2">
+                    <i data-lucide="graduation-cap" class="w-4 h-4 text-indigo-400"></i> ระดับชั้นและโควตาที่เปิดรับสมัคร (แบ่งตามระดับชั้น) <span class="text-rose-450">*</span>
+                </label>
+                <button type="button" id="add-level-limit-btn" class="px-3 py-1.5 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 font-bold rounded-xl text-xs flex items-center gap-1 transition-all">
+                    <i data-lucide="plus" class="w-3.5 h-3.5"></i> เพิ่มระดับชั้น
+                </button>
+            </div>
+            <p class="text-[10px] text-slate-500">กำหนดระดับชั้นและจำนวนทีมสูงสุดที่เปิดรับสมัคร (ระบุเป็น 0 เพื่อไม่จำกัดจำนวน) *ต้องมีอย่างน้อย 1 ระดับชั้น*</p>
+            
+            <div id="level-limits-container" class="space-y-3">
+                <!-- Dynamic level rows will go here -->
+            </div>
+            
+            <!-- Hidden input to store textual list of levels for backward compatibility -->
+            <input type="hidden" name="comp_level" id="comp_level" value="<?= old('comp_level', $comp['comp_level'] ?? '') ?>">
         </div>
 
         <!-- Row: Icon and Theme Color -->
@@ -96,15 +114,6 @@
                 </select>
                 <span class="text-[10px] text-slate-500 block">สีที่จะนำไปประดับการ์ดและป้ายของประเภทนั้นๆ</span>
             </div>
-        </div>
-
-        <!-- Limit Quota -->
-        <div class="space-y-2">
-            <label for="comp_limit" class="block text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-350 flex items-center gap-2">
-                <i data-lucide="users-round" class="w-4 h-4 text-cyan-400"></i> จำนวนทีมที่เปิดรับสมัครสูงสุด (โควตา)
-            </label>
-            <input type="number" name="comp_limit" id="comp_limit" min="0" value="<?= old('comp_limit', $comp['comp_limit'] ?? 0) ?>" placeholder="ระบุจำนวน เช่น 20 (ระบุ 0 หากต้องการรับแบบไม่จำกัดจำนวน)" class="w-full px-4 py-3 neon-input rounded-2xl text-xs outline-none transition-colors">
-            <span class="text-[10px] text-slate-500 block">ระบุโควตาจำนวนทีมที่รับ หากครบตามจำนวนที่กำหนดแล้ว ระบบจะปิดการรับสมัครของการแข่งขันนี้โดยอัตโนมัติ (ระบุเป็น 0 เพื่อไม่จำกัดจำนวน)</span>
         </div>
 
         <!-- Limit Members per Team -->
@@ -152,6 +161,35 @@
             <input type="url" name="comp_rule_link" id="comp_rule_link" value="<?= old('comp_rule_link', $comp['comp_rule_link'] ?? '') ?>" placeholder="https://drive.google.com/..." class="w-full px-4 py-3 neon-input rounded-2xl text-xs outline-none transition-colors">
         </div>
 
+        <!-- Contact Group Link -->
+        <div class="space-y-2">
+            <label for="comp_group_link" class="block text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-350 flex items-center gap-2">
+                <i data-lucide="message-square" class="w-4 h-4 text-emerald-450"></i> ลิงก์กลุ่มสำหรับติดต่อสื่อสาร (เช่น OpenChat, Line Group)
+            </label>
+            <input type="url" name="comp_group_link" id="comp_group_link" value="<?= old('comp_group_link', $comp['comp_group_link'] ?? '') ?>" placeholder="https://line.me/ti/g/..." class="w-full px-4 py-3 neon-input rounded-2xl text-xs outline-none transition-colors">
+        </div>
+
+        <!-- Contact Group QR Code -->
+        <div class="space-y-2">
+            <label for="comp_group_qr" class="block text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-350 flex items-center gap-2">
+                <i data-lucide="qr-code" class="w-4 h-4 text-cyan-455"></i> อัปโหลดรูปภาพ QR Code กลุ่มสำหรับแสกนเข้าร่วมกลุ่ม
+            </label>
+            <input type="file" name="comp_group_qr" id="comp_group_qr" class="w-full px-4 py-2.5 neon-input rounded-2xl text-xs outline-none transition-colors file:mr-4 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-500/10 file:text-indigo-400 hover:file:bg-indigo-500/20" accept="image/*">
+            <?php if (!empty($comp['comp_group_qr'])): ?>
+                <div class="flex items-center gap-4 text-xs mt-2 bg-indigo-950/20 p-3 rounded-xl border border-indigo-500/10">
+                    <span class="text-slate-300 flex items-center gap-1.5">
+                        <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i> 
+                        รูปภาพ QR Code ปัจจุบัน: 
+                        <a href="<?= base_url($comp['comp_group_qr']) ?>" target="_blank" class="text-indigo-400 hover:underline font-bold">เปิดดูรูปภาพ</a>
+                    </span>
+                    <label class="flex items-center gap-1.5 text-rose-400 font-bold cursor-pointer select-none">
+                        <input type="checkbox" name="delete_group_qr" value="1" class="rounded border-rose-500/30 text-rose-500 focus:ring-rose-500 bg-slate-900">
+                        ลบ QR Code เดิม
+                    </label>
+                </div>
+            <?php endif; ?>
+        </div>
+
         <!-- Custom Fields Section -->
         <?php
         $customFields = [];
@@ -184,6 +222,63 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // --- Level Limits Management ---
+    const levelContainer = document.getElementById('level-limits-container');
+    const addLevelBtn = document.getElementById('add-level-limit-btn');
+    const compLevelInput = document.getElementById('comp_level');
+    const existingLevels = <?= json_encode($levelLimits) ?>;
+    let levelCount = 0;
+
+    function addLevelRow(data = null) {
+        levelCount++;
+        const id = 'lvl_' + levelCount;
+        
+        const row = document.createElement('div');
+        row.className = 'flex items-center gap-3 p-3 rounded-2xl bg-slate-900/40 border border-slate-800 level-row';
+        row.dataset.id = id;
+        
+        const nameVal = data ? data.level : '';
+        const limitVal = data ? (data.limit !== undefined ? data.limit : 0) : 0;
+        
+        row.innerHTML = `
+            <div class="flex-1 space-y-1">
+                <input type="text" name="level_limits[${id}][level]" required value="${escapeHtml(nameVal)}" oninput="syncCompLevelText()" placeholder="เช่น มัธยมศึกษาตอนต้น" class="level-name-input w-full px-3 py-2.5 neon-input rounded-xl text-xs outline-none">
+            </div>
+            <div class="w-[140px] space-y-1">
+                <input type="number" name="level_limits[${id}][limit]" min="0" required value="${limitVal}" placeholder="โควตา (0 = ไม่จำกัด)" class="w-full px-3 py-2.5 neon-input rounded-xl text-xs outline-none">
+            </div>
+            <button type="button" class="remove-level-btn p-2.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 rounded-xl transition-all" title="ลบระดับชั้น">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
+        `;
+        
+        levelContainer.appendChild(row);
+        lucide.createIcons();
+        
+        row.querySelector('.remove-level-btn').addEventListener('click', () => {
+            row.remove();
+            syncCompLevelText();
+        });
+        
+        syncCompLevelText();
+    }
+
+    function syncCompLevelText() {
+        const names = Array.from(document.querySelectorAll('.level-name-input'))
+            .map(input => input.value.trim())
+            .filter(v => v !== '');
+        compLevelInput.value = names.join(', ');
+    }
+
+    if (existingLevels && existingLevels.length > 0) {
+        existingLevels.forEach(lvl => addLevelRow(lvl));
+    } else {
+        addLevelRow({ level: 'ทุกระดับชั้น', limit: 0 });
+    }
+
+    addLevelBtn.addEventListener('click', () => addLevelRow());
+
+    // --- Custom Fields Management ---
     const container = document.getElementById('fields-container');
     const addBtn = document.getElementById('add-field-btn');
     

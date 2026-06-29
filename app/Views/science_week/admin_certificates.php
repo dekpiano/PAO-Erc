@@ -81,6 +81,7 @@ $types = [
         'fields' => [
             'name' => 'ชื่อ-นามสกุล',
             'school' => 'ชื่อโรงเรียน',
+            'level' => 'ระดับชั้น',
             'comp' => 'ประเภทรายการแข่งขัน',
             'rank' => 'รางวัลที่ได้รับ',
             'code' => 'รหัสเกียรติบัตร (เลขที่)'
@@ -92,6 +93,7 @@ $types = [
         'fields' => [
             'name' => 'ชื่อ-นามสกุล',
             'school' => 'ชื่อโรงเรียน',
+            'level' => 'ระดับชั้น',
             'comp' => 'ประเภทรายการแข่งขัน',
             'rank' => 'รางวัลที่ได้รับ (ข้อความครู)',
             'code' => 'รหัสเกียรติบัตร (เลขที่)'
@@ -191,8 +193,9 @@ $types = [
                             $sizeVal = $fieldConfig["size_{$fieldKey}"] ?? 32;
                             $alignVal = $fieldConfig["align_{$fieldKey}"] ?? 'center';
                             $colorVal = $fieldConfig["color_{$fieldKey}"] ?? '#000000';
+                            $parentVal = $fieldConfig["parent_{$fieldKey}"] ?? 'none';
                         ?>
-                            <div class="p-4 bg-slate-900/30 rounded-xl border border-slate-800/40 space-y-3">
+                            <div class="p-4 bg-slate-900/30 rounded-xl border border-slate-800/40 space-y-3" id="field-card-<?= $typeKey ?>-<?= $fieldKey ?>">
                                 <div class="flex justify-between items-center">
                                     <label class="flex items-center gap-2 cursor-pointer">
                                         <input type="checkbox" name="enabled_<?= $fieldKey ?>" value="1" <?= $isEnabled ? 'checked' : '' ?> onchange="updateBadges('<?= $typeKey ?>')" class="w-4 h-4 rounded border-slate-700 bg-slate-950 text-indigo-650 focus:ring-indigo-600 focus:ring-offset-slate-900">
@@ -201,33 +204,47 @@ $types = [
                                     <span class="text-[9px] font-mono text-slate-500 font-bold">#<?= $fieldKey ?></span>
                                 </div>
 
-                                <div class="grid grid-cols-2 gap-2.5">
-                                    <div>
-                                        <label class="block text-[9px] text-slate-450 font-bold mb-1">ตำแหน่ง X (px)</label>
-                                        <input type="number" name="x_<?= $fieldKey ?>" value="<?= $xVal ?>" oninput="updateBadges('<?= $typeKey ?>')" class="w-full bg-slate-950 border border-slate-850 rounded-lg py-1.5 px-2.5 text-xs text-slate-350 font-mono">
-                                    </div>
-                                    <div>
-                                        <label class="block text-[9px] text-slate-450 font-bold mb-1">ตำแหน่ง Y (px)</label>
-                                        <input type="number" name="y_<?= $fieldKey ?>" value="<?= $yVal ?>" oninput="updateBadges('<?= $typeKey ?>')" class="w-full bg-slate-950 border border-slate-850 rounded-lg py-1.5 px-2.5 text-xs text-slate-350 font-mono">
-                                    </div>
-                                    <div>
-                                        <label class="block text-[9px] text-slate-450 font-bold mb-1">ขนาดฟอนต์ (px)</label>
-                                        <input type="number" name="size_<?= $fieldKey ?>" value="<?= $sizeVal ?>" class="w-full bg-slate-950 border border-slate-850 rounded-lg py-1.5 px-2.5 text-xs text-slate-350">
-                                    </div>
-                                    <div>
-                                        <label class="block text-[9px] text-slate-450 font-bold mb-1">จัดตำแหน่ง</label>
-                                        <select name="align_<?= $fieldKey ?>" class="w-full bg-slate-950 border border-slate-850 rounded-lg py-1.5 px-2.5 text-xs text-slate-350">
-                                            <option value="left" <?= $alignVal === 'left' ? 'selected' : '' ?>>ชิดซ้าย</option>
-                                            <option value="center" <?= $alignVal === 'center' ? 'selected' : '' ?>>กึ่งกลาง</option>
-                                            <option value="right" <?= $alignVal === 'right' ? 'selected' : '' ?>>ชิดขวา</option>
-                                        </select>
-                                    </div>
+                                <div>
+                                    <label class="block text-[9px] text-slate-450 font-bold mb-1">การจัดวางข้อความ</label>
+                                    <select name="parent_<?= $fieldKey ?>" onchange="toggleFieldParentControls('<?= $typeKey ?>', '<?= $fieldKey ?>')" class="w-full bg-slate-950 border border-slate-850 rounded-lg py-1.5 px-2.5 text-[10px] text-slate-350">
+                                        <option value="none" <?= $parentVal === 'none' ? 'selected' : '' ?>>เป็นเอกเทศ (มีพิกัด X, Y และสไตล์ของตัวเอง)</option>
+                                        <?php foreach ($typeData['fields'] as $otherKey => $otherName): ?>
+                                            <?php if ($otherKey !== $fieldKey): ?>
+                                                <option value="<?= $otherKey ?>" <?= $parentVal === $otherKey ? 'selected' : '' ?>>ต่อท้ายฟิลด์: <?= esc($otherName) ?></option>
+                                            <?php endif; ?>
+                                        <?php endforeach; ?>
+                                    </select>
                                 </div>
-                                <div class="flex items-center justify-between gap-4 pt-1">
-                                    <span class="text-[9px] text-slate-500">ตัวอย่างสีที่ใช้พิมพ์ข้อความ</span>
-                                    <div class="flex items-center gap-2">
-                                        <input type="color" name="color_<?= $fieldKey ?>" value="<?= $colorVal ?>" class="w-6 h-6 bg-transparent border-0 cursor-pointer p-0">
-                                        <input type="text" value="<?= $colorVal ?>" oninput="syncColorPicker(this)" class="w-20 bg-slate-950 border border-slate-850 rounded-lg py-1 px-2 text-[10px] text-slate-350 text-center font-mono">
+
+                                <div id="controls-<?= $typeKey ?>-<?= $fieldKey ?>" class="space-y-3 <?= $parentVal !== 'none' ? 'hidden' : '' ?>">
+                                    <div class="grid grid-cols-2 gap-2.5">
+                                        <div>
+                                            <label class="block text-[9px] text-slate-450 font-bold mb-1">ตำแหน่ง X (px)</label>
+                                            <input type="number" name="x_<?= $fieldKey ?>" value="<?= $xVal ?>" oninput="updateBadges('<?= $typeKey ?>')" class="w-full bg-slate-950 border border-slate-850 rounded-lg py-1.5 px-2.5 text-xs text-slate-350 font-mono">
+                                        </div>
+                                        <div>
+                                            <label class="block text-[9px] text-slate-450 font-bold mb-1">ตำแหน่ง Y (px)</label>
+                                            <input type="number" name="y_<?= $fieldKey ?>" value="<?= $yVal ?>" oninput="updateBadges('<?= $typeKey ?>')" class="w-full bg-slate-950 border border-slate-850 rounded-lg py-1.5 px-2.5 text-xs text-slate-350 font-mono">
+                                        </div>
+                                        <div>
+                                            <label class="block text-[9px] text-slate-450 font-bold mb-1">ขนาดฟอนต์ (px)</label>
+                                            <input type="number" name="size_<?= $fieldKey ?>" value="<?= $sizeVal ?>" class="w-full bg-slate-950 border border-slate-850 rounded-lg py-1.5 px-2.5 text-xs text-slate-350">
+                                        </div>
+                                        <div>
+                                            <label class="block text-[9px] text-slate-450 font-bold mb-1">จัดตำแหน่ง</label>
+                                            <select name="align_<?= $fieldKey ?>" class="w-full bg-slate-950 border border-slate-850 rounded-lg py-1.5 px-2.5 text-xs text-slate-350">
+                                                <option value="left" <?= $alignVal === 'left' ? 'selected' : '' ?>>ชิดซ้าย</option>
+                                                <option value="center" <?= $alignVal === 'center' ? 'selected' : '' ?>>กึ่งกลาง</option>
+                                                <option value="right" <?= $alignVal === 'right' ? 'selected' : '' ?>>ชิดขวา</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center justify-between gap-4 pt-1">
+                                        <span class="text-[9px] text-slate-500">ตัวอย่างสีที่ใช้พิมพ์ข้อความ</span>
+                                        <div class="flex items-center gap-2">
+                                            <input type="color" name="color_<?= $fieldKey ?>" value="<?= $colorVal ?>" class="w-6 h-6 bg-transparent border-0 cursor-pointer p-0">
+                                            <input type="text" value="<?= $colorVal ?>" oninput="syncColorPicker(this)" class="w-20 bg-slate-950 border border-slate-850 rounded-lg py-1 px-2 text-[10px] text-slate-350 text-center font-mono">
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -248,11 +265,145 @@ $types = [
 
 <script>
     let activeTab = 'competition';
+    let draggingBadge = null;
+    let dragStartX = 0;
+    let dragStartY = 0;
+    let badgeStartX = 0;
+    let badgeStartY = 0;
+    let dragCachedRect = null;
+    let dragCachedNaturalWidth = 0;
+    let dragCachedNaturalHeight = 0;
+    let dragType = '';
 
     document.addEventListener('DOMContentLoaded', () => {
         // Initial tab load
         switchTab('competition');
+
+        // Global mousemove for buttery smooth dragging
+        window.addEventListener('mousemove', (e) => {
+            if (!draggingBadge) return;
+            if (!dragCachedNaturalWidth || !dragCachedNaturalHeight) return;
+
+            const dx = e.clientX - dragStartX;
+            const dy = e.clientY - dragStartY;
+
+            const deltaXNatural = (dx / dragCachedRect.width) * dragCachedNaturalWidth;
+            const deltaYNatural = (dy / dragCachedRect.height) * dragCachedNaturalHeight;
+
+            let newX = Math.round(badgeStartX + deltaXNatural);
+            let newY = Math.round(badgeStartY + deltaYNatural);
+
+            // Clamp to image boundaries
+            newX = Math.max(0, Math.min(dragCachedNaturalWidth, newX));
+            newY = Math.max(0, Math.min(dragCachedNaturalHeight, newY));
+
+            const fieldKey = draggingBadge.id.replace(`badge-${dragType}-`, '');
+            const form = document.getElementById(`form-${dragType}`);
+            const xInput = form.querySelector(`input[name="x_${fieldKey}"]`);
+            const yInput = form.querySelector(`input[name="y_${fieldKey}"]`);
+
+            if (xInput) xInput.value = newX;
+            if (yInput) yInput.value = newY;
+
+            // Directly update positioning of the dragged element (buttery smooth 60fps)
+            const displayX = (newX / dragCachedNaturalWidth) * dragCachedRect.width;
+            const displayY = (newY / dragCachedNaturalHeight) * dragCachedRect.height;
+            draggingBadge.style.left = `${displayX}px`;
+            draggingBadge.style.top = `${displayY}px`;
+        });
+
+        window.addEventListener('mouseup', () => {
+            if (draggingBadge) {
+                draggingBadge.classList.remove('dragging');
+                updateBadges(dragType); // Align any children/parents
+                draggingBadge = null;
+                dragType = '';
+            }
+        });
+
+        // Setup mousedown for all preview containers
+        document.querySelectorAll('.preview-container').forEach(container => {
+            const type = container.id.replace('container-', '');
+
+            container.addEventListener('mousedown', (e) => {
+                const badge = e.target.closest('.coordinate-badge');
+                if (!badge) return;
+
+                e.preventDefault();
+                draggingBadge = badge;
+                draggingBadge.classList.add('dragging');
+                dragType = type;
+
+                const fieldKey = badge.id.replace(`badge-${type}-`, '');
+                const form = document.getElementById(`form-${type}`);
+                const xInput = form.querySelector(`input[name="x_${fieldKey}"]`);
+                const yInput = form.querySelector(`input[name="y_${fieldKey}"]`);
+
+                // Set field as active in dropdown
+                const activeSelect = document.getElementById(`active-field-${type}`);
+                if (activeSelect) {
+                    activeSelect.value = fieldKey;
+                }
+
+                // Cache dimensions to avoid layout thrashing during mousemove
+                const img = document.getElementById(`preview-img-${type}`);
+                dragCachedRect = img.getBoundingClientRect();
+                dragCachedNaturalWidth = img.naturalWidth;
+                dragCachedNaturalHeight = img.naturalHeight;
+
+                dragStartX = e.clientX;
+                dragStartY = e.clientY;
+
+                badgeStartX = parseInt(xInput.value) || 0;
+                badgeStartY = parseInt(yInput.value) || 0;
+            });
+
+            // Prevent native HTML5 drag-and-drop behavior on badges
+            container.addEventListener('dragstart', (e) => {
+                if (e.target.closest('.coordinate-badge')) {
+                    e.preventDefault();
+                }
+            });
+        });
+
+        // Set up real-time preview updates when changing control panel inputs
+        ['competition', 'trainer', 'evaluation'].forEach(type => {
+            const form = document.getElementById(`form-${type}`);
+            if (form) {
+                form.querySelectorAll('input, select').forEach(input => {
+                    if (input.name && (
+                        input.name.startsWith('x_') || 
+                        input.name.startsWith('y_') || 
+                        input.name.startsWith('size_') || 
+                        input.name.startsWith('align_') || 
+                        input.name.startsWith('color_') || 
+                        input.name.startsWith('enabled_') ||
+                        input.name.startsWith('parent_')
+                    )) {
+                        input.addEventListener('input', () => updateBadges(type));
+                        input.addEventListener('change', () => updateBadges(type));
+                    }
+                });
+            }
+        });
     });
+
+    function toggleFieldParentControls(type, field) {
+        const form = document.getElementById(`form-${type}`);
+        const parentSelect = form.querySelector(`select[name="parent_${field}"]`);
+        const parentVal = parentSelect ? parentSelect.value : 'none';
+        const controlsDiv = document.getElementById(`controls-${type}-${field}`);
+        
+        if (controlsDiv) {
+            if (parentVal === 'none') {
+                controlsDiv.classList.remove('hidden');
+            } else {
+                controlsDiv.classList.add('hidden');
+            }
+        }
+        
+        updateBadges(type);
+    }
 
     function switchTab(tab) {
         activeTab = tab;
@@ -295,6 +446,9 @@ $types = [
     }
 
     function handleImageClick(event, type) {
+        // Prevent click if we clicked on a badge
+        if (event.target.closest('.coordinate-badge')) return;
+
         const img = document.getElementById(`preview-img-${type}`);
         const rect = img.getBoundingClientRect();
         
@@ -312,11 +466,20 @@ $types = [
             
             // Get currently active field in coordinates panel
             const activeFieldSelect = document.getElementById(`active-field-${type}`);
-            const activeField = activeFieldSelect.value;
+            const activeField = activeFieldSelect ? activeFieldSelect.value : '';
+            if (!activeField) return;
+
+            // If the active field is currently set to append to another field (parent is not 'none'),
+            // we should not update its coordinates because it does not use standalone coordinates.
+            const form = document.getElementById(`form-${type}`);
+            const parentSelect = form.querySelector(`select[name="parent_${activeField}"]`);
+            if (parentSelect && parentSelect.value !== 'none') {
+                return;
+            }
             
             // Update input values
-            const xInput = document.querySelector(`#form-${type} input[name="x_${activeField}"]`);
-            const yInput = document.querySelector(`#form-${type} input[name="y_${activeField}"]`);
+            const xInput = form.querySelector(`input[name="x_${activeField}"]`);
+            const yInput = form.querySelector(`input[name="y_${activeField}"]`);
             
             if (xInput && yInput) {
                 xInput.value = scaledX;
@@ -340,6 +503,8 @@ $types = [
         const picker = input.previousElementSibling;
         if (picker && /^#[0-9A-F]{6}$/i.test(input.value)) {
             picker.value = input.value;
+            const type = input.closest('form').id.replace('form-', '');
+            updateBadges(type);
         }
     }
 
@@ -349,9 +514,35 @@ $types = [
             const textInput = e.target.nextElementSibling;
             if (textInput) {
                 textInput.value = e.target.value;
+                const type = e.target.closest('form').id.replace('form-', '');
+                updateBadges(type);
             }
         });
     });
+
+    function getFieldText(type, fieldKey, form, samples, visited = new Set()) {
+        if (visited.has(fieldKey)) return '';
+        visited.add(fieldKey);
+        
+        let text = samples[fieldKey] || '';
+        
+        const fields = (type === 'competition' || type === 'trainer')
+            ? ['name', 'school', 'level', 'comp', 'rank', 'code']
+            : ['name', 'text', 'date', 'code'];
+            
+        fields.forEach(f => {
+            const parentSelect = form.querySelector(`select[name="parent_${f}"]`);
+            const parentVal = parentSelect ? parentSelect.value : 'none';
+            const enabledInput = form.querySelector(`input[name="enabled_${f}"]`);
+            const isEnabled = enabledInput ? enabledInput.checked : false;
+            
+            if (isEnabled && parentVal === fieldKey) {
+                text += " " + getFieldText(type, f, form, samples, visited);
+            }
+        });
+        
+        return text;
+    }
 
     function updateBadges(type) {
         const img = document.getElementById(`preview-img-${type}`);
@@ -360,36 +551,78 @@ $types = [
         }
 
         const rect = img.getBoundingClientRect();
-        const container = document.getElementById(`container-${type}`);
         const naturalWidth = img.naturalWidth;
         const naturalHeight = img.naturalHeight;
         
         // Find all fields for this type
         const form = document.getElementById(`form-${type}`);
-        const fields = [];
-        if (type === 'competition' || type === 'trainer') {
-            fields.push('name', 'school', 'comp', 'rank', 'code');
-        } else {
-            fields.push('name', 'text', 'date', 'code');
-        }
+        const fields = (type === 'competition' || type === 'trainer')
+            ? ['name', 'school', 'level', 'comp', 'rank', 'code']
+            : ['name', 'text', 'date', 'code'];
+
+        const samples = type === 'competition' ? {
+            name: 'นายสมชาย รักดี',
+            school: 'โรงเรียนวิทยาศาสตร์แสนดี',
+            level: 'ระดับมัธยมศึกษาตอนต้น',
+            comp: 'ประกวดโครงงานวิทยาศาสตร์ประเภททดลอง',
+            rank: 'ได้รับรางวัลชนะเลิศ',
+            code: 'SCI-2026-00042'
+        } : type === 'trainer' ? {
+            name: 'นางสาวสมศรี สอนดี',
+            school: 'โรงเรียนวิทยาศาสตร์แสนดี',
+            level: 'ระดับมัธยมศึกษาตอนต้น',
+            comp: 'ประกวดโครงงานวิทยาศาสตร์ประเภททดลอง',
+            rank: 'ผู้ควบคุมทีม ที่ได้รับรางวัลชนะเลิศ',
+            code: 'SCI-2026-00042'
+        } : {
+            name: 'นายสมคิด ใฝ่เรียน',
+            text: 'ได้ผ่านการประเมินผลการเรียนรู้ด้วยคะแนน 85%',
+            date: '29 มิถุนายน 2569',
+            code: 'SCI-EVAL-0123'
+        };
 
         fields.forEach(field => {
             const enabledInput = form.querySelector(`input[name="enabled_${field}"]`);
             const isEnabled = enabledInput ? enabledInput.checked : false;
             
+            const parentSelect = form.querySelector(`select[name="parent_${field}"]`);
+            const parentVal = parentSelect ? parentSelect.value : 'none';
+
             const badge = document.getElementById(`badge-${type}-${field}`);
             if (!badge) return;
 
-            if (isEnabled) {
+            if (isEnabled && parentVal === 'none') {
                 const xVal = parseInt(form.querySelector(`input[name="x_${field}"]`).value) || 0;
                 const yVal = parseInt(form.querySelector(`input[name="y_${field}"]`).value) || 0;
+                const sizeVal = parseInt(form.querySelector(`input[name="size_${field}"]`).value) || 32;
+                const alignVal = form.querySelector(`select[name="align_${field}"]`).value || 'center';
+                const colorVal = form.querySelector(`input[name="color_${field}"]`).value || '#000000';
+                
+                // Get concatenated text content
+                badge.innerText = getFieldText(type, field, form, samples);
                 
                 // Map from natural coordinates to container coordinates
                 const displayX = (xVal / naturalWidth) * rect.width;
                 const displayY = (yVal / naturalHeight) * rect.height;
+                const displayFontSize = sizeVal * (rect.width / naturalWidth);
 
                 badge.style.left = `${displayX}px`;
                 badge.style.top = `${displayY}px`;
+                badge.style.fontSize = `${displayFontSize}px`;
+                badge.style.color = colorVal;
+                
+                // Set text alignment positioning transform
+                if (alignVal === 'left') {
+                    badge.style.transform = 'translate(0%, -50%)';
+                    badge.style.textAlign = 'left';
+                } else if (alignVal === 'right') {
+                    badge.style.transform = 'translate(-100%, -50%)';
+                    badge.style.textAlign = 'right';
+                } else {
+                    badge.style.transform = 'translate(-50%, -50%)';
+                    badge.style.textAlign = 'center';
+                }
+
                 badge.classList.remove('hidden');
             } else {
                 badge.classList.add('hidden');
@@ -414,7 +647,7 @@ $types = [
 
         // Explicitly handle checkbox fields that are unchecked
         const fields = (type === 'competition' || type === 'trainer')
-            ? ['name', 'school', 'comp', 'rank', 'code']
+            ? ['name', 'school', 'level', 'comp', 'rank', 'code']
             : ['name', 'text', 'date', 'code'];
             
         fields.forEach(field => {

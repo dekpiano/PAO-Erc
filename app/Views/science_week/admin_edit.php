@@ -180,6 +180,26 @@ if (!empty($reg['reg_custom_fields'])) {
                     <input type="text" name="team_name" id="team_name" value="<?= esc(old('team_name', $reg['reg_team_name'] ?: '')) ?>" placeholder="ระบุชื่อทีม..." class="w-full px-4 py-3 neon-input rounded-2xl text-xs sm:text-sm outline-none transition-colors">
                 </div>
 
+                <!-- Selected Level -->
+                <?php
+                $levelLimits = [];
+                if ($comp && !empty($comp['comp_level_limits'])) {
+                    $levelLimits = json_decode($comp['comp_level_limits'], true) ?: [];
+                }
+                if (!empty($levelLimits)):
+                ?>
+                    <div class="space-y-2">
+                        <label for="reg_level" class="block text-xs sm:text-sm form-label">
+                            ระดับชั้นที่สมัครแข่งขัน <span class="text-rose-500">*</span>
+                        </label>
+                        <select name="reg_level" id="reg_level" required class="w-full px-4 py-3 neon-input rounded-2xl text-xs sm:text-sm outline-none transition-colors cursor-pointer">
+                            <?php foreach ($levelLimits as $lvl): ?>
+                                <option value="<?= esc($lvl['level']) ?>" <?= $reg['reg_level'] === $lvl['level'] ? 'selected' : '' ?>><?= esc($lvl['level']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                <?php endif; ?>
+
                 <hr class="border-slate-100 dark:border-slate-800/80 my-2" />
 
                 <!-- Members Section -->

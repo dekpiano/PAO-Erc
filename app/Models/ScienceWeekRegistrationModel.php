@@ -15,6 +15,7 @@ class ScienceWeekRegistrationModel extends Model
     protected $allowedFields    = [
         'reg_code',
         'reg_competition_type',
+        'reg_level',
         'reg_school_name',
         'reg_school_province',
         'reg_team_name',
