@@ -1,6 +1,11 @@
 <?= $this->extend('science_week/layout/admin') ?>
 
 <?= $this->section('content') ?>
+<!-- Flatpickr CSS/JS for Thai Calendar (BE) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/th.js"></script>
+
 <style>
     .neon-input {
         background: rgba(15, 23, 42, 0.7) !important;
@@ -31,38 +36,124 @@
     <p class="text-[10px] sm:text-xs text-slate-500 mt-1 font-medium">ระบุรายละเอียดข้อมูลการแข่งขันเพื่ออัปเดตลงฐานข้อมูล</p>
 </div>
 
+<!-- Form Layout -->
+<form action="<?= !empty($comp) ? base_url('staff/science-week/competitions/update/' . $comp['comp_id']) : base_url('staff/science-week/competitions/store') ?>" method="POST" class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start w-full" enctype="multipart/form-data">
+    <?= csrf_field() ?>
 
+    <!-- Left Column: Main Details & Level Quotas -->
+    <div class="lg:col-span-2 space-y-6">
+        <!-- Main Details Card -->
+        <div class="glass-card rounded-3xl p-6 sm:p-8 bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-6">
+            <h3 class="text-base sm:text-lg font-extrabold text-cyan-400 flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
+                <i data-lucide="info" class="w-5 h-5"></i> รายละเอียดหลักของการแข่งขัน
+            </h3>
 
-<!-- Form Card -->
-<div class="glass-card rounded-3xl p-6 sm:p-8 bg-white dark:bg-slate-900/60 max-w-2xl border border-slate-200 dark:border-slate-800">
-    <form action="<?= !empty($comp) ? base_url('staff/science-week/competitions/update/' . $comp['comp_id']) : base_url('staff/science-week/competitions/store') ?>" method="POST" class="space-y-6" enctype="multipart/form-data">
-        <?= csrf_field() ?>
+            <!-- Competition Name -->
+            <div class="space-y-2">
+                <label for="comp_name" class="block text-sm sm:text-base font-black text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                    <i data-lucide="award" class="w-5 h-5 text-cyan-400"></i> ชื่อประเภทการแข่งขัน <span class="text-rose-500">*</span>
+                </label>
+                <input type="text" name="comp_name" id="comp_name" required value="<?= old('comp_name', $comp['comp_name'] ?? '') ?>" placeholder="เช่น การแข่งขันเขียนโปรแกรมควบคุม..." class="w-full px-4 py-3.5 neon-input rounded-2xl text-xs sm:text-sm font-bold outline-none transition-colors">
+            </div>
 
-        <!-- Competition Name -->
-        <div class="space-y-2">
-            <label for="comp_name" class="block text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-350 flex items-center gap-2">
-                <i data-lucide="award" class="w-4 h-4 text-cyan-400"></i> ชื่อประเภทการแข่งขัน <span class="text-rose-450">*</span>
-            </label>
-            <input type="text" name="comp_name" id="comp_name" required value="<?= old('comp_name', $comp['comp_name'] ?? '') ?>" placeholder="เช่น การแข่งขันเขียนโปรแกรมควบคุม..." class="w-full px-4 py-3 neon-input rounded-2xl text-xs outline-none transition-colors">
+            <!-- Row: Icon and Theme Color -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Icon -->
+                <div class="space-y-2">
+                    <label for="comp_icon" class="block text-sm sm:text-base font-black text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                        <i data-lucide="orbit" class="w-5 h-5 text-purple-400"></i> ไอคอนการแข่งขัน <span class="text-rose-500">*</span>
+                    </label>
+                    <select name="comp_icon" id="comp_icon" class="w-full px-4 py-3.5 neon-input rounded-2xl text-xs sm:text-sm font-bold outline-none transition-colors">
+                        <?php 
+                        $icons = ['award', 'rocket', 'target', 'atom', 'cpu', 'lightbulb', 'palette', 'bot', 'sparkles', 'globe', 'flask-conical', 'help-circle'];
+                        $currentIcon = old('comp_icon', $comp['comp_icon'] ?? 'award');
+                        foreach ($icons as $icon):
+                        ?>
+                            <option value="<?= $icon ?>" <?= $currentIcon == $icon ? 'selected' : '' ?>><?= $icon ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 block mt-1">เลือกสัญลักษณ์ไอคอนที่ตรงกับประเภทกิจกรรม</span>
+                </div>
+
+                <!-- Theme Color -->
+                <div class="space-y-2">
+                    <label for="comp_color" class="block text-sm sm:text-base font-black text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                        <i data-lucide="palette" class="w-5 h-5 text-pink-400"></i> สีธีมตกแต่งป้าย <span class="text-rose-500">*</span>
+                    </label>
+                    <select name="comp_color" id="comp_color" class="w-full px-4 py-3.5 neon-input rounded-2xl text-xs sm:text-sm font-bold outline-none transition-colors">
+                        <?php 
+                        $colors = [
+                            'cyan'    => 'Cyan (ฟ้าสว่าง)',
+                            'purple'  => 'Purple (ม่วง)',
+                            'indigo'  => 'Indigo (น้ำเงินคราม)',
+                            'pink'    => 'Pink (ชมพูหวาน)',
+                            'amber'   => 'Amber (ส้มเหลือง)',
+                            'emerald' => 'Emerald (เขียวมรกต)'
+                        ];
+                        $currentColor = old('comp_color', $comp['comp_color'] ?? 'cyan');
+                        foreach ($colors as $key => $label):
+                        ?>
+                            <option value="<?= $key ?>" <?= $currentColor == $key ? 'selected' : '' ?>><?= $label ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 block mt-1">สีที่แสดงบนหน้าเว็บหลักและบัตรคิวการแข่งขัน</span>
+                </div>
+            </div>
+
+            <!-- Description -->
+            <div class="space-y-2">
+                <label for="comp_description" class="block text-sm sm:text-base font-black text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                    <i data-lucide="align-left" class="w-5 h-5 text-amber-400"></i> คำอธิบายย่อสำหรับการ์ดโชว์หน้าเว็บ
+                </label>
+                <textarea name="comp_description" id="comp_description" rows="4" placeholder="ท้าทายจินตนาการความสามารถด้วย..." class="w-full px-4 py-3.5 neon-input rounded-2xl text-xs sm:text-sm font-bold outline-none transition-colors resize-none"><?= old('comp_description', $comp['comp_description'] ?? '') ?></textarea>
+            </div>
+
+            <!-- Rule File Attachment -->
+            <div class="space-y-2">
+                <label for="comp_rule_file" class="block text-sm sm:text-base font-black text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                    <i data-lucide="file-text" class="w-5 h-5 text-emerald-400"></i> แนบไฟล์กติกาการแข่งขัน (.pdf, .doc, .docx, .zip)
+                </label>
+                <input type="file" name="comp_rule_file" id="comp_rule_file" class="w-full px-4 py-3 neon-input rounded-2xl text-xs sm:text-sm font-bold outline-none transition-colors file:mr-4 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-500/10 file:text-indigo-400 hover:file:bg-indigo-500/20">
+                <?php if (!empty($comp['comp_rule_file'])): ?>
+                    <div class="flex items-center gap-4 text-xs sm:text-sm mt-2 bg-indigo-950/20 p-3 rounded-xl border border-indigo-500/10">
+                        <span class="text-slate-300 font-bold flex items-center gap-1.5">
+                            <i data-lucide="check-circle" class="w-4 h-4 text-emerald-450"></i> 
+                            ไฟล์ปัจจุบัน: <a href="<?= base_url($comp['comp_rule_file']) ?>" target="_blank" class="text-indigo-400 hover:underline font-extrabold">ดาวน์โหลดไฟล์กติกา</a>
+                        </span>
+                        <label class="flex items-center gap-1.5 text-rose-400 font-black cursor-pointer select-none">
+                            <input type="checkbox" name="delete_rule_file" value="1" class="rounded border-rose-500/30 text-rose-500 focus:ring-rose-500 bg-slate-900">
+                            ลบไฟล์กติกาเดิม
+                        </label>
+                    </div>
+                <?php endif; ?>
+            </div>
+
+            <!-- Rule Link URL -->
+            <div class="space-y-2">
+                <label for="comp_rule_link" class="block text-sm sm:text-base font-black text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                    <i data-lucide="link" class="w-5 h-5 text-sky-400"></i> ลิงก์รายละเอียดกติกาภายนอก (เช่น Google Drive, Canva)
+                </label>
+                <input type="url" name="comp_rule_link" id="comp_rule_link" value="<?= old('comp_rule_link', $comp['comp_rule_link'] ?? '') ?>" placeholder="https://drive.google.com/..." class="w-full px-4 py-3.5 neon-input rounded-2xl text-xs sm:text-sm font-bold outline-none transition-colors">
+            </div>
         </div>
 
-        <!-- Level & Quotas per Level -->
-        <?php
-        $levelLimits = [];
-        if (!empty($comp['comp_level_limits'])) {
-            $levelLimits = json_decode($comp['comp_level_limits'], true) ?: [];
-        }
-        ?>
-        <div class="space-y-4 border-t border-slate-200 dark:border-slate-800 pt-4">
-            <div class="flex justify-between items-center">
-                <label class="block text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-350 flex items-center gap-2">
-                    <i data-lucide="graduation-cap" class="w-4 h-4 text-indigo-400"></i> ระดับชั้นและโควตาที่เปิดรับสมัคร (แบ่งตามระดับชั้น) <span class="text-rose-450">*</span>
-                </label>
-                <button type="button" id="add-level-limit-btn" class="px-3 py-1.5 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 font-bold rounded-xl text-xs flex items-center gap-1 transition-all">
-                    <i data-lucide="plus" class="w-3.5 h-3.5"></i> เพิ่มระดับชั้น
+        <!-- Levels and Quotas Card (Moved to Left Side) -->
+        <div class="glass-card rounded-3xl p-6 bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-4">
+            <?php
+            $levelLimits = [];
+            if (!empty($comp['comp_level_limits'])) {
+                $levelLimits = json_decode($comp['comp_level_limits'], true) ?: [];
+            }
+            ?>
+            <div class="flex justify-between items-center pb-2 border-b border-slate-200 dark:border-slate-800">
+                <h3 class="text-base font-extrabold text-indigo-400 flex items-center gap-2">
+                    <i data-lucide="graduation-cap" class="w-5 h-5"></i> ระดับชั้น & โควตารวม
+                </h3>
+                <button type="button" id="add-level-limit-btn" class="px-2.5 py-1.5 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 font-black rounded-xl text-xs flex items-center gap-1 transition-all">
+                    <i data-lucide="plus" class="w-3.5 h-3.5"></i> เพิ่มชั้น
                 </button>
             </div>
-            <p class="text-[10px] text-slate-500">กำหนดระดับชั้นและจำนวนทีมสูงสุดที่เปิดรับสมัคร (ระบุเป็น 0 เพื่อไม่จำกัดจำนวน) *ต้องมีอย่างน้อย 1 ระดับชั้น*</p>
+            <p class="text-xs font-semibold text-slate-500 dark:text-slate-400">ระบุโควตาทีมสูงสุดที่รับสมัครต่อระดับชั้น (0 = ไม่จำกัด)</p>
             
             <div id="level-limits-container" class="space-y-3">
                 <!-- Dynamic level rows will go here -->
@@ -71,142 +162,114 @@
             <!-- Hidden input to store textual list of levels for backward compatibility -->
             <input type="hidden" name="comp_level" id="comp_level" value="<?= old('comp_level', $comp['comp_level'] ?? '') ?>">
         </div>
+    </div>
 
-        <!-- Row: Icon and Theme Color -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <!-- Icon -->
-            <div class="space-y-2">
-                <label for="comp_icon" class="block text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-350 flex items-center gap-2">
-                    <i data-lucide="orbit" class="w-4 h-4 text-purple-400"></i> ไอคอน (ชื่อไอคอน Lucide) <span class="text-rose-450">*</span>
-                </label>
-                <select name="comp_icon" id="comp_icon" class="w-full px-4 py-3 neon-input rounded-2xl text-xs outline-none transition-colors">
-                    <?php 
-                    $icons = ['award', 'rocket', 'target', 'atom', 'cpu', 'lightbulb', 'palette', 'bot', 'sparkles', 'globe', 'flask-conical', 'help-circle'];
-                    $currentIcon = old('comp_icon', $comp['comp_icon'] ?? 'award');
-                    foreach ($icons as $icon):
-                    ?>
-                        <option value="<?= $icon ?>" <?= $currentIcon == $icon ? 'selected' : '' ?>><?= $icon ?></option>
-                    <?php endforeach; ?>
-                </select>
-                <span class="text-[10px] text-slate-500 block">สามารถเลือกไอคอนที่เหมาะสมสำหรับการแข่งขัน</span>
+    <!-- Right Column: Settings & Submit -->
+    <div class="lg:col-span-1 space-y-6">
+        <!-- Settings & Open Status Card -->
+        <div class="glass-card rounded-3xl p-6 bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-5">
+            <h3 class="text-base sm:text-lg font-extrabold text-cyan-400 flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
+                <i data-lucide="settings" class="w-5 h-5"></i> ตั้งค่าการควบคุมระบบ
+            </h3>
+
+            <!-- Registration Date/Time Limits -->
+            <?php 
+            $openTime = '';
+            if (!empty($comp['comp_open_time'])) {
+                $openTime = date('Y-m-d H:i:s', strtotime($comp['comp_open_time']));
+            }
+            $closeTime = '';
+            if (!empty($comp['comp_close_time'])) {
+                $closeTime = date('Y-m-d H:i:s', strtotime($comp['comp_close_time']));
+            }
+            ?>
+            <div class="grid grid-cols-1 gap-4">
+                <!-- Open Time -->
+                <div class="space-y-2">
+                    <label for="comp_open_time" class="block text-sm sm:text-base font-black text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                        <i data-lucide="calendar" class="w-5 h-5 text-emerald-400"></i> วันเวลาเริ่มรับสมัคร (พ.ศ.)
+                    </label>
+                    <input type="text" name="comp_open_time" id="comp_open_time" value="<?= old('comp_open_time', $openTime) ?>" class="datetimepicker-be w-full px-4 py-3.5 neon-input rounded-2xl text-xs sm:text-sm font-bold outline-none transition-colors" placeholder="เลือกวันเวลาเริ่มรับสมัคร...">
+                    <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 block mt-1">ระบบจะเริ่มเปิดให้ปุ่มสมัครกดได้เมื่อถึงเวลาที่กำหนด</span>
+                </div>
+
+                <!-- Close Time -->
+                <div class="space-y-2">
+                    <label for="comp_close_time" class="block text-sm sm:text-base font-black text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                        <i data-lucide="calendar-x" class="w-5 h-5 text-rose-455"></i> วันเวลาสิ้นสุดรับสมัคร (พ.ศ.)
+                    </label>
+                    <input type="text" name="comp_close_time" id="comp_close_time" value="<?= old('comp_close_time', $closeTime) ?>" class="datetimepicker-be w-full px-4 py-3.5 neon-input rounded-2xl text-xs sm:text-sm font-bold outline-none transition-colors" placeholder="เลือกวันเวลาสิ้นสุดรับสมัคร...">
+                    <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 block mt-1">ระบุเวลาหมดเขตรับสมัครของรายการนี้</span>
+                </div>
             </div>
 
-            <!-- Theme Color -->
-            <div class="space-y-2">
-                <label for="comp_color" class="block text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-350 flex items-center gap-2">
-                    <i data-lucide="palette" class="w-4 h-4 text-pink-400"></i> สีธีมตกแต่ง <span class="text-rose-450">*</span>
+            <!-- Manual Status Override -->
+            <div class="space-y-2 pt-2 border-t border-slate-200 dark:border-slate-800">
+                <label for="comp_status" class="block text-sm sm:text-base font-black text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                    <i data-lucide="toggle-left" class="w-5 h-5 text-indigo-400"></i> บังคับปิดรับสมัคร (Override Status) <span class="text-rose-500">*</span>
                 </label>
-                <select name="comp_color" id="comp_color" class="w-full px-4 py-3 neon-input rounded-2xl text-xs outline-none transition-colors">
-                    <?php 
-                    $colors = [
-                        'cyan'    => 'Cyan (ฟ้าสว่าง)',
-                        'purple'  => 'Purple (ม่วง)',
-                        'indigo'  => 'Indigo (น้ำเงินคราม)',
-                        'pink'    => 'Pink (ชมพูหวาน)',
-                        'amber'   => 'Amber (ส้มเหลือง)',
-                        'emerald' => 'Emerald (เขียวมรกต)'
-                    ];
-                    $currentColor = old('comp_color', $comp['comp_color'] ?? 'cyan');
-                    foreach ($colors as $key => $label):
-                    ?>
-                        <option value="<?= $key ?>" <?= $currentColor == $key ? 'selected' : '' ?>><?= $label ?></option>
-                    <?php endforeach; ?>
+                <select name="comp_status" id="comp_status" required class="w-full px-4 py-3.5 neon-input rounded-2xl text-xs sm:text-sm font-bold outline-none transition-colors">
+                    <?php $currentStatus = old('comp_status', $comp['comp_status'] ?? 'open'); ?>
+                    <option value="open" <?= $currentStatus === 'open' ? 'selected' : '' ?>>🟢 ให้งานเป็นไปตามช่วงเวลาปกติ</option>
+                    <option value="closed" <?= $currentStatus === 'closed' ? 'selected' : '' ?>>🔴 บังคับปิดระบบทันที (แมนนวล)</option>
                 </select>
-                <span class="text-[10px] text-slate-500 block">สีที่จะนำไปประดับการ์ดและป้ายของประเภทนั้นๆ</span>
+            </div>
+
+            <!-- Limit Members per Team -->
+            <div class="space-y-2">
+                <label for="comp_member_limit" class="block text-sm sm:text-base font-black text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                    <i data-lucide="user-check" class="w-5 h-5 text-emerald-400"></i> จำนวนสมาชิกสูงสุดต่อทีม
+                </label>
+                <input type="number" name="comp_member_limit" id="comp_member_limit" min="0" value="<?= old('comp_member_limit', $comp['comp_member_limit'] ?? 0) ?>" placeholder="ระบุจำนวน เช่น 3 (ระบุ 0 หากไม่จำกัด)" class="w-full px-4 py-3.5 neon-input rounded-2xl text-xs sm:text-sm font-bold outline-none transition-colors">
+                <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 block mt-1">กำหนดว่า 1 ทีมสามารถใส่รายชื่อสมาชิกได้กี่คน (0 = ไม่จำกัด)</span>
+            </div>
+
+            <!-- Contact Group Link -->
+            <div class="space-y-2">
+                <label for="comp_group_link" class="block text-sm sm:text-base font-black text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                    <i data-lucide="message-square" class="w-5 h-5 text-emerald-500"></i> ลิงก์กลุ่มผู้ประสานงาน (Line OpenChat)
+                </label>
+                <input type="url" name="comp_group_link" id="comp_group_link" value="<?= old('comp_group_link', $comp['comp_group_link'] ?? '') ?>" placeholder="https://line.me/ti/g/..." class="w-full px-4 py-3.5 neon-input rounded-2xl text-xs sm:text-sm font-bold outline-none transition-colors">
+            </div>
+
+            <!-- Contact Group QR Code -->
+            <div class="space-y-2">
+                <label for="comp_group_qr" class="block text-sm sm:text-base font-black text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                    <i data-lucide="qr-code" class="w-5 h-5 text-cyan-400"></i> อัปโหลดรูป QR Code กลุ่มไลน์
+                </label>
+                <input type="file" name="comp_group_qr" id="comp_group_qr" class="w-full px-4 py-2.5 neon-input rounded-2xl text-xs sm:text-sm font-bold outline-none transition-colors file:mr-4 file:py-1 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-500/10 file:text-indigo-400 hover:file:bg-indigo-500/20" accept="image/*">
+                <?php if (!empty($comp['comp_group_qr'])): ?>
+                    <div class="flex items-center gap-4 text-xs sm:text-sm mt-2 bg-indigo-950/20 p-3 rounded-xl border border-indigo-500/10">
+                        <span class="text-slate-300 font-bold flex items-center gap-1.5">
+                            <i data-lucide="check-circle" class="w-4 h-4 text-emerald-455"></i> 
+                            มี QR Code เดิมแล้ว: <a href="<?= base_url($comp['comp_group_qr']) ?>" target="_blank" class="text-indigo-400 hover:underline font-extrabold">ดูรูปภาพ</a>
+                        </span>
+                        <label class="flex items-center gap-1.5 text-rose-455 font-black cursor-pointer select-none">
+                            <input type="checkbox" name="delete_group_qr" value="1" class="rounded border-rose-500/30 text-rose-500 focus:ring-rose-500 bg-slate-900">
+                            ลบ QR Code
+                        </label>
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
 
-        <!-- Limit Members per Team -->
-        <div class="space-y-2">
-            <label for="comp_member_limit" class="block text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-350 flex items-center gap-2">
-                <i data-lucide="user-check" class="w-4 h-4 text-emerald-400"></i> จำนวนสมาชิกผู้เข้าแข่งขันต่อทีมสูงสุด
-            </label>
-            <input type="number" name="comp_member_limit" id="comp_member_limit" min="0" value="<?= old('comp_member_limit', $comp['comp_member_limit'] ?? 0) ?>" placeholder="ระบุจำนวน เช่น 3 (ระบุ 0 หากต้องการให้เพิ่มได้ไม่จำกัด)" class="w-full px-4 py-3 neon-input rounded-2xl text-xs outline-none transition-colors">
-            <span class="text-[10px] text-slate-500 block">ระบุจำนวนผู้เข้าแข่งขันสูงสุดที่อนุญาตให้กรอกในฟอร์มลงทะเบียนต่อ 1 ทีม (ระบุเป็น 0 เพื่อไม่จำกัดจำนวน)</span>
-        </div>
-
-        <!-- Description -->
-        <div class="space-y-2">
-            <label for="comp_description" class="block text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-350 flex items-center gap-2">
-                <i data-lucide="align-left" class="w-4 h-4 text-amber-400"></i> รายละเอียด / คำอธิบายแบบย่อ
-            </label>
-            <textarea name="comp_description" id="comp_description" rows="3" placeholder="ท้าทายจินตนาการความสามารถด้วย..." class="w-full px-4 py-3 neon-input rounded-2xl text-xs outline-none transition-colors resize-none"><?= old('comp_description', $comp['comp_description'] ?? '') ?></textarea>
-        </div>
-
-        <!-- Rule File Attachment -->
-        <div class="space-y-2">
-            <label for="comp_rule_file" class="block text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-350 flex items-center gap-2">
-                <i data-lucide="file-text" class="w-4 h-4 text-emerald-450"></i> แนบไฟล์กติกาการแข่งขัน (.pdf, .doc, .docx, .zip)
-            </label>
-            <input type="file" name="comp_rule_file" id="comp_rule_file" class="w-full px-4 py-2.5 neon-input rounded-2xl text-xs outline-none transition-colors file:mr-4 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-500/10 file:text-indigo-400 hover:file:bg-indigo-500/20">
-            <?php if (!empty($comp['comp_rule_file'])): ?>
-                <div class="flex items-center gap-4 text-xs mt-2 bg-indigo-950/20 p-3 rounded-xl border border-indigo-500/10">
-                    <span class="text-slate-300 flex items-center gap-1.5">
-                        <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i> 
-                        ไฟล์ปัจจุบัน: <a href="<?= base_url($comp['comp_rule_file']) ?>" target="_blank" class="text-indigo-400 hover:underline font-bold">ดาวน์โหลดไฟล์</a>
-                    </span>
-                    <label class="flex items-center gap-1.5 text-rose-400 font-bold cursor-pointer select-none">
-                        <input type="checkbox" name="delete_rule_file" value="1" class="rounded border-rose-500/30 text-rose-500 focus:ring-rose-500 bg-slate-900">
-                        ลบไฟล์กติกาเดิม
-                    </label>
-                </div>
-            <?php endif; ?>
-        </div>
-
-        <!-- Rule Link URL -->
-        <div class="space-y-2">
-            <label for="comp_rule_link" class="block text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-350 flex items-center gap-2">
-                <i data-lucide="link" class="w-4 h-4 text-sky-400"></i> หรือ ใช้ลิงก์รายละเอียดกติกาการแข่งขัน (เช่น Google Drive, เว็บไซต์นอก)
-            </label>
-            <input type="url" name="comp_rule_link" id="comp_rule_link" value="<?= old('comp_rule_link', $comp['comp_rule_link'] ?? '') ?>" placeholder="https://drive.google.com/..." class="w-full px-4 py-3 neon-input rounded-2xl text-xs outline-none transition-colors">
-        </div>
-
-        <!-- Contact Group Link -->
-        <div class="space-y-2">
-            <label for="comp_group_link" class="block text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-350 flex items-center gap-2">
-                <i data-lucide="message-square" class="w-4 h-4 text-emerald-450"></i> ลิงก์กลุ่มสำหรับติดต่อสื่อสาร (เช่น OpenChat, Line Group)
-            </label>
-            <input type="url" name="comp_group_link" id="comp_group_link" value="<?= old('comp_group_link', $comp['comp_group_link'] ?? '') ?>" placeholder="https://line.me/ti/g/..." class="w-full px-4 py-3 neon-input rounded-2xl text-xs outline-none transition-colors">
-        </div>
-
-        <!-- Contact Group QR Code -->
-        <div class="space-y-2">
-            <label for="comp_group_qr" class="block text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-350 flex items-center gap-2">
-                <i data-lucide="qr-code" class="w-4 h-4 text-cyan-455"></i> อัปโหลดรูปภาพ QR Code กลุ่มสำหรับแสกนเข้าร่วมกลุ่ม
-            </label>
-            <input type="file" name="comp_group_qr" id="comp_group_qr" class="w-full px-4 py-2.5 neon-input rounded-2xl text-xs outline-none transition-colors file:mr-4 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-500/10 file:text-indigo-400 hover:file:bg-indigo-500/20" accept="image/*">
-            <?php if (!empty($comp['comp_group_qr'])): ?>
-                <div class="flex items-center gap-4 text-xs mt-2 bg-indigo-950/20 p-3 rounded-xl border border-indigo-500/10">
-                    <span class="text-slate-300 flex items-center gap-1.5">
-                        <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i> 
-                        รูปภาพ QR Code ปัจจุบัน: 
-                        <a href="<?= base_url($comp['comp_group_qr']) ?>" target="_blank" class="text-indigo-400 hover:underline font-bold">เปิดดูรูปภาพ</a>
-                    </span>
-                    <label class="flex items-center gap-1.5 text-rose-400 font-bold cursor-pointer select-none">
-                        <input type="checkbox" name="delete_group_qr" value="1" class="rounded border-rose-500/30 text-rose-500 focus:ring-rose-500 bg-slate-900">
-                        ลบ QR Code เดิม
-                    </label>
-                </div>
-            <?php endif; ?>
-        </div>
-
-        <!-- Custom Fields Section -->
-        <?php
-        $customFields = [];
-        if (!empty($comp['comp_custom_fields'])) {
-            $customFields = json_decode($comp['comp_custom_fields'], true) ?: [];
-        }
-        ?>
-        <div class="space-y-4 border-t border-slate-200 dark:border-slate-800 pt-6">
-            <div class="flex justify-between items-center">
-                <label class="block text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-350 flex items-center gap-2">
-                    <i data-lucide="list-plus" class="w-4 h-4 text-indigo-400"></i> ฟิลด์ข้อมูลเพิ่มเติมสำหรับผู้สมัคร (Custom Fields)
-                </label>
-                <button type="button" id="add-field-btn" class="px-3 py-1.5 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 font-bold rounded-xl text-xs flex items-center gap-1 transition-all">
-                    <i data-lucide="plus" class="w-3.5 h-3.5"></i> เพิ่มฟิลด์คำถาม
+        <!-- Custom Fields Card -->
+        <div class="glass-card rounded-3xl p-6 bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-4">
+            <?php
+            $customFields = [];
+            if (!empty($comp['comp_custom_fields'])) {
+                $customFields = json_decode($comp['comp_custom_fields'], true) ?: [];
+            }
+            ?>
+            <div class="flex justify-between items-center pb-2 border-b border-slate-200 dark:border-slate-800">
+                <h3 class="text-base font-extrabold text-purple-400 flex items-center gap-2">
+                    <i data-lucide="list-plus" class="w-5 h-5"></i> ฟิลด์ข้อคำถามเพิ่มเติม
+                </h3>
+                <button type="button" id="add-field-btn" class="px-2.5 py-1.5 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 font-black rounded-xl text-xs flex items-center gap-1 transition-all">
+                    <i data-lucide="plus" class="w-3.5 h-3.5"></i> เพิ่มข้อคำถาม
                 </button>
             </div>
-            <p class="text-[10px] text-slate-500">คุณสามารถเพิ่มฟิลด์คำถามที่ต้องการให้ผู้สมัครกรอกข้อมูลเพิ่มเติม (เช่น ไซส์เสื้อ, ลิงก์วิดีโอผลงาน, แนบรูปภาพ)</p>
+            <p class="text-xs font-semibold text-slate-500 dark:text-slate-400">ใช้ถามคำถามเฉพาะสำหรับการแข่งขันนี้ (เช่น ขนาดเสื้อ, ลิงก์คลิปวิดีโอ)</p>
             
             <div id="fields-container" class="space-y-4">
                 <!-- Dynamic custom fields config items will go here -->
@@ -214,11 +277,11 @@
         </div>
 
         <!-- Submit Button -->
-        <button type="submit" class="w-full py-4 text-white font-bold rounded-2xl bg-gradient-to-r from-cyan-500 to-indigo-500 hover:from-cyan-600 hover:to-indigo-600 shadow-lg shadow-indigo-950/20 transition-all flex items-center justify-center gap-2">
-            <i data-lucide="save" class="w-4 h-4"></i> บันทึกข้อมูลประเภทการแข่งขัน
+        <button type="submit" class="w-full py-4 text-white font-extrabold rounded-2xl bg-gradient-to-r from-cyan-500 to-indigo-500 hover:from-cyan-600 hover:to-indigo-600 shadow-lg shadow-indigo-950/20 hover:shadow-cyan-500/10 transition-all duration-300 flex items-center justify-center gap-2 text-sm sm:text-base">
+            <i data-lucide="save" class="w-5 h-5"></i> บันทึกข้อมูลประเภทการแข่งขัน
         </button>
-    </form>
-</div>
+    </div>
+</form>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -373,10 +436,60 @@ document.addEventListener('DOMContentLoaded', function() {
             addFieldRow(field);
         });
     }
-    
+
     addBtn.addEventListener('click', () => {
         addFieldRow();
     });
+
+    // Initialize BE Datetimepicker (Flatpickr)
+    const fpConfig = {
+        enableTime: true,
+        time_24hr: true,
+        dateFormat: "Y-m-d H:i:s",
+        altInput: true,
+        altFormat: "d/m/Y H:i",
+        locale: "th",
+        onReady: (selectedDates, dateStr, instance) => {
+            applyBE(instance);
+        },
+        onValueUpdate: (selectedDates, dateStr, instance) => {
+            applyBE(instance);
+        },
+        onOpen: (selectedDates, dateStr, instance) => {
+            applyBE(instance);
+        },
+        onMonthChange: (selectedDates, dateStr, instance) => {
+            setTimeout(() => applyBE(instance), 1);
+        },
+        onYearChange: (selectedDates, dateStr, instance) => {
+            setTimeout(() => applyBE(instance), 1);
+        }
+    };
+    
+    const fpInstances = flatpickr(".datetimepicker-be", fpConfig);
+    if (Array.isArray(fpInstances)) {
+        fpInstances.forEach(instance => applyBE(instance));
+    } else if (fpInstances) {
+        applyBE(fpInstances);
+    }
+
+    function applyBE(instance) {
+        if (!instance) return;
+        const years = instance.calendarContainer ? instance.calendarContainer.querySelectorAll(".cur-year") : [];
+        years.forEach(y => {
+            let val = parseInt(y.value);
+            if (val > 0 && val < 2400) y.value = val + 543;
+        });
+        if (instance.altInput && instance.selectedDates.length > 0) {
+            const d = instance.selectedDates[0];
+            const day = d.getDate().toString().padStart(2, '0');
+            const month = (d.getMonth() + 1).toString().padStart(2, '0');
+            const year = d.getFullYear() + 543;
+            const hours = d.getHours().toString().padStart(2, '0');
+            const minutes = d.getMinutes().toString().padStart(2, '0');
+            instance.altInput.value = `${day}/${month}/${year} ${hours}:${minutes}`;
+        }
+    }
 });
 </script>
 <?= $this->endSection() ?>

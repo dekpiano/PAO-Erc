@@ -11,14 +11,21 @@
     }
     .neon-input-sci {
         background: rgba(15, 23, 42, 0.8) !important;
-        border: 1px solid rgba(99, 102, 241, 0.3) !important;
+        border: 1px solid rgba(99, 102, 241, 0.45) !important;
         color: #f1f5f9 !important;
+        font-size: 15px !important;
+        font-weight: 700 !important;
         transition: all 0.3s ease;
     }
     .neon-input-sci:focus {
         border-color: #22d3ee !important;
         box-shadow: 0 0 15px rgba(34, 211, 238, 0.25) !important;
         outline: none;
+    }
+    .neon-input-sci option {
+        background-color: #0f172a;
+        color: #ffffff;
+        font-size: 15px !important;
     }
     .custom-modal {
         background: rgba(15, 23, 42, 0.95);
@@ -50,6 +57,7 @@
                 <tr class="border-b border-slate-800 bg-slate-950/50">
                     <th class="p-6 text-xs font-bold text-slate-400 uppercase tracking-widest">ชื่อ-นามสกุล</th>
                     <th class="p-6 text-xs font-bold text-slate-400 uppercase tracking-widest">สถานะสิทธิ์การใช้งาน</th>
+                    <th class="p-6 text-xs font-bold text-slate-400 uppercase tracking-widest">ประเภทการแข่งขันที่ดูแล</th>
                     <th class="p-6 text-xs font-bold text-slate-400 uppercase tracking-widest">อีเมลสำหรับ Google Login</th>
                     <th class="p-6 text-center text-xs font-bold text-slate-400 uppercase tracking-widest">จัดการ</th>
                 </tr>
@@ -57,7 +65,7 @@
             <tbody class="divide-y divide-slate-800/60">
                 <?php if (empty($users)): ?>
                     <tr>
-                        <td colspan="4" class="p-16 text-center">
+                        <td colspan="5" class="p-16 text-center">
                             <i data-lucide="users" class="w-12 h-12 text-slate-600 mx-auto mb-3 opacity-40"></i>
                             <p class="text-xs text-slate-500 font-medium">ยังไม่มีการเพิ่มรายชื่อเจ้าหน้าที่วิทยาศาสตร์</p>
                         </td>
@@ -89,6 +97,28 @@
                                         echo '<span class="px-2.5 py-1 rounded-xl text-[10px] font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20">ผู้ดูแลระบบ (Admin)</span>';
                                     } else {
                                         echo '<span class="px-2.5 py-1 rounded-xl text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">เจ้าหน้าที่ระบบ (Staff)</span>';
+                                    }
+                                ?>
+                            </td>
+                            <td class="p-6 text-xs">
+                                <?php 
+                                    $roles = $user['u_role'] ?? '';
+                                    if (strpos($roles, 'superadmin') !== false || strpos($roles, 'admin') !== false) {
+                                        echo '<span class="text-slate-400 font-semibold italic">จัดการได้ทุกประเภท</span>';
+                                    } else {
+                                        $allowedComps = [];
+                                        if (!empty($user['u_science_week_competitions'])) {
+                                            $allowedComps = json_decode($user['u_science_week_competitions'], true) ?: [];
+                                        }
+                                        if (empty($allowedComps)) {
+                                            echo '<span class="text-rose-400 font-bold bg-rose-500/10 border border-rose-500/20 px-2.5 py-1 rounded-xl text-[10px]">ยังไม่ได้ระบุสิทธิ์</span>';
+                                        } else {
+                                            echo '<div class="flex flex-wrap gap-1.5 max-w-xs">';
+                                            foreach ($allowedComps as $compName) {
+                                                echo '<span class="bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 text-[10px] font-bold px-2 py-0.5 rounded-lg truncate" title="' . esc($compName) . '">' . esc($compName) . '</span>';
+                                            }
+                                            echo '</div>';
+                                        }
                                     }
                                 ?>
                             </td>
@@ -133,24 +163,41 @@
             <div class="space-y-4">
                 <!-- Fullname -->
                 <div>
-                    <label for="field_u_fullname" class="block text-[10px] sm:text-xs font-bold text-slate-350 mb-2">ชื่อ-นามสกุล <span class="text-rose-455">*</span></label>
-                    <input type="text" name="u_fullname" id="field_u_fullname" required class="w-full px-4 py-3 text-xs rounded-2xl neon-input-sci outline-none">
+                    <label for="field_u_fullname" class="block text-xs sm:text-sm font-black text-slate-200 mb-2">ชื่อ-นามสกุล <span class="text-rose-455">*</span></label>
+                    <input type="text" name="u_fullname" id="field_u_fullname" required class="w-full px-4 py-3.5 text-sm font-bold rounded-2xl neon-input-sci outline-none">
                 </div>
 
                 <!-- Email -->
                 <div>
-                    <label for="field_u_email" class="block text-[10px] sm:text-xs font-bold text-slate-350 mb-2">อีเมล (สำหรับ Google Login) <span class="text-rose-455">*</span></label>
-                    <input type="email" name="u_email" id="field_u_email" required class="w-full px-4 py-3 text-xs rounded-2xl neon-input-sci outline-none" placeholder="example@gmail.com หรือเมลโดเมนองค์กร">
+                    <label for="field_u_email" class="block text-xs sm:text-sm font-black text-slate-200 mb-2">อีเมล (สำหรับ Google Login) <span class="text-rose-455">*</span></label>
+                    <input type="email" name="u_email" id="field_u_email" required class="w-full px-4 py-3.5 text-sm font-bold rounded-2xl neon-input-sci outline-none" placeholder="example@gmail.com หรือเมลโดเมนองค์กร">
                 </div>
 
                 <!-- Status/Role Selection -->
                 <div>
-                    <label for="field_u_role" class="block text-[10px] sm:text-xs font-bold text-slate-350 mb-2">สถานะสิทธิ์การใช้งาน <span class="text-rose-455">*</span></label>
-                    <select name="u_role" id="field_u_role" required class="w-full px-4 py-3 text-xs rounded-2xl neon-input-sci outline-none">
+                    <label for="field_u_role" class="block text-xs sm:text-sm font-black text-slate-200 mb-2">สถานะสิทธิ์การใช้งาน <span class="text-rose-455">*</span></label>
+                    <select name="u_role" id="field_u_role" required onchange="toggleCompSelection()" class="w-full px-4 py-3.5 text-sm font-bold rounded-2xl neon-input-sci outline-none">
                         <option value="science_week">เจ้าหน้าที่ระบบ (Staff)</option>
                         <option value="science_week,admin">ผู้ดูแลระบบ (Admin)</option>
                         <option value="superadmin">ผู้ดูแลระบบสูงสุด (Superadmin)</option>
                     </select>
+                </div>
+
+                <!-- Allowed Competitions (Only shown for Staff role) -->
+                <div id="allowed_competitions_container" class="hidden">
+                    <label class="block text-xs sm:text-sm font-black text-slate-200 mb-2">ประเภทการแข่งขันที่จัดการได้</label>
+                    <div class="space-y-2 max-h-48 overflow-y-auto p-4 rounded-2xl bg-slate-900/50 border border-slate-800 custom-scrollbar">
+                        <?php if (empty($competitions)): ?>
+                            <p class="text-xs text-slate-400">ไม่มีรายการประเภทการแข่งขันในระบบ</p>
+                        <?php else: ?>
+                            <?php foreach ($competitions as $comp): ?>
+                                <label class="flex items-center gap-2.5 text-sm text-slate-200 cursor-pointer py-1.5 hover:text-white transition-colors">
+                                    <input type="checkbox" name="allowed_competitions[]" value="<?= esc($comp['comp_name']) ?>" class="comp-checkbox w-4.5 h-4.5 rounded border-slate-700 bg-slate-950 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-slate-950">
+                                    <span><?= esc($comp['comp_name']) ?> <span class="text-[10px] text-slate-400 font-medium">(<?= esc($comp['comp_level']) ?>)</span></span>
+                                </label>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </div>
                 </div>
             </div>
 
@@ -166,11 +213,25 @@
 <script>
     let isEditMode = false;
 
+    function toggleCompSelection() {
+        const role = document.getElementById('field_u_role').value;
+        const container = document.getElementById('allowed_competitions_container');
+        if (role === 'science_week') {
+            container.classList.remove('hidden');
+        } else {
+            container.classList.add('hidden');
+        }
+    }
+
     function openAddModal() {
         isEditMode = false;
         document.getElementById('modalTitle').querySelector('span').innerText = 'เพิ่มเจ้าหน้าที่วิทยาศาสตร์';
         document.getElementById('userForm').reset();
         document.getElementById('field_u_id').value = '';
+
+        // Reset all competition checkboxes
+        document.querySelectorAll('.comp-checkbox').forEach(cb => cb.checked = false);
+        toggleCompSelection();
 
         document.getElementById('userModal').classList.remove('hidden');
     }
@@ -194,6 +255,22 @@
             }
         }
         document.getElementById('field_u_role').value = roleVal;
+
+        // Reset and check assigned competitions
+        document.querySelectorAll('.comp-checkbox').forEach(cb => cb.checked = false);
+        if (user.u_science_week_competitions) {
+            try {
+                let allowedComps = JSON.parse(user.u_science_week_competitions) || [];
+                allowedComps.forEach(compName => {
+                    let cb = document.querySelector(`.comp-checkbox[value="${compName}"]`);
+                    if (cb) cb.checked = true;
+                });
+            } catch(e) {
+                // Fail silently or handle string
+            }
+        }
+
+        toggleCompSelection();
 
         document.getElementById('userModal').classList.remove('hidden');
     }

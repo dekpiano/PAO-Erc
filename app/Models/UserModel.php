@@ -28,6 +28,7 @@ class UserModel extends Model
         'u_sort',
         'u_status',
         'u_role',
+        'u_science_week_competitions',
         'u_id_card', 
         'u_birthday', 
         'u_blood_type', 

@@ -96,6 +96,7 @@ if (!empty($registrations)) {
                                     <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 w-1/5">สมาชิกในทีม</th>
                                     <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 text-center w-[100px]">คะแนนดิบ</th>
                                     <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 w-1/5">อันดับรางวัล</th>
+                                    <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 text-center w-[130px]">ผู้บันทึก</th>
                                     <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 text-center w-[150px]">จัดการ</th>
                                 </tr>
                             </thead>
@@ -136,6 +137,17 @@ if (!empty($registrations)) {
                                                 <span class="px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 text-[10px] font-bold tracking-wider inline-block">
                                                     ยังไม่ได้รับรางวัล
                                                 </span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-center">
+                                            <?php $updatedBy = $reg['reg_updated_by'] ?? null; ?>
+                                            <?php if (!empty($updatedBy)): ?>
+                                                <span class="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center justify-center gap-1">
+                                                    <i data-lucide="user-check" class="w-3 h-3 text-emerald-500"></i>
+                                                    <?= esc($updatedBy) ?>
+                                                </span>
+                                            <?php else: ?>
+                                                <span class="text-[10px] text-slate-400 italic">-</span>
                                             <?php endif; ?>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-center text-xs">

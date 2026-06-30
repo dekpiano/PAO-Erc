@@ -150,7 +150,7 @@
                                     </span>
                                 <?php elseif ($reg['reg_status'] === 'rejected'): ?>
                                     <span class="px-2.5 py-1 rounded-full bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-100 dark:border-rose-800/30 text-[9px] font-black uppercase tracking-widest flex items-center gap-1 w-max">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> ปฏิเสธ/ไม่ผ่าน
+                                        <span class="w-1.5 h-1.5 rounded-full bg-rose-505"></span> ปฏิเสธ/ไม่ผ่าน
                                     </span>
                                 <?php else: ?>
                                     <span class="px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-100 dark:border-amber-800/30 text-[9px] font-black uppercase tracking-widest flex items-center gap-1 w-max">
@@ -160,6 +160,9 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-center text-xs">
                                 <div class="flex items-center justify-center gap-2">
+                                    <button onclick="viewRegDetails(<?= $reg['reg_id'] ?>)" class="p-1.5 bg-indigo-50 hover:bg-indigo-600 text-indigo-600 hover:text-white rounded-lg border border-indigo-100 dark:border-slate-800 transition-all cursor-pointer" title="ดูข้อมูลทั้งหมด">
+                                        <i data-lucide="eye" class="w-4 h-4"></i>
+                                    </button>
                                     <a href="<?= base_url('staff/science-week/edit/' . $reg['reg_id']) ?>" class="p-1.5 bg-blue-50 hover:bg-blue-650 text-blue-600 hover:text-white rounded-lg border border-blue-100 dark:border-slate-800 transition-all" title="แก้ไขข้อมูลผู้สมัคร">
                                         <i data-lucide="edit-3" class="w-4 h-4"></i>
                                     </a>
@@ -186,7 +189,165 @@
     <?php endif; ?>
 </div>
 
+<!-- Registration Info Modal -->
+<div id="viewRegModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[70] hidden flex items-center justify-center p-4 overflow-y-auto">
+    <div class="glass-card w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl border border-slate-800 my-auto">
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-slate-900 to-indigo-950 px-6 py-5 border-b border-slate-800 flex justify-between items-center text-white">
+            <div>
+                <h3 class="text-base sm:text-lg font-black flex items-center gap-2">
+                    <i data-lucide="file-text" class="w-5 h-5 text-cyan-400"></i> รายละเอียดใบสมัคร <span id="modal-reg-code" class="text-cyan-400 font-mono"></span>
+                </h3>
+            </div>
+            <button onclick="closeRegModal()" class="text-slate-400 hover:text-white transition-colors cursor-pointer">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+        </div>
+
+        <!-- Body -->
+        <div class="p-6 space-y-5 max-h-[70vh] overflow-y-auto custom-scrollbar text-slate-300 text-sm">
+            <!-- Competition Type -->
+            <div class="space-y-1">
+                <span class="text-[10px] font-black text-slate-500 uppercase tracking-wider block">ประเภทการแข่งขัน</span>
+                <div id="modal-comp-type" class="text-sm font-black text-white"></div>
+                <div id="modal-level" class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 mt-1"></div>
+            </div>
+
+            <!-- School & Team -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-slate-800/80 pt-4">
+                <div>
+                    <span class="text-[10px] font-black text-slate-500 uppercase tracking-wider block">โรงเรียน / สถาบันศึกษา</span>
+                    <div id="modal-school-name" class="font-extrabold text-white"></div>
+                </div>
+                <div>
+                    <span class="text-[10px] font-black text-slate-500 uppercase tracking-wider block">ชื่อทีม</span>
+                    <div id="modal-team-name" class="font-extrabold text-white"></div>
+                </div>
+            </div>
+
+            <!-- Members & Advisors -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-slate-800/80 pt-4">
+                <div>
+                    <span class="text-[10px] font-black text-indigo-400 uppercase tracking-wider block mb-2">รายชื่อผู้เข้าแข่งขัน</span>
+                    <ol id="modal-members-list" class="list-decimal pl-4 space-y-1 font-semibold text-slate-200"></ol>
+                </div>
+                <div>
+                    <span class="text-[10px] font-black text-purple-400 uppercase tracking-wider block mb-2">อาจารย์ที่ปรึกษา</span>
+                    <ol id="modal-advisors-list" class="list-decimal pl-4 space-y-1 font-semibold text-slate-200"></ol>
+                </div>
+            </div>
+
+            <!-- Contact -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-slate-800/80 pt-4">
+                <div>
+                    <span class="text-[10px] font-black text-slate-500 uppercase tracking-wider block">เบอร์โทรศัพท์</span>
+                    <div id="modal-phone" class="font-extrabold text-white font-mono"></div>
+                </div>
+                <div>
+                    <span class="text-[10px] font-black text-slate-500 uppercase tracking-wider block">อีเมล</span>
+                    <div id="modal-email" class="font-extrabold text-white font-mono"></div>
+                </div>
+            </div>
+
+            <!-- Custom Fields Answers -->
+            <div id="modal-custom-container" class="border-t border-slate-800/80 pt-4 space-y-3 hidden">
+                <span class="text-[10px] font-black text-blue-400 uppercase tracking-wider block">ข้อมูลตอบกลับคำถามพิเศษ</span>
+                <div id="modal-custom-fields" class="grid grid-cols-1 gap-2.5"></div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="px-6 py-4 bg-slate-950 border-t border-slate-800 flex justify-end gap-3">
+            <button onclick="closeRegModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 font-bold text-xs rounded-xl transition-all cursor-pointer">
+                ปิดหน้าต่าง
+            </button>
+        </div>
+    </div>
+</div>
+
 <script>
+    // Embed registrations dataset
+    const allRegistrations = <?= json_encode($registrations) ?>;
+
+    function viewRegDetails(id) {
+        const reg = allRegistrations.find(r => parseInt(r.reg_id) === parseInt(id));
+        if (!reg) return;
+
+        // Populate fields
+        document.getElementById('modal-reg-code').textContent = '(' + reg.reg_code + ')';
+        document.getElementById('modal-comp-type').textContent = reg.reg_competition_type;
+        document.getElementById('modal-level').textContent = reg.reg_level || 'ทุกระดับชั้น';
+        document.getElementById('modal-school-name').textContent = reg.reg_school_name + (reg.reg_school_province ? ' (' + reg.reg_school_province + ')' : '');
+        document.getElementById('modal-team-name').textContent = reg.reg_team_name || 'ทั่วไป (ไม่มีชื่อทีม)';
+        document.getElementById('modal-phone').textContent = reg.reg_contact_phone || 'ไม่ได้ระบุ';
+        document.getElementById('modal-email').textContent = reg.reg_contact_email || 'ไม่ได้ระบุ';
+
+        // Populate members
+        const membersList = document.getElementById('modal-members-list');
+        membersList.innerHTML = '';
+        const members = JSON.parse(reg.reg_members || '[]');
+        members.forEach(m => {
+            const li = document.createElement('li');
+            li.textContent = m;
+            membersList.appendChild(li);
+        });
+
+        // Populate advisors
+        const advisorsList = document.getElementById('modal-advisors-list');
+        advisorsList.innerHTML = '';
+        const advisors = JSON.parse(reg.reg_advisors || '[]');
+        if (advisors.length > 0) {
+            advisors.forEach(a => {
+                const li = document.createElement('li');
+                li.textContent = a;
+                advisorsList.appendChild(li);
+            });
+        } else {
+            advisorsList.innerHTML = '<span class="text-xs text-slate-500 italic font-normal">ไม่มีข้อมูลอาจารย์ที่ปรึกษา</span>';
+        }
+
+        // Custom Fields Answers
+        const customContainer = document.getElementById('modal-custom-container');
+        const customFieldsDiv = document.getElementById('modal-custom-fields');
+        customFieldsDiv.innerHTML = '';
+        const customFields = JSON.parse(reg.reg_custom_fields || '{}');
+
+        if (Object.keys(customFields).length > 0) {
+            customContainer.classList.remove('hidden');
+            for (const [key, val] of Object.entries(customFields)) {
+                const row = document.createElement('div');
+                row.className = 'p-3 rounded-xl border border-slate-800 bg-slate-900/40 text-xs';
+                
+                let valueHtml = '';
+                if (!val) {
+                    valueHtml = '<span class="text-slate-500 italic">ไม่ได้ระบุ</span>';
+                } else if (typeof val === 'string' && val.startsWith('uploads/science_week/')) {
+                    valueHtml = `<a href="<?= base_url() ?>${val}" target="_blank" class="text-indigo-400 hover:underline font-extrabold flex items-center gap-1"><i data-lucide="external-link" class="w-3.5 h-3.5"></i> ดาวน์โหลด/เปิดดูไฟล์แนบ</a>`;
+                } else if (typeof val === 'string' && (val.startsWith('http://') || val.startsWith('https://'))) {
+                    valueHtml = `<a href="${val}" target="_blank" class="text-indigo-400 hover:underline font-extrabold flex items-center gap-1"><i data-lucide="external-link" class="w-3.5 h-3.5"></i> เปิดลิงก์ภายนอก</a>`;
+                } else {
+                    valueHtml = `<span class="text-slate-200 font-bold">${val}</span>`;
+                }
+
+                row.innerHTML = `
+                    <span class="block text-[10px] text-slate-500 font-bold mb-1">${key}</span>
+                    <div>${valueHtml}</div>
+                `;
+                customFieldsDiv.appendChild(row);
+            }
+        } else {
+            customContainer.classList.add('hidden');
+        }
+
+        // Open modal
+        document.getElementById('viewRegModal').classList.remove('hidden');
+        lucide.createIcons();
+    }
+
+    function closeRegModal() {
+        document.getElementById('viewRegModal').classList.add('hidden');
+    }
+
     function updateRegStatus(id, newStatus) {
         let actionText = newStatus === 'approved' ? 'อนุมัติผู้สมัครรายนี้?' : 'ปฏิเสธผู้สมัครรายนี้?';
         let confirmBtnColor = newStatus === 'approved' ? '#10b981' : '#ef4444';

@@ -3,39 +3,33 @@
 <?= $this->section('content') ?>
 <style>
     .neon-input {
-        background-color: #ffffff !important;
-        border: 1px solid #cbd5e1 !important;
-        color: #1e293b !important;
-        transition: all 0.2s ease;
-    }
-    .dark .neon-input {
-        background-color: #1e293b !important;
-        border: 1px solid #475569 !important;
+        background-color: #0f172a !important; /* Always dark background for dark theme */
+        border: 1.5px solid #475569 !important;
         color: #f8fafc !important;
+        font-weight: 750 !important;
+        transition: all 0.2s ease;
     }
     .neon-input:focus {
         border-color: #3b82f6 !important;
-        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15) !important;
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.25) !important;
         outline: none;
     }
     .neon-input option {
-        background-color: #ffffff;
-        color: #1e293b;
-    }
-    .dark .neon-input option {
-        background-color: #1e293b;
+        background-color: #0f172a;
         color: #f8fafc;
+        font-weight: 750;
     }
     .neon-input::placeholder {
-        color: #94a3b8 !important;
+        color: #64748b !important;
+        font-weight: 600;
     }
     .form-label {
-        color: #475569 !important;
-        font-weight: 700;
-        font-size: 0.825rem;
-    }
-    .dark .form-label {
-        color: #cbd5e1 !important;
+        color: #e2e8f0 !important; /* Bright label color for dark background */
+        font-weight: 900;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
     }
 </style>
 
@@ -91,15 +85,15 @@ if (!empty($reg['reg_custom_fields'])) {
 
 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 sm:gap-4 mb-6 w-full">
     <div class="min-w-0 w-full md:w-auto">
-        <h2 class="text-lg sm:text-2xl md:text-3xl font-extrabold text-slate-800 dark:text-white tracking-tight tech-glow flex items-center gap-2 sm:gap-3">
+        <h2 class="text-xl sm:text-2xl md:text-3xl font-black text-white tracking-tight tech-glow flex items-center gap-2 sm:gap-3">
             <span>แก้ไขข้อมูลผู้สมัคร (<?= $reg['reg_code'] ?>)</span>
         </h2>
-        <p class="text-[10px] sm:text-xs text-slate-500 mt-1 font-medium">แก้ไขรายละเอียดใบสมัคร สมาชิกกลุ่ม และความถูกต้องของเอกสาร</p>
+        <p class="text-xs text-slate-400 mt-1 font-bold">แก้ไขรายละเอียดใบสมัคร สมาชิกกลุ่ม และความถูกต้องของเอกสาร</p>
     </div>
     
     <div class="flex flex-wrap gap-3 w-full md:w-auto">
-        <a href="<?= base_url('staff/science-week') ?>" class="w-full md:w-auto justify-center px-4 py-2.5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-250 hover:text-slate-900 font-bold text-xs sm:text-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors flex items-center gap-2 shadow-sm">
-            <i data-lucide="arrow-left" class="w-4 h-4 text-slate-500"></i> ย้อนกลับไปหน้าจัดการ
+        <a href="<?= base_url('staff/science-week') ?>" class="w-full md:w-auto justify-center px-4 py-3 rounded-2xl bg-slate-900 border-2 border-slate-700 text-slate-200 hover:text-white font-extrabold text-xs sm:text-sm hover:bg-slate-800 transition-colors flex items-center gap-2 shadow-sm">
+            <i data-lucide="arrow-left" class="w-4 h-4 text-slate-300"></i> ย้อนกลับไปหน้าจัดการ
         </a>
     </div>
 </div>
@@ -107,15 +101,15 @@ if (!empty($reg['reg_custom_fields'])) {
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
     <!-- Left Column: Form Details -->
     <div class="lg:col-span-2 space-y-6">
-        <div class="glass-card p-6 sm:p-8 rounded-3xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 shadow-xl">
+        <div class="glass-card p-6 sm:p-8 rounded-3xl border border-slate-800 shadow-xl">
             <?php if (session()->getFlashdata('error')): ?>
-                <div class="mb-6 p-4 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-100 dark:border-rose-800/30 text-rose-600 dark:text-rose-200 text-sm font-semibold">
+                <div class="mb-6 p-4 rounded-xl bg-rose-950/40 border border-rose-900/30 text-rose-200 text-sm font-semibold">
                     <?= session()->getFlashdata('error') ?>
                 </div>
             <?php endif; ?>
 
             <?php if (session()->getFlashdata('errors')): ?>
-                <div class="mb-6 p-4 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-100 dark:border-rose-800/30 text-rose-600 dark:text-rose-200 text-sm font-semibold">
+                <div class="mb-6 p-4 rounded-xl bg-rose-950/40 border border-rose-900/30 text-rose-200 text-sm font-semibold">
                     <ul class="list-disc pl-5 space-y-1">
                         <?php foreach (session()->getFlashdata('errors') as $error): ?>
                             <li><?= esc($error) ?></li>
@@ -128,29 +122,29 @@ if (!empty($reg['reg_custom_fields'])) {
                 <?= csrf_field() ?>
 
                 <!-- Competition display -->
-                <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-750 flex items-center justify-between">
+                <div class="p-5 rounded-2xl bg-indigo-950/20 border-2 border-indigo-900 flex items-center justify-between">
                     <div>
-                        <span class="text-[10px] font-bold text-slate-450 dark:text-slate-500 block uppercase">ประเภทการแข่งขัน</span>
-                        <span class="text-sm font-bold text-slate-800 dark:text-slate-200"><?= esc($reg['reg_competition_type']) ?></span>
+                        <span class="text-xs font-black text-indigo-400 block uppercase mb-1">ประเภทการแข่งขัน</span>
+                        <span class="text-base font-black text-slate-100"><?= esc($reg['reg_competition_type']) ?></span>
                     </div>
-                    <span class="text-xs font-mono font-bold text-cyan-600 dark:text-cyan-400 bg-cyan-50 dark:bg-cyan-950/40 border border-cyan-150 dark:border-cyan-900 px-3 py-1.5 rounded-xl">
+                    <span class="text-sm font-mono font-black text-cyan-400 bg-cyan-950 border-2 border-cyan-800 px-4 py-2 rounded-xl">
                         <?= $reg['reg_code'] ?>
                     </span>
                 </div>
 
                 <!-- Row: School Name & Province -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="space-y-2">
-                        <label for="school_name" class="block text-xs sm:text-sm form-label">
-                            ชื่อโรงเรียน / สถาบันศึกษา <span class="text-rose-500">*</span>
+                        <label for="school_name" class="block form-label">
+                            <i data-lucide="school" class="w-4 h-4 text-cyan-400"></i> ชื่อโรงเรียน / สถาบันศึกษา <span class="text-rose-500">*</span>
                         </label>
-                        <input type="text" name="school_name" id="school_name" required value="<?= esc(old('school_name', $reg['reg_school_name'])) ?>" class="w-full px-4 py-3 neon-input rounded-2xl text-xs sm:text-sm outline-none transition-colors">
+                        <input type="text" name="school_name" id="school_name" required value="<?= esc(old('school_name', $reg['reg_school_name'])) ?>" class="w-full px-4 py-3.5 neon-input rounded-2xl text-sm outline-none transition-colors">
                     </div>
                     <div class="space-y-2">
-                        <label for="school_province" class="block text-xs sm:text-sm form-label">
-                            จังหวัด <span class="text-rose-500">*</span>
+                        <label for="school_province" class="block form-label">
+                            <i data-lucide="map-pin" class="w-4 h-4 text-rose-450"></i> จังหวัด <span class="text-rose-500">*</span>
                         </label>
-                        <select name="school_province" id="school_province" required class="w-full px-4 py-3 neon-input rounded-2xl text-xs sm:text-sm outline-none transition-colors cursor-pointer">
+                        <select name="school_province" id="school_province" required class="w-full px-4 py-3.5 neon-input rounded-2xl text-sm outline-none transition-colors cursor-pointer">
                             <option value="" disabled>-- เลือกจังหวัด --</option>
                             <?php
                             $provinces = [
@@ -174,10 +168,10 @@ if (!empty($reg['reg_custom_fields'])) {
 
                 <!-- Team Name -->
                 <div class="space-y-2">
-                    <label for="team_name" class="block text-xs sm:text-sm form-label">
-                        ชื่อทีมที่เข้าแข่งขัน <span class="text-slate-400 font-normal">(ถ้ามี)</span>
+                    <label for="team_name" class="block form-label">
+                        <i data-lucide="users" class="w-4 h-4 text-purple-400"></i> ชื่อทีมที่เข้าแข่งขัน <span class="text-slate-400 font-bold">(ถ้ามี)</span>
                     </label>
-                    <input type="text" name="team_name" id="team_name" value="<?= esc(old('team_name', $reg['reg_team_name'] ?: '')) ?>" placeholder="ระบุชื่อทีม..." class="w-full px-4 py-3 neon-input rounded-2xl text-xs sm:text-sm outline-none transition-colors">
+                    <input type="text" name="team_name" id="team_name" value="<?= esc(old('team_name', $reg['reg_team_name'] ?: '')) ?>" placeholder="ระบุชื่อทีม..." class="w-full px-4 py-3.5 neon-input rounded-2xl text-sm outline-none transition-colors">
                 </div>
 
                 <!-- Selected Level -->
@@ -189,10 +183,10 @@ if (!empty($reg['reg_custom_fields'])) {
                 if (!empty($levelLimits)):
                 ?>
                     <div class="space-y-2">
-                        <label for="reg_level" class="block text-xs sm:text-sm form-label">
-                            ระดับชั้นที่สมัครแข่งขัน <span class="text-rose-500">*</span>
+                        <label for="reg_level" class="block form-label">
+                            <i data-lucide="graduation-cap" class="w-4 h-4 text-emerald-400"></i> ระดับชั้นที่สมัครแข่งขัน <span class="text-rose-500">*</span>
                         </label>
-                        <select name="reg_level" id="reg_level" required class="w-full px-4 py-3 neon-input rounded-2xl text-xs sm:text-sm outline-none transition-colors cursor-pointer">
+                        <select name="reg_level" id="reg_level" required class="w-full px-4 py-3.5 neon-input rounded-2xl text-sm outline-none transition-colors cursor-pointer">
                             <?php foreach ($levelLimits as $lvl): ?>
                                 <option value="<?= esc($lvl['level']) ?>" <?= $reg['reg_level'] === $lvl['level'] ? 'selected' : '' ?>><?= esc($lvl['level']) ?></option>
                             <?php endforeach; ?>
@@ -200,29 +194,29 @@ if (!empty($reg['reg_custom_fields'])) {
                     </div>
                 <?php endif; ?>
 
-                <hr class="border-slate-100 dark:border-slate-800/80 my-2" />
+                <hr class="border-slate-800 my-2" />
 
                 <!-- Members Section -->
                 <div class="space-y-3">
                     <div class="flex justify-between items-center">
-                        <label class="block text-xs sm:text-sm form-label">
-                            รายชื่อผู้เข้าแข่งขัน / สมาชิกทีม
+                        <label class="block form-label">
+                            <i data-lucide="user-check" class="w-4 h-4 text-indigo-400"></i> รายชื่อผู้เข้าแข่งขัน / สมาชิกทีม
                             <?php if ($comp && !empty($comp['comp_member_limit']) && $comp['comp_member_limit'] > 0): ?>
-                                <span class="text-[10px] text-cyan-500 font-bold">(สูงสุด <?= esc($comp['comp_member_limit']) ?> คน)</span>
+                                <span class="text-xs text-cyan-400 font-black">(สูงสุด <?= esc($comp['comp_member_limit']) ?> คน)</span>
                             <?php endif; ?>
                         </label>
-                        <button type="button" id="add-member-btn" class="px-3 py-1.5 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold flex items-center gap-1 transition-all">
+                        <button type="button" id="add-member-btn" class="px-3.5 py-2 bg-slate-900 hover:bg-indigo-500 hover:text-white border-2 border-slate-700 rounded-xl text-xs font-black flex items-center gap-1 transition-all">
                             <i data-lucide="plus" class="w-3.5 h-3.5"></i> เพิ่มสมาชิก
                         </button>
                     </div>
-                    <div id="members-wrapper" class="space-y-2">
+                    <div id="members-wrapper" class="space-y-3">
                         <?php foreach ($parsedMembers as $idx => $m): ?>
-                            <div class="flex items-center gap-2 p-2.5 rounded-2xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-850/40">
-                                <span class="text-[10px] font-mono font-bold text-slate-400 w-8 text-center"><?= str_pad($idx + 1, 2, '0', STR_PAD_LEFT) ?></span>
+                            <div class="flex items-center gap-2 p-3 rounded-2xl border-2 border-slate-800 bg-slate-900/40">
+                                <span class="text-xs font-mono font-black text-slate-400 w-8 text-center"><?= str_pad($idx + 1, 2, '0', STR_PAD_LEFT) ?></span>
                                 <div class="flex-1 flex gap-2 items-center flex-wrap sm:flex-nowrap">
                                     <div class="w-full sm:w-28 shrink-0">
                                         <?php $known = in_array($m['prefix'], ['เด็กชาย', 'เด็กหญิง', 'นาย', 'นางสาว', 'นาง', 'ดร.']); ?>
-                                        <select name="member_prefixes[]" class="w-full px-3 py-2 neon-input rounded-xl text-xs outline-none">
+                                        <select name="member_prefixes[]" class="w-full px-3 py-2.5 neon-input rounded-xl text-xs outline-none">
                                             <option value="" disabled <?= empty($m['prefix']) ? 'selected' : '' ?>>คำนำหน้า</option>
                                             <option value="เด็กชาย" <?= $m['prefix'] === 'เด็กชาย' ? 'selected' : '' ?>>เด็กชาย</option>
                                             <option value="เด็กหญิง" <?= $m['prefix'] === 'เด็กหญิง' ? 'selected' : '' ?>>เด็กหญิง</option>
@@ -234,12 +228,12 @@ if (!empty($reg['reg_custom_fields'])) {
                                     </div>
                                     <?php if (!empty($m['prefix']) && !$known): ?>
                                         <div class="w-full sm:w-28 shrink-0 custom-prefix-wrapper">
-                                            <input type="text" name="member_prefixes[]" value="<?= esc($m['prefix']) ?>" placeholder="ระบุเอง..." class="w-full px-3 py-2 neon-input rounded-xl text-xs outline-none">
+                                            <input type="text" name="member_prefixes[]" value="<?= esc($m['prefix']) ?>" placeholder="ระบุเอง..." class="w-full px-3 py-2.5 neon-input rounded-xl text-xs outline-none">
                                         </div>
                                     <?php endif; ?>
-                                    <input type="text" name="member_names[]" required value="<?= esc($m['name']) ?>" placeholder="ชื่อ-นามสกุล..." class="flex-1 w-full px-3 py-2 neon-input rounded-xl text-xs outline-none">
-                                    <button type="button" class="remove-btn p-2 text-rose-500 hover:text-white hover:bg-rose-500 rounded-xl border border-transparent hover:border-rose-600 transition-colors">
-                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                    <input type="text" name="member_names[]" required value="<?= esc($m['name']) ?>" placeholder="ชื่อ-นามสกุล..." class="flex-1 w-full px-3 py-2.5 neon-input rounded-xl text-xs sm:text-sm font-bold outline-none">
+                                    <button type="button" class="remove-btn p-2.5 text-rose-450 hover:text-white hover:bg-rose-500 rounded-xl border border-transparent hover:border-rose-600 transition-colors">
+                                        <i data-lucide="trash-2" class="w-4.5 h-4.5"></i>
                                     </button>
                                 </div>
                             </div>
@@ -250,21 +244,21 @@ if (!empty($reg['reg_custom_fields'])) {
                 <!-- Advisors Section -->
                 <div class="space-y-3">
                     <div class="flex justify-between items-center">
-                        <label class="block text-xs sm:text-sm form-label">
-                            รายชื่ออาจารย์ที่ปรึกษา / ครูควบคุมทีม
+                        <label class="block form-label">
+                            <i data-lucide="user-cog" class="w-4 h-4 text-indigo-400"></i> รายชื่ออาจารย์ที่ปรึกษา / ครูควบคุมทีม
                         </label>
-                        <button type="button" id="add-advisor-btn" class="px-3 py-1.5 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold flex items-center gap-1 transition-all">
+                        <button type="button" id="add-advisor-btn" class="px-3.5 py-2 bg-slate-900 hover:bg-indigo-500 hover:text-white border-2 border-slate-700 rounded-xl text-xs font-black flex items-center gap-1 transition-all">
                             <i data-lucide="plus" class="w-3.5 h-3.5"></i> เพิ่มที่ปรึกษา
                         </button>
                     </div>
-                    <div id="advisors-wrapper" class="space-y-2">
+                    <div id="advisors-wrapper" class="space-y-3">
                         <?php foreach ($parsedAdvisors as $idx => $a): ?>
-                            <div class="flex items-center gap-2 p-2.5 rounded-2xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-850/40">
-                                <span class="text-[10px] font-mono font-bold text-slate-400 w-8 text-center"><?= str_pad($idx + 1, 2, '0', STR_PAD_LEFT) ?></span>
+                            <div class="flex items-center gap-2 p-3 rounded-2xl border-2 border-slate-800 bg-slate-900/40">
+                                <span class="text-xs font-mono font-black text-slate-400 w-8 text-center"><?= str_pad($idx + 1, 2, '0', STR_PAD_LEFT) ?></span>
                                 <div class="flex-1 flex gap-2 items-center flex-wrap sm:flex-nowrap">
                                     <div class="w-full sm:w-28 shrink-0">
                                         <?php $known = in_array($a['prefix'], ['เด็กชาย', 'เด็กหญิง', 'นาย', 'นางสาว', 'นาง', 'ดร.']); ?>
-                                        <select name="advisor_prefixes[]" class="w-full px-3 py-2 neon-input rounded-xl text-xs outline-none">
+                                        <select name="advisor_prefixes[]" class="w-full px-3 py-2.5 neon-input rounded-xl text-xs outline-none">
                                             <option value="" disabled <?= empty($a['prefix']) ? 'selected' : '' ?>>คำนำหน้า</option>
                                             <option value="นาย" <?= $a['prefix'] === 'นาย' ? 'selected' : '' ?>>นาย</option>
                                             <option value="นางสาว" <?= $a['prefix'] === 'นางสาว' ? 'selected' : '' ?>>นางสาว</option>
@@ -275,12 +269,12 @@ if (!empty($reg['reg_custom_fields'])) {
                                     </div>
                                     <?php if (!empty($a['prefix']) && !$known): ?>
                                         <div class="w-full sm:w-28 shrink-0 custom-prefix-wrapper">
-                                            <input type="text" name="advisor_prefixes[]" value="<?= esc($a['prefix']) ?>" placeholder="ระบุเอง..." class="w-full px-3 py-2 neon-input rounded-xl text-xs outline-none">
+                                            <input type="text" name="advisor_prefixes[]" value="<?= esc($a['prefix']) ?>" placeholder="ระบุเอง..." class="w-full px-3 py-2.5 neon-input rounded-xl text-xs outline-none">
                                         </div>
                                     <?php endif; ?>
-                                    <input type="text" name="advisor_names[]" required value="<?= esc($a['name']) ?>" placeholder="ชื่อ-นามสกุล..." class="flex-1 w-full px-3 py-2 neon-input rounded-xl text-xs outline-none">
-                                    <button type="button" class="remove-btn p-2 text-rose-500 hover:text-white hover:bg-rose-500 rounded-xl border border-transparent hover:border-rose-600 transition-colors">
-                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                    <input type="text" name="advisor_names[]" required value="<?= esc($a['name']) ?>" placeholder="ชื่อ-นามสกุล..." class="flex-1 w-full px-3 py-2.5 neon-input rounded-xl text-xs sm:text-sm font-bold outline-none">
+                                    <button type="button" class="remove-btn p-2.5 text-rose-450 hover:text-white hover:bg-rose-500 rounded-xl border border-transparent hover:border-rose-600 transition-colors">
+                                        <i data-lucide="trash-2" class="w-4.5 h-4.5"></i>
                                     </button>
                                 </div>
                             </div>
@@ -288,21 +282,21 @@ if (!empty($reg['reg_custom_fields'])) {
                     </div>
                 </div>
 
-                <hr class="border-slate-100 dark:border-slate-800/80 my-2" />
+                <hr class="border-slate-800 my-2" />
 
                 <!-- Row: Contact details -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="space-y-2">
-                        <label for="contact_phone" class="block text-xs sm:text-sm form-label">
-                            เบอร์โทรศัพท์มือถือที่ติดต่อได้ <span class="text-rose-550">*</span>
+                        <label for="contact_phone" class="block form-label">
+                            <i data-lucide="phone" class="w-4 h-4 text-emerald-400"></i> เบอร์โทรศัพท์มือถือที่ติดต่อได้ <span class="text-rose-550">*</span>
                         </label>
-                        <input type="tel" name="contact_phone" id="contact_phone" required value="<?= esc(old('contact_phone', $reg['reg_contact_phone'])) ?>" class="w-full px-4 py-3 neon-input rounded-2xl text-xs sm:text-sm outline-none transition-colors">
+                        <input type="tel" name="contact_phone" id="contact_phone" required value="<?= esc(old('contact_phone', $reg['reg_contact_phone'])) ?>" class="w-full px-4 py-3.5 neon-input rounded-2xl text-sm outline-none transition-colors">
                     </div>
                     <div class="space-y-2">
-                        <label for="contact_email" class="block text-xs sm:text-sm form-label">
-                            อีเมลติดต่อผู้ควบคุม
+                        <label for="contact_email" class="block form-label">
+                            <i data-lucide="mail" class="w-4 h-4 text-indigo-400"></i> อีเมลติดต่อผู้ควบคุม
                         </label>
-                        <input type="email" name="contact_email" id="contact_email" value="<?= esc(old('contact_email', $reg['reg_contact_email'] ?: '')) ?>" class="w-full px-4 py-3 neon-input rounded-2xl text-xs sm:text-sm outline-none transition-colors">
+                        <input type="email" name="contact_email" id="contact_email" value="<?= esc(old('contact_email', $reg['reg_contact_email'] ?: '')) ?>" class="w-full px-4 py-3.5 neon-input rounded-2xl text-sm outline-none transition-colors">
                     </div>
                 </div>
 
@@ -314,12 +308,12 @@ if (!empty($reg['reg_custom_fields'])) {
                 }
                 if (!empty($customFieldsConfig)):
                 ?>
-                    <hr class="border-slate-100 dark:border-slate-800/80 my-2" />
+                    <hr class="border-slate-800 my-2" />
                     <div class="space-y-4">
-                        <h4 class="text-xs sm:text-sm font-bold text-slate-750 dark:text-slate-200 flex items-center gap-1.5">
-                            <i data-lucide="file-text" class="w-4 h-4 text-blue-500"></i> ข้อมูลฟิลด์พิเศษเพิ่มเติม (Custom Fields)
+                        <h4 class="text-base font-black text-slate-100 flex items-center gap-1.5 border-b-2 border-slate-800 pb-2">
+                            <i data-lucide="file-plus" class="w-5 h-5 text-blue-400"></i> ข้อมูลคำถามเฉพาะเพิ่มเติม (Custom Fields)
                         </h4>
-                        <div class="grid grid-cols-1 gap-4">
+                        <div class="grid grid-cols-1 gap-6">
                             <?php foreach ($customFieldsConfig as $field): 
                                 $fieldName = esc($field['label']);
                                 $isRequired = !empty($field['required']) ? 'required' : '';
@@ -327,23 +321,23 @@ if (!empty($reg['reg_custom_fields'])) {
                                 $currentVal = $customAnswers[$field['label']] ?? null;
                             ?>
                                 <div class="space-y-2">
-                                    <label class="block text-xs sm:text-sm form-label">
+                                    <label class="block form-label">
                                         <?= esc($field['label']) ?> <?= $requiredStar ?>
                                     </label>
 
                                     <?php if ($field['type'] === 'text'): ?>
-                                        <input type="text" name="custom_fields[<?= $fieldName ?>]" value="<?= esc($currentVal) ?>" <?= $isRequired ?> class="w-full px-4 py-3 neon-input rounded-2xl text-xs sm:text-sm outline-none transition-colors">
+                                        <input type="text" name="custom_fields[<?= $fieldName ?>]" value="<?= esc($currentVal) ?>" <?= $isRequired ?> class="w-full px-4 py-3.5 neon-input rounded-2xl text-sm outline-none transition-colors">
                                     
                                     <?php elseif ($field['type'] === 'textarea'): ?>
-                                        <textarea name="custom_fields[<?= $fieldName ?>]" <?= $isRequired ?> rows="3" class="w-full px-4 py-3 neon-input rounded-2xl text-xs sm:text-sm outline-none transition-colors resize-none"><?= esc($currentVal) ?></textarea>
+                                        <textarea name="custom_fields[<?= $fieldName ?>]" <?= $isRequired ?> rows="3" class="w-full px-4 py-3.5 neon-input rounded-2xl text-sm outline-none transition-colors resize-none"><?= esc($currentVal) ?></textarea>
                                     
                                     <?php elseif ($field['type'] === 'url'): ?>
-                                        <input type="url" name="custom_fields[<?= $fieldName ?>]" value="<?= esc($currentVal) ?>" <?= $isRequired ?> class="w-full px-4 py-3 neon-input rounded-2xl text-xs sm:text-sm outline-none transition-colors">
+                                        <input type="url" name="custom_fields[<?= $fieldName ?>]" value="<?= esc($currentVal) ?>" <?= $isRequired ?> class="w-full px-4 py-3.5 neon-input rounded-2xl text-sm outline-none transition-colors">
                                     
                                     <?php elseif ($field['type'] === 'select'): 
                                         $options = array_filter(array_map('trim', explode(',', $field['options'] ?? '')));
                                     ?>
-                                        <select name="custom_fields[<?= $fieldName ?>]" <?= $isRequired ?> class="w-full px-4 py-3 neon-input rounded-2xl text-xs sm:text-sm outline-none transition-colors cursor-pointer">
+                                        <select name="custom_fields[<?= $fieldName ?>]" <?= $isRequired ?> class="w-full px-4 py-3.5 neon-input rounded-2xl text-sm outline-none transition-colors cursor-pointer">
                                             <option value="" disabled <?= is_null($currentVal) ? 'selected' : '' ?>>-- เลือก --</option>
                                             <?php foreach ($options as $opt): ?>
                                                 <option value="<?= esc($opt) ?>" <?= $currentVal === $opt ? 'selected' : '' ?>><?= esc($opt) ?></option>
@@ -351,19 +345,19 @@ if (!empty($reg['reg_custom_fields'])) {
                                         </select>
                                     
                                     <?php elseif ($field['type'] === 'file'): ?>
-                                        <div class="space-y-1.5 p-3 rounded-2xl border border-slate-200 dark:border-slate-750 bg-slate-50/50 dark:bg-slate-850/40">
+                                        <div class="space-y-2 p-4 rounded-2xl border-2 border-slate-800 bg-slate-900/40">
                                             <?php if (!empty($currentVal)): ?>
-                                                <div class="flex items-center justify-between text-xs mb-2">
-                                                    <span class="font-bold text-slate-500 dark:text-slate-450">ไฟล์ปัจจุบัน:</span>
-                                                    <a href="<?= base_url($currentVal) ?>" target="_blank" class="text-blue-600 dark:text-blue-400 hover:underline font-bold flex items-center gap-1">
-                                                        <i data-lucide="external-link" class="w-3.5 h-3.5"></i> เปิดดูไฟล์
+                                                <div class="flex items-center justify-between text-sm mb-2">
+                                                    <span class="font-black text-slate-400">ไฟล์ปัจจุบัน:</span>
+                                                    <a href="<?= base_url($currentVal) ?>" target="_blank" class="text-blue-400 hover:underline font-extrabold flex items-center gap-1">
+                                                        <i data-lucide="external-link" class="w-4 h-4"></i> ดาวน์โหลด/เปิดดูไฟล์
                                                     </a>
                                                 </div>
                                             <?php else: ?>
-                                                <p class="text-[10px] text-slate-400 dark:text-slate-500 italic mb-2">ยังไม่มีการอัปโหลดไฟล์</p>
+                                                <p class="text-xs text-slate-450 italic mb-2">ยังไม่มีการอัปโหลดไฟล์</p>
                                             <?php endif; ?>
-                                            <input type="file" name="custom_fields_files[<?= $fieldName ?>]" class="w-full text-xs text-slate-500 dark:text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-50 dark:file:bg-slate-800 file:text-blue-700 dark:file:text-blue-300 hover:file:bg-blue-100 dark:hover:file:bg-slate-700 cursor-pointer">
-                                            <p class="text-[9px] text-slate-400 mt-1">* หากต้องการเปลี่ยนไฟล์ ให้ทำการเลือกไฟล์ใหม่ มิฉะนั้นจะใช้ไฟล์เดิม</p>
+                                            <input type="file" name="custom_fields_files[<?= $fieldName ?>]" class="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-2 file:border-slate-700 file:text-xs file:font-semibold file:bg-slate-800 file:text-blue-300 hover:file:bg-slate-700 cursor-pointer">
+                                            <p class="text-[10px] text-slate-400 mt-1 font-bold">* หากต้องการเปลี่ยนไฟล์ ให้ทำการเลือกไฟล์ใหม่ มิฉะนั้นจะใช้ไฟล์เดิม</p>
                                         </div>
                                     <?php endif; ?>
                                 </div>
@@ -373,23 +367,23 @@ if (!empty($reg['reg_custom_fields'])) {
                 <?php endif; ?>
 
                 <!-- Status Select for easy editing inside form -->
-                <div class="space-y-2 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40">
-                    <label for="status" class="block text-xs sm:text-sm form-label">
-                        สถานะเอกสารการสมัคร <span class="text-rose-550">*</span>
+                <div class="space-y-2 p-5 rounded-2xl border-2 border-amber-800 bg-amber-950/10">
+                    <label for="status" class="block form-label">
+                        <i data-lucide="activity" class="w-4 h-4 text-amber-400"></i> สถานะเอกสารการสมัคร <span class="text-rose-550">*</span>
                     </label>
-                    <select name="status" id="status" required class="w-full px-4 py-3 neon-input rounded-2xl text-xs sm:text-sm outline-none transition-colors cursor-pointer">
-                        <option value="pending" <?= $reg['reg_status'] === 'pending' ? 'selected' : '' ?>>รอตรวจสอบ (Pending)</option>
-                        <option value="approved" <?= $reg['reg_status'] === 'approved' ? 'selected' : '' ?>>อนุมัติสิทธิ์แล้ว (Approved)</option>
-                        <option value="rejected" <?= $reg['reg_status'] === 'rejected' ? 'selected' : '' ?>>ปฏิเสธ/ไม่ผ่าน (Rejected)</option>
+                    <select name="status" id="status" required class="w-full px-4 py-3.5 neon-input rounded-2xl text-sm outline-none transition-colors cursor-pointer">
+                        <option value="pending" <?= $reg['reg_status'] === 'pending' ? 'selected' : '' ?>>🟡 รอตรวจสอบ (Pending)</option>
+                        <option value="approved" <?= $reg['reg_status'] === 'approved' ? 'selected' : '' ?>>🟢 อนุมัติสิทธิ์แล้ว (Approved)</option>
+                        <option value="rejected" <?= $reg['reg_status'] === 'rejected' ? 'selected' : '' ?>>🔴 ปฏิเสธ/ไม่ผ่าน (Rejected)</option>
                     </select>
                 </div>
 
-                <div class="flex gap-3 pt-2">
-                    <a href="<?= base_url('staff/science-week') ?>" class="flex-1 py-3 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-350 font-bold text-xs sm:text-sm hover:bg-slate-50 dark:hover:bg-slate-850 rounded-2xl transition-colors flex items-center justify-center gap-1">
+                <div class="flex gap-4 pt-4">
+                    <a href="<?= base_url('staff/science-week') ?>" class="flex-1 py-3.5 border-2 border-slate-700 text-slate-300 font-extrabold text-sm hover:bg-slate-800 rounded-2xl transition-colors flex items-center justify-center gap-1">
                         ยกเลิก
                     </a>
-                    <button type="submit" class="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm rounded-2xl shadow-md transition-colors flex items-center justify-center gap-1">
-                        <i data-lucide="save" class="w-4 h-4"></i> บันทึกข้อมูล
+                    <button type="submit" class="flex-1 py-3.5 bg-blue-600 hover:bg-blue-750 text-white font-extrabold text-sm rounded-2xl shadow-lg shadow-blue-500/10 transition-colors flex items-center justify-center gap-1">
+                        <i data-lucide="save" class="w-5 h-5"></i> บันทึกข้อมูลใบสมัคร
                     </button>
                 </div>
             </form>
@@ -398,51 +392,51 @@ if (!empty($reg['reg_custom_fields'])) {
 
     <!-- Right Column: Info & Status Summary -->
     <div class="space-y-6">
-        <div class="glass-card p-6 rounded-3xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 shadow-xl">
-            <h3 class="text-sm sm:text-base font-extrabold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
-                <i data-lucide="info" class="w-4 h-4 text-cyan-500"></i> ข้อมูลเพิ่มเติม
+        <div class="glass-card p-6 rounded-3xl border border-slate-800 shadow-xl">
+            <h3 class="text-base font-extrabold text-white mb-4 flex items-center gap-2">
+                <i data-lucide="info" class="w-5 h-5 text-cyan-400"></i> สรุปข้อมูลผู้สมัคร
             </h3>
             
-            <div class="space-y-4 text-xs">
-                <div class="flex justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5">
-                    <span class="text-slate-400 font-semibold">วันที่สมัคร:</span>
-                    <span class="font-bold text-slate-700 dark:text-slate-200"><?= date('d/m/Y H:i', strtotime($reg['reg_created_at'])) ?> น.</span>
+            <div class="space-y-4 text-xs sm:text-sm font-semibold">
+                <div class="flex justify-between border-b border-slate-800 pb-3">
+                    <span class="text-slate-400">วันที่สมัคร:</span>
+                    <span class="font-extrabold text-slate-100"><?= date('d/m/Y H:i', strtotime($reg['reg_created_at'])) ?> น.</span>
                 </div>
-                <div class="flex justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5">
-                    <span class="text-slate-400 font-semibold">แก้ไขล่าสุด:</span>
-                    <span class="font-bold text-slate-700 dark:text-slate-200"><?= $reg['reg_updated_at'] ? date('d/m/Y H:i', strtotime($reg['reg_updated_at'])) . ' น.' : 'ยังไม่มีการแก้ไข' ?></span>
+                <div class="flex justify-between border-b border-slate-800 pb-3">
+                    <span class="text-slate-400">แก้ไขล่าสุด:</span>
+                    <span class="font-extrabold text-slate-100"><?= $reg['reg_updated_at'] ? date('d/m/Y H:i', strtotime($reg['reg_updated_at'])) . ' น.' : 'ยังไม่มีการแก้ไข' ?></span>
                 </div>
-                <div class="flex justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5">
-                    <span class="text-slate-400 font-semibold">สถานะปัจจุบัน:</span>
+                <div class="flex justify-between border-b border-slate-800 pb-3">
+                    <span class="text-slate-400">สถานะปัจจุบัน:</span>
                     <?php if ($reg['reg_status'] === 'approved'): ?>
-                        <span class="text-emerald-600 dark:text-emerald-400 font-black">อนุมัติแล้ว</span>
+                        <span class="text-emerald-400 font-black">🟢 อนุมัติสิทธิ์แล้ว</span>
                     <?php elseif ($reg['reg_status'] === 'rejected'): ?>
-                        <span class="text-rose-600 dark:text-rose-400 font-black">ปฏิเสธ/ไม่ผ่าน</span>
+                        <span class="text-rose-400 font-black">🔴 ปฏิเสธ/ไม่ผ่าน</span>
                     <?php else: ?>
-                        <span class="text-amber-600 dark:text-amber-400 font-black">รอการตรวจสอบ</span>
+                        <span class="text-amber-400 font-black">🟡 รอตรวจสอบ</span>
                     <?php endif; ?>
                 </div>
-                <div class="flex justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5">
-                    <span class="text-slate-400 font-semibold">คะแนนปัจจุบัน:</span>
-                    <span class="font-bold text-slate-700 dark:text-slate-200"><?= $reg['reg_score'] !== null ? $reg['reg_score'] . ' คะแนน' : 'ยังไม่บันทึก' ?></span>
+                <div class="flex justify-between border-b border-slate-800 pb-3">
+                    <span class="text-slate-400">คะแนนปัจจุบัน:</span>
+                    <span class="font-extrabold text-slate-100"><?= $reg['reg_score'] !== null ? $reg['reg_score'] . ' คะแนน' : 'ยังไม่บันทึก' ?></span>
                 </div>
                 <div class="flex justify-between pb-1">
-                    <span class="text-slate-400 font-semibold">รางวัลที่ได้รับ:</span>
-                    <span class="font-bold text-indigo-655 dark:text-indigo-400"><?= $reg['reg_rank'] ?: 'ยังไม่บันทึก' ?></span>
+                    <span class="text-slate-400">รางวัลที่ได้รับ:</span>
+                    <span class="font-extrabold text-indigo-400"><?= $reg['reg_rank'] ?: 'ยังไม่บันทึก' ?></span>
                 </div>
             </div>
         </div>
 
-        <div class="glass-card p-6 rounded-3xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 shadow-xl">
-            <h3 class="text-sm sm:text-base font-extrabold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
-                <i data-lucide="award" class="w-4 h-4 text-emerald-500"></i> เกียรติบัตร
+        <div class="glass-card p-6 rounded-3xl border border-slate-800 shadow-xl">
+            <h3 class="text-base font-extrabold text-white mb-4 flex items-center gap-2">
+                <i data-lucide="award" class="w-5 h-5 text-emerald-455"></i> จัดการเกียรติบัตร
             </h3>
             
             <div class="space-y-3">
-                <a href="<?= base_url("science-week/certificate/view-all/competition/{$reg['reg_code']}") ?>" target="_blank" class="w-full py-2.5 bg-slate-50 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 hover:text-indigo-650 dark:hover:text-indigo-400 border border-slate-200 dark:border-slate-700 rounded-2xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-sm">
+                <a href="<?= base_url("science-week/certificate/view-all/competition/{$reg['reg_code']}") ?>" target="_blank" class="w-full py-3 bg-slate-900 hover:bg-slate-800 text-slate-200 hover:text-indigo-400 border-2 border-slate-700 rounded-2xl text-xs font-black transition-all flex items-center justify-center gap-1.5 shadow-sm">
                     <i data-lucide="eye" class="w-4 h-4"></i> ดูเกียรติบัตรผู้สมัครทั้งหมด
                 </a>
-                <a href="<?= base_url("science-week/certificate/view-all/trainer/{$reg['reg_code']}") ?>" target="_blank" class="w-full py-2.5 bg-slate-50 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 hover:text-indigo-655 dark:hover:text-indigo-400 border border-slate-200 dark:border-slate-700 rounded-2xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-sm">
+                <a href="<?= base_url("science-week/certificate/view-all/trainer/{$reg['reg_code']}") ?>" target="_blank" class="w-full py-3 bg-slate-900 hover:bg-slate-800 text-slate-200 hover:text-indigo-400 border-2 border-slate-700 rounded-2xl text-xs font-black transition-all flex items-center justify-center gap-1.5 shadow-sm">
                     <i data-lucide="eye" class="w-4 h-4"></i> ดูเกียรติบัตรผู้ควบคุมทั้งหมด
                 </a>
             </div>
@@ -513,7 +507,7 @@ if (!empty($reg['reg_custom_fields'])) {
             const count = currentItemsCount + 1;
             const formattedCount = String(count).padStart(2, '0');
             const item = document.createElement('div');
-            item.className = 'flex items-center gap-2 p-2.5 rounded-2xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-850/40';
+            item.className = 'flex items-center gap-2 p-3 rounded-2xl border-2 border-slate-800 bg-slate-900/40';
             
             const prefixOptions = isMember 
                 ? `
@@ -535,16 +529,16 @@ if (!empty($reg['reg_custom_fields'])) {
                 `;
 
             item.innerHTML = `
-                <span class="text-[10px] font-mono font-bold text-slate-400 w-8 text-center">${formattedCount}</span>
+                <span class="text-xs font-mono font-black text-slate-500 w-8 text-center">${formattedCount}</span>
                 <div class="flex-1 flex gap-2 items-center flex-wrap sm:flex-nowrap">
                     <div class="w-full sm:w-28 shrink-0">
-                        <select name="${prefixInputName}" class="w-full px-3 py-2 neon-input rounded-xl text-xs outline-none">
+                        <select name="${prefixInputName}" class="w-full px-3 py-2.5 neon-input rounded-xl text-xs outline-none">
                             ${prefixOptions}
                         </select>
                     </div>
-                    <input type="text" name="${nameInputName}" required placeholder="${placeholderText.replace('1', count)}" class="flex-1 w-full px-3 py-2 neon-input rounded-xl text-xs outline-none">
-                    <button type="button" class="remove-btn p-2 text-rose-500 hover:text-white hover:bg-rose-500 rounded-xl border border-transparent hover:border-rose-600 transition-colors">
-                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    <input type="text" name="${nameInputName}" required placeholder="${placeholderText.replace('1', count)}" class="flex-1 w-full px-3 py-2.5 neon-input rounded-xl text-xs sm:text-sm font-bold outline-none">
+                    <button type="button" class="remove-btn p-2.5 text-rose-500 hover:text-white hover:bg-rose-500 rounded-xl border border-transparent hover:border-rose-600 transition-colors">
+                        <i data-lucide="trash-2" class="w-4.5 h-4.5"></i>
                     </button>
                 </div>
             `;
@@ -572,7 +566,7 @@ if (!empty($reg['reg_custom_fields'])) {
                 input.name = select.name; // Keep same name
                 input.required = true;
                 input.placeholder = 'ระบุเอง...';
-                input.className = 'w-full px-3 py-2 neon-input rounded-xl text-xs outline-none';
+                input.className = 'w-full px-3 py-2.5 neon-input rounded-xl text-xs outline-none';
 
                 // Change select name to prevent duplication or use it for custom fields
                 select.name = '_temp_prefix';

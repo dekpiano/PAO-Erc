@@ -88,55 +88,61 @@
             
             <!-- Links -->
             <nav class="flex-1 overflow-y-auto p-6 space-y-2 custom-scrollbar">
+                <?php
+                $layoutRoles = session()->get('u_role') ?? '';
+                $layoutIsAdmin = (strpos($layoutRoles, 'superadmin') !== false || strpos($layoutRoles, 'admin') !== false);
+                ?>
                 <!-- Group 1: Registration & Scores -->
                 <div class="text-[9px] font-black text-slate-500 uppercase tracking-widest px-4 mb-2 mt-2">จัดการการแข่งขัน</div>
                 
-                <a href="<?= base_url('staff/science-week') ?>" class="flex items-center gap-4 px-4 py-3.5 rounded-xl font-bold text-sm transition-all duration-200 <?= uri_string() == 'staff/science-week' ? 'sidebar-item-active' : 'text-slate-400 hover:text-slate-100 hover:bg-slate-900/30' ?>">
+                <a href="<?= base_url('staff/science-week') ?>" class="flex items-center gap-4 px-4 py-3.5 rounded-xl font-bold text-sm transition-all duration-200 <?= uri_string() == 'staff/science-week' ? 'sidebar-item-active' : 'text-slate-450 hover:text-slate-100 hover:bg-slate-900/30' ?>">
                     <i data-lucide="users" class="w-5 h-5 text-cyan-400"></i><span>รายชื่อผู้สมัครแข่งขัน</span>
                 </a>
 
-                <a href="<?= base_url('staff/science-week/ranking') ?>" class="flex items-center gap-4 px-4 py-3.5 rounded-xl font-bold text-sm transition-all duration-200 <?= strpos(uri_string(), 'staff/science-week/ranking') !== false ? 'sidebar-item-active' : 'text-slate-400 hover:text-slate-100 hover:bg-slate-900/30' ?>">
+                <a href="<?= base_url('staff/science-week/ranking') ?>" class="flex items-center gap-4 px-4 py-3.5 rounded-xl font-bold text-sm transition-all duration-200 <?= strpos(uri_string(), 'staff/science-week/ranking') !== false ? 'sidebar-item-active' : 'text-slate-450 hover:text-slate-100 hover:bg-slate-900/30' ?>">
                     <i data-lucide="trophy" class="w-5 h-5 text-amber-400"></i><span>จัดการผลการแข่งขัน</span>
                 </a>
-                
-                <!-- Group 2: Configurations -->
-                <div class="text-[9px] font-black text-slate-500 uppercase tracking-widest px-4 pt-4 mb-2">ตั้งค่ากิจกรรม & ข้อมูล</div>
 
-                <a href="<?= base_url('staff/science-week/competitions') ?>" class="flex items-center gap-4 px-4 py-3.5 rounded-xl font-bold text-sm transition-all duration-200 <?= strpos(uri_string(), 'staff/science-week/competitions') !== false ? 'sidebar-item-active' : 'text-slate-400 hover:text-slate-100 hover:bg-slate-900/30' ?>">
+                <a href="<?= base_url('staff/science-week/competitions') ?>" class="flex items-center gap-4 px-4 py-3.5 rounded-xl font-bold text-sm transition-all duration-200 <?= strpos(uri_string(), 'staff/science-week/competitions') !== false ? 'sidebar-item-active' : 'text-slate-450 hover:text-slate-100 hover:bg-slate-900/30' ?>">
                     <i data-lucide="award" class="w-5 h-5 text-indigo-400"></i><span>จัดการประเภทการแข่งขัน</span>
                 </a>
+                
+                <?php if ($layoutIsAdmin): ?>
+                    <!-- Group 2: Configurations -->
+                    <div class="text-[9px] font-black text-slate-500 uppercase tracking-widest px-4 pt-4 mb-2">ตั้งค่ากิจกรรม & ข้อมูล</div>
 
-                <a href="<?= base_url('staff/science-week/certificates') ?>" class="flex items-center gap-4 px-4 py-3.5 rounded-xl font-bold text-sm transition-all duration-200 <?= strpos(uri_string(), 'staff/science-week/certificates') !== false ? 'sidebar-item-active' : 'text-slate-400 hover:text-slate-100 hover:bg-slate-900/30' ?>">
-                    <i data-lucide="file-badge" class="w-5 h-5 text-emerald-400"></i><span>ตั้งค่าระบบเกียรติบัตร</span>
-                </a>
+                    <a href="<?= base_url('staff/science-week/certificates') ?>" class="flex items-center gap-4 px-4 py-3.5 rounded-xl font-bold text-sm transition-all duration-200 <?= strpos(uri_string(), 'staff/science-week/certificates') !== false ? 'sidebar-item-active' : 'text-slate-400 hover:text-slate-100 hover:bg-slate-900/30' ?>">
+                        <i data-lucide="file-badge" class="w-5 h-5 text-emerald-400"></i><span>ตั้งค่าระบบเกียรติบัตร</span>
+                    </a>
 
-                <a href="<?= base_url('staff/science-week/schedules') ?>" class="flex items-center gap-4 px-4 py-3.5 rounded-xl font-bold text-sm transition-all duration-200 <?= strpos(uri_string(), 'staff/science-week/schedules') !== false ? 'sidebar-item-active' : 'text-slate-400 hover:text-slate-100 hover:bg-slate-900/30' ?>">
-                    <i data-lucide="calendar-days" class="w-5 h-5 text-purple-400"></i><span>จัดการกำหนดการกิจกรรม</span>
-                </a>
+                    <a href="<?= base_url('staff/science-week/schedules') ?>" class="flex items-center gap-4 px-4 py-3.5 rounded-xl font-bold text-sm transition-all duration-200 <?= strpos(uri_string(), 'staff/science-week/schedules') !== false ? 'sidebar-item-active' : 'text-slate-400 hover:text-slate-100 hover:bg-slate-900/30' ?>">
+                        <i data-lucide="calendar-days" class="w-5 h-5 text-purple-400"></i><span>จัดการกำหนดการกิจกรรม</span>
+                    </a>
 
-                <a href="<?= base_url('staff/science-week/evaluations') ?>" class="flex items-center gap-4 px-4 py-3.5 rounded-xl font-bold text-sm transition-all duration-200 <?= strpos(uri_string(), 'staff/science-week/evaluations') !== false ? 'sidebar-item-active' : 'text-slate-400 hover:text-slate-100 hover:bg-slate-900/30' ?>">
-                    <i data-lucide="star" class="w-5 h-5 text-amber-400"></i><span>จัดการแบบประเมิน</span>
-                </a>
+                    <a href="<?= base_url('staff/science-week/evaluations') ?>" class="flex items-center gap-4 px-4 py-3.5 rounded-xl font-bold text-sm transition-all duration-200 <?= strpos(uri_string(), 'staff/science-week/evaluations') !== false ? 'sidebar-item-active' : 'text-slate-400 hover:text-slate-100 hover:bg-slate-900/30' ?>">
+                        <i data-lucide="star" class="w-5 h-5 text-amber-400"></i><span>จัดการแบบประเมิน</span>
+                    </a>
 
-                <!-- Group 3: System Settings -->
-                <div class="text-[9px] font-black text-slate-500 uppercase tracking-widest px-4 pt-4 mb-2">ตั้งค่าระบบแอดมิน</div>
+                    <!-- Group 3: System Settings -->
+                    <div class="text-[9px] font-black text-slate-500 uppercase tracking-widest px-4 pt-4 mb-2">ตั้งค่าระบบแอดมิน</div>
 
-                <a href="<?= base_url('staff/science-week/users') ?>" class="flex items-center gap-4 px-4 py-3.5 rounded-xl font-bold text-sm transition-all duration-200 <?= strpos(uri_string(), 'staff/science-week/users') !== false ? 'sidebar-item-active' : 'text-slate-400 hover:text-slate-100 hover:bg-slate-900/30' ?>">
-                    <i data-lucide="shield-check" class="w-5 h-5 text-cyan-400"></i><span>จัดการสิทธิ์เจ้าหน้าที่</span>
-                </a>
+                    <a href="<?= base_url('staff/science-week/users') ?>" class="flex items-center gap-4 px-4 py-3.5 rounded-xl font-bold text-sm transition-all duration-200 <?= strpos(uri_string(), 'staff/science-week/users') !== false ? 'sidebar-item-active' : 'text-slate-400 hover:text-slate-100 hover:bg-slate-900/30' ?>">
+                        <i data-lucide="shield-check" class="w-5 h-5 text-cyan-400"></i><span>จัดการสิทธิ์เจ้าหน้าที่</span>
+                    </a>
 
-                <a href="<?= base_url('staff/science-week/settings') ?>" class="flex items-center gap-4 px-4 py-3.5 rounded-xl font-bold text-sm transition-all duration-200 <?= strpos(uri_string(), 'staff/science-week/settings') !== false ? 'sidebar-item-active' : 'text-slate-400 hover:text-slate-100 hover:bg-slate-900/30' ?>">
-                    <i data-lucide="settings" class="w-5 h-5 text-slate-400"></i><span>ตั้งค่าระบบ</span>
-                </a>
+                    <a href="<?= base_url('staff/science-week/settings') ?>" class="flex items-center gap-4 px-4 py-3.5 rounded-xl font-bold text-sm transition-all duration-200 <?= strpos(uri_string(), 'staff/science-week/settings') !== false ? 'sidebar-item-active' : 'text-slate-400 hover:text-slate-100 hover:bg-slate-900/30' ?>">
+                        <i data-lucide="settings" class="w-5 h-5 text-slate-400"></i><span>ตั้งค่าระบบ</span>
+                    </a>
+                <?php endif; ?>
 
                 <!-- Group 4: Navigation -->
                 <div class="text-[9px] font-black text-slate-500 uppercase tracking-widest px-4 pt-4 mb-2">ลิงก์ระบบงาน</div>
                 
-                <a href="<?= base_url('science-week') ?>" target="_blank" class="flex items-center gap-4 px-4 py-3.5 rounded-xl font-bold text-sm text-slate-400 hover:text-slate-100 hover:bg-slate-900/30 transition-all">
+                <a href="<?= base_url('science-week') ?>" target="_blank" class="flex items-center gap-4 px-4 py-3.5 rounded-xl font-bold text-sm text-slate-450 hover:text-slate-100 hover:bg-slate-900/30 transition-all">
                     <i data-lucide="external-link" class="w-5 h-5 text-emerald-400"></i><span>เปิดหน้าเว็บกิจกรรม</span>
                 </a>
 
-                <a href="<?= base_url('auth/select') ?>" class="flex items-center gap-4 px-4 py-3.5 rounded-xl font-bold text-sm text-slate-400 hover:text-slate-100 hover:bg-slate-900/30 transition-all">
+                <a href="<?= base_url('auth/select') ?>" class="flex items-center gap-4 px-4 py-3.5 rounded-xl font-bold text-sm text-slate-450 hover:text-slate-100 hover:bg-slate-900/30 transition-all">
                     <i data-lucide="arrow-left-right" class="w-5 h-5 text-blue-400"></i><span>สลับระบบงานอื่น</span>
                 </a>
             </nav>
@@ -206,7 +212,17 @@
                     <div class="flex items-center gap-3">
                         <div class="hidden md:flex flex-col items-end">
                             <span class="text-xs font-extrabold text-slate-200"><?= session()->get('u_fullname') ?></span>
-                            <span class="text-[9px] font-bold text-cyan-400 uppercase tracking-widest mt-1">ADMINISTRATOR</span>
+                            <span class="text-[9px] font-bold text-cyan-400 uppercase tracking-widest mt-1">
+                                <?php
+                                    if (strpos($layoutRoles, 'superadmin') !== false) {
+                                        echo 'SUPERADMIN';
+                                    } elseif (strpos($layoutRoles, 'admin') !== false) {
+                                        echo 'ADMINISTRATOR';
+                                    } else {
+                                        echo 'STAFF';
+                                    }
+                                ?>
+                            </span>
                         </div>
                         <div class="w-10 h-10 bg-slate-900 rounded-full border border-slate-800 overflow-hidden shadow-sm shadow-black/5">
                             <?php if(session()->get('u_photo')): ?>

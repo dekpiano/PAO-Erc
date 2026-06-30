@@ -909,8 +909,9 @@ class ScienceWeek extends BaseController
         exit;
     }
 
+
     /**
-     * รายการประเภทการแข่งขัน ทั้งหมด
+     * competition index with role-based filter
      */
     public function compIndex()
     {
@@ -919,13 +920,30 @@ class ScienceWeek extends BaseController
             return $access;
 
         $selectedYear = $this->getSelectedYear();
-        $data['title'] = 'จัดการประเภทการแข่งขัน | งานสัปดาห์วิทยาศาสตร์';
-        $data['competitions'] = $this->compModel->where('comp_year', $selectedYear)->orderBy('comp_id', 'ASC')->findAll();
-        $data['fullname'] = session()->get('u_fullname');
+        $roles = session()->get('u_role') ?? '';
+        $isAdmin = strpos($roles, 'superadmin') !== false || strpos($roles, 'admin') !== false;
+
+        $allComps = $this->compModel->where('comp_year', $selectedYear)->orderBy('comp_id', 'ASC')->findAll();
+
+        if (!$isAdmin) {
+            $uid = session()->get('u_id');
+            $dbUser = (new \App\Models\UserModel())->find($uid);
+            $allowedJson = $dbUser['u_science_week_competitions'] ?? '';
+            $allowedComps = !empty($allowedJson) ? (json_decode($allowedJson, true) ?: []) : [];
+            if (!empty($allowedComps)) {
+                $allComps = array_values(array_filter($allComps, fn($c) => in_array($c['comp_name'], $allowedComps)));
+            }
+        }
+
+        $data['title']         = 'จัดการประเภทการแข่งขัน | งานสัปดาห์วิทยาศาสตร์';
+        $data['competitions']  = $allComps;
+        $data['is_admin']      = $isAdmin;
+        $data['fullname']      = session()->get('u_fullname');
         $data['selected_year'] = $selectedYear;
 
         return view('science_week/competitions_index', $data);
     }
+
 
     /**
      * หน้าจอเพิ่มประเภทการแข่งขัน
@@ -968,6 +986,8 @@ class ScienceWeek extends BaseController
         if (!$this->validate($rules)) {
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
+
+        $selectedYear = $this->getSelectedYear();
 
         $ruleFilePath = null;
         $ruleFile = $this->request->getFile('comp_rule_file');
@@ -2591,6 +2611,9 @@ class ScienceWeek extends BaseController
         $builder->orderBy('u.u_id', 'DESC');
         $data['users'] = $builder->get()->getResultArray();
 
+        $selectedYear = $this->getSelectedYear();
+        $data['competitions'] = $this->compModel->where('comp_year', $selectedYear)->orderBy('comp_id', 'ASC')->findAll();
+        $data['selected_year'] = $selectedYear;
         $data['positions'] = $db->table('Tb_Positions')->orderBy('pos_name', 'ASC')->get()->getResultArray();
         $data['title'] = 'จัดการสิทธิ์เจ้าหน้าที่วิทยาศาสตร์ | งานสัปดาห์วิทยาศาสตร์';
         $data['fullname'] = session()->get('u_fullname');
@@ -2616,6 +2639,13 @@ class ScienceWeek extends BaseController
             return $this->response->setJSON(['status' => 'error', 'message' => 'กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน (ชื่อ-นามสกุล และ อีเมล)']);
         }
 
+        // Process allowed competitions (only meaningful for staff role)
+        $allowedComps = $this->request->getPost('allowed_competitions');
+        $competitionsJson = null;
+        if ($role === 'science_week' && !empty($allowedComps) && is_array($allowedComps)) {
+            $competitionsJson = json_encode(array_values($allowedComps), JSON_UNESCAPED_UNICODE);
+        }
+
         $userModel = new \App\Models\UserModel();
 
         // Check if email already exists
@@ -2626,8 +2656,9 @@ class ScienceWeek extends BaseController
             $mergedRoles = array_filter(array_unique(array_merge($existingRoles, $newRoles)));
 
             $dataUpdate = [
-                'u_role' => implode(',', $mergedRoles),
-                'u_status' => 'active'
+                'u_role'                    => implode(',', $mergedRoles),
+                'u_status'                  => 'active',
+                'u_science_week_competitions' => $competitionsJson,
             ];
 
             if ($userModel->update($existingUser['u_id'], $dataUpdate)) {
@@ -2651,14 +2682,15 @@ class ScienceWeek extends BaseController
         $randomPassword = bin2hex(random_bytes(16));
 
         $dataInsert = [
-            'u_username' => $username,
-            'u_email'    => $email,
-            'u_fullname' => $fullname,
-            'u_position' => null,
-            'u_password' => password_hash($randomPassword, PASSWORD_DEFAULT),
-            'u_role'     => $role,
-            'u_status'   => 'active',
-            'u_sort'     => 99
+            'u_username'                  => $username,
+            'u_email'                     => $email,
+            'u_fullname'                  => $fullname,
+            'u_position'                  => null,
+            'u_password'                  => password_hash($randomPassword, PASSWORD_DEFAULT),
+            'u_role'                      => $role,
+            'u_status'                    => 'active',
+            'u_sort'                      => 99,
+            'u_science_week_competitions' => $competitionsJson,
         ];
 
         if ($userModel->insert($dataInsert)) {
@@ -2692,6 +2724,13 @@ class ScienceWeek extends BaseController
             return $this->response->setJSON(['status' => 'error', 'message' => 'กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน (ชื่อ-นามสกุล และ อีเมล)']);
         }
 
+        // Process allowed competitions (only meaningful for staff role)
+        $allowedComps = $this->request->getPost('allowed_competitions');
+        $competitionsJson = null;
+        if ($role === 'science_week' && !empty($allowedComps) && is_array($allowedComps)) {
+            $competitionsJson = json_encode(array_values($allowedComps), JSON_UNESCAPED_UNICODE);
+        }
+
         // Check duplicates excluding self
         $dupEmail = $userModel->where('u_email', $email)->where('u_id !=', $id)->first();
         if ($dupEmail) {
@@ -2699,9 +2738,10 @@ class ScienceWeek extends BaseController
         }
 
         $dataUpdate = [
-            'u_email'    => $email,
-            'u_fullname' => $fullname,
-            'u_role'     => $role,
+            'u_email'                     => $email,
+            'u_fullname'                  => $fullname,
+            'u_role'                      => $role,
+            'u_science_week_competitions' => $competitionsJson,
         ];
 
         // Also update username if email changed, to keep it clean

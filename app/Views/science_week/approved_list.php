@@ -1,4 +1,4 @@
-<?= $this->extend('science_week/layout/main') ?>
+﻿<?= $this->extend('science_week/layout/main') ?>
 
 <?= $this->section('content') ?>
 <style>

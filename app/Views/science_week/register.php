@@ -245,20 +245,62 @@
                                     </a>
                                 <?php endif; ?>
                             </div>
-                            
-                                                        <?php if (!$registration_open): ?>
-                                <button disabled class="w-full py-3 rounded-xl text-center text-rose-300 bg-rose-950/20 border border-rose-900/35 text-xs font-bold cursor-not-allowed flex items-center justify-center gap-2">
-                                    <i data-lucide="lock" class="w-4 h-4 text-rose-450 animate-pulse"></i> ปิดรับสมัครแข่งขันแล้ว
-                                </button>
-                            <?php elseif ($isFull): ?>
-                                <button disabled class="w-full py-3 rounded-xl text-center text-slate-500 bg-slate-900/80 border border-slate-800 text-xs font-bold cursor-not-allowed flex items-center justify-center gap-2">
-                                    <i data-lucide="minus-circle" class="w-4 h-4"></i> เต็มแล้ว (Full)
-                                </button>
-                            <?php else: ?>
-                                <a href="<?= base_url('science-week/register/form?type=' . urlencode($comp['comp_name'])) ?>" class="w-full py-3 rounded-xl text-center text-white text-xs font-bold sci-btn-card flex items-center justify-center gap-2">
-                                    <i data-lucide="plus-circle" class="w-4 h-4"></i> สมัครการแข่งขัน
-                                </a>
+
+                            <!-- Show Time Limits in Thai BE Format -->
+                            <?php if (!empty($comp['comp_open_time']) || !empty($comp['comp_close_time'])): ?>
+                                <div class="mt-3 p-3 bg-slate-950/20 rounded-xl border border-slate-800/30 text-[10px] space-y-1 text-slate-400">
+                                    <?php if (!empty($comp['comp_open_time'])): ?>
+                                        <div class="flex justify-between">
+                                            <span>เริ่มรับสมัคร:</span>
+                                            <span class="font-bold text-slate-300"><?= date('d/m/Y H:i', strtotime($comp['comp_open_time'] . ' +543 years')) ?> น. (พ.ศ.)</span>
+                                        </div>
+                                    <?php endif; ?>
+                                    <?php if (!empty($comp['comp_close_time'])): ?>
+                                        <div class="flex justify-between">
+                                            <span>สิ้นสุดรับสมัคร:</span>
+                                            <span class="font-bold text-rose-400"><?= date('d/m/Y H:i', strtotime($comp['comp_close_time'] . ' +543 years')) ?> น. (พ.ศ.)</span>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
                             <?php endif; ?>
+
+                            <?php 
+                            $now = date('Y-m-d H:i:s');
+                            $isTimeOpen = true;
+                            $timeMsg = '';
+                            if (!empty($comp['comp_open_time']) && $now < $comp['comp_open_time']) {
+                                $isTimeOpen = false;
+                                $timeMsg = 'ยังไม่เปิดรับสมัคร (เริ่ม ' . date('d/m/Y H:i', strtotime($comp['comp_open_time'] . ' +543 years')) . ')';
+                            }
+                            elseif (!empty($comp['comp_close_time']) && $now > $comp['comp_close_time']) {
+                                $isTimeOpen = false;
+                                $timeMsg = 'หมดเขตรับสมัครแล้ว';
+                            }
+                            elseif (($comp['comp_status'] ?? 'open') === 'closed') {
+                                $isTimeOpen = false;
+                                $timeMsg = 'ปิดรับสมัครชั่วคราว';
+                            }
+                            ?>
+
+                            <div class="pt-2">
+                                <?php if (!$registration_open): ?>
+                                    <button disabled class="w-full py-3 rounded-xl text-center text-rose-300 bg-rose-950/20 border border-rose-900/35 text-xs font-bold cursor-not-allowed flex items-center justify-center gap-2">
+                                        <i data-lucide="lock" class="w-4 h-4 text-rose-450 animate-pulse"></i> ปิดรับสมัครระบบหลักแล้ว
+                                    </button>
+                                <?php elseif (!$isTimeOpen): ?>
+                                    <button disabled class="w-full py-3 rounded-xl text-center text-rose-300 bg-rose-950/20 border border-rose-900/35 text-xs font-bold cursor-not-allowed flex items-center justify-center gap-2" title="<?= esc($timeMsg) ?>">
+                                        <i data-lucide="calendar-x" class="w-4 h-4 text-rose-450"></i> <?= esc($timeMsg) ?>
+                                    </button>
+                                <?php elseif ($isFull): ?>
+                                    <button disabled class="w-full py-3 rounded-xl text-center text-slate-500 bg-slate-900/80 border border-slate-800 text-xs font-bold cursor-not-allowed flex items-center justify-center gap-2">
+                                        <i data-lucide="minus-circle" class="w-4 h-4"></i> เต็มแล้ว (Full)
+                                    </button>
+                                <?php else: ?>
+                                    <a href="<?= base_url('science-week/register/form?type=' . urlencode($comp['comp_name'])) ?>" class="w-full py-3 rounded-xl text-center text-white text-xs font-bold sci-btn-card flex items-center justify-center gap-2">
+                                        <i data-lucide="plus-circle" class="w-4 h-4"></i> สมัครการแข่งขัน
+                                    </a>
+                                <?php endif; ?>
+                            </div>
                         </div>
                     </div>
                 <?php $delay += 80; endforeach; ?>
