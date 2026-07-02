@@ -44,6 +44,9 @@ class ScienceWeek extends BaseController
             if (!$db->fieldExists('comp_custom_fields', 'Tb_ScienceWeek_Competitions')) {
                 $db->query("ALTER TABLE Tb_ScienceWeek_Competitions ADD COLUMN comp_custom_fields TEXT NULL AFTER comp_color");
             }
+            if (!$db->fieldExists('comp_member_custom_fields', 'Tb_ScienceWeek_Competitions')) {
+                $db->query("ALTER TABLE Tb_ScienceWeek_Competitions ADD COLUMN comp_member_custom_fields TEXT NULL AFTER comp_custom_fields");
+            }
             if (!$db->fieldExists('comp_limit', 'Tb_ScienceWeek_Competitions')) {
                 $db->query("ALTER TABLE Tb_ScienceWeek_Competitions ADD COLUMN comp_limit INT NULL DEFAULT 0 AFTER comp_custom_fields");
             }
@@ -339,12 +342,24 @@ class ScienceWeek extends BaseController
         $advisorPrefixesRaw = $this->request->getPost('advisor_prefixes') ?: [];
         $advisorNamesRaw = $this->request->getPost('advisor_names') ?: [];
 
+        $memberCustomFieldsRaw = $this->request->getPost('member_custom_fields') ?: [];
+
         $members = [];
         foreach ($memberNamesRaw as $idx => $name) {
             $trimmedName = trim($name);
             if ($trimmedName !== '') {
                 $prefix = trim($memberPrefixesRaw[$idx] ?? '');
-                $members[] = ($prefix !== '' ? $prefix . ' ' : '') . $trimmedName;
+                $mFields = $memberCustomFieldsRaw[$idx] ?? [];
+                
+                if (!empty($mFields)) {
+                    $members[] = [
+                        'prefix' => $prefix,
+                        'name' => $trimmedName,
+                        'custom_fields' => $mFields
+                    ];
+                } else {
+                    $members[] = ($prefix !== '' ? $prefix . ' ' : '') . $trimmedName;
+                }
             }
         }
 
@@ -699,12 +714,24 @@ class ScienceWeek extends BaseController
         $advisorPrefixesRaw = $this->request->getPost('advisor_prefixes') ?: [];
         $advisorNamesRaw = $this->request->getPost('advisor_names') ?: [];
 
+        $memberCustomFieldsRaw = $this->request->getPost('member_custom_fields') ?: [];
+
         $members = [];
         foreach ($memberNamesRaw as $idx => $name) {
             $trimmedName = trim($name);
             if ($trimmedName !== '') {
                 $prefix = trim($memberPrefixesRaw[$idx] ?? '');
-                $members[] = ($prefix !== '' ? $prefix . ' ' : '') . $trimmedName;
+                $mFields = $memberCustomFieldsRaw[$idx] ?? [];
+                
+                if (!empty($mFields)) {
+                    $members[] = [
+                        'prefix' => $prefix,
+                        'name' => $trimmedName,
+                        'custom_fields' => $mFields
+                    ];
+                } else {
+                    $members[] = ($prefix !== '' ? $prefix . ' ' : '') . $trimmedName;
+                }
             }
         }
 
@@ -856,7 +883,30 @@ class ScienceWeek extends BaseController
         $rowIdx = 5;
         $i = 1;
         foreach ($results as $reg) {
-            $members = implode(', ', json_decode($reg['reg_members'], true) ?? []);
+            $memberData = json_decode($reg['reg_members'], true) ?? [];
+            $memberNamesFormatted = [];
+            foreach ($memberData as $m) {
+                if (is_array($m)) {
+                    $prefix = trim($m['prefix'] ?? '');
+                    $name = trim($m['name'] ?? '');
+                    $mText = ($prefix !== '' ? $prefix . ' ' : '') . $name;
+                    if (!empty($m['custom_fields'])) {
+                        $cfStr = [];
+                        foreach ($m['custom_fields'] as $cfKey => $cfVal) {
+                            if ($cfVal !== '') {
+                                $cfStr[] = "{$cfKey}: {$cfVal}";
+                            }
+                        }
+                        if (!empty($cfStr)) {
+                            $mText .= ' (' . implode(', ', $cfStr) . ')';
+                        }
+                    }
+                    $memberNamesFormatted[] = $mText;
+                } else {
+                    $memberNamesFormatted[] = $m;
+                }
+            }
+            $members = implode(', ', $memberNamesFormatted);
             $advisors = implode(', ', json_decode($reg['reg_advisors'], true) ?? []);
 
             $statusText = 'รอการตรวจสอบ';
@@ -1028,6 +1078,23 @@ class ScienceWeek extends BaseController
             $customFieldsJson = json_encode($cleanedFields, JSON_UNESCAPED_UNICODE);
         }
 
+        $memberCustomFields = $this->request->getPost('member_custom_fields');
+        $memberCustomFieldsJson = null;
+        if (!empty($memberCustomFields) && is_array($memberCustomFields)) {
+            $cleanedFields = [];
+            foreach ($memberCustomFields as $field) {
+                if (!empty($field['label'])) {
+                    $cleanedFields[] = [
+                        'label' => trim($field['label']),
+                        'type' => $field['type'] ?? 'text',
+                        'options' => !empty($field['options']) ? trim($field['options']) : null,
+                        'required' => isset($field['required']) && $field['required'] == '1'
+                    ];
+                }
+            }
+            $memberCustomFieldsJson = json_encode($cleanedFields, JSON_UNESCAPED_UNICODE);
+        }
+
         $levelLimits = $this->request->getPost('level_limits');
         $levelLimitsJson = null;
         if (!empty($levelLimits) && is_array($levelLimits)) {
@@ -1056,8 +1123,12 @@ class ScienceWeek extends BaseController
             'comp_group_qr' => $groupQrPath,
             'comp_color' => $this->request->getPost('comp_color'),
             'comp_custom_fields' => $customFieldsJson,
+            'comp_member_custom_fields' => $memberCustomFieldsJson,
             'comp_limit' => (int) $this->request->getPost('comp_limit'),
-            'comp_member_limit' => (int) $this->request->getPost('comp_member_limit')
+            'comp_member_limit' => (int) $this->request->getPost('comp_member_limit'),
+            'comp_status' => $this->request->getPost('comp_status') ?: 'open',
+            'comp_open_time' => $this->request->getPost('comp_open_time') ?: null,
+            'comp_close_time' => $this->request->getPost('comp_close_time') ?: null
         ];
 
         if ($this->compModel->insert($dataInsert)) {
@@ -1184,6 +1255,23 @@ class ScienceWeek extends BaseController
             $customFieldsJson = json_encode($cleanedFields, JSON_UNESCAPED_UNICODE);
         }
 
+        $memberCustomFields = $this->request->getPost('member_custom_fields');
+        $memberCustomFieldsJson = null;
+        if (!empty($memberCustomFields) && is_array($memberCustomFields)) {
+            $cleanedFields = [];
+            foreach ($memberCustomFields as $field) {
+                if (!empty($field['label'])) {
+                    $cleanedFields[] = [
+                        'label' => trim($field['label']),
+                        'type' => $field['type'] ?? 'text',
+                        'options' => !empty($field['options']) ? trim($field['options']) : null,
+                        'required' => isset($field['required']) && $field['required'] == '1'
+                    ];
+                }
+            }
+            $memberCustomFieldsJson = json_encode($cleanedFields, JSON_UNESCAPED_UNICODE);
+        }
+
         $levelLimits = $this->request->getPost('level_limits');
         $levelLimitsJson = null;
         if (!empty($levelLimits) && is_array($levelLimits)) {
@@ -1211,11 +1299,39 @@ class ScienceWeek extends BaseController
             'comp_group_qr' => $groupQrPath,
             'comp_color' => $this->request->getPost('comp_color'),
             'comp_custom_fields' => $customFieldsJson,
+            'comp_member_custom_fields' => $memberCustomFieldsJson,
             'comp_limit' => (int) $this->request->getPost('comp_limit'),
-            'comp_member_limit' => (int) $this->request->getPost('comp_member_limit')
+            'comp_member_limit' => (int) $this->request->getPost('comp_member_limit'),
+            'comp_status' => $this->request->getPost('comp_status') ?: 'open',
+            'comp_open_time' => $this->request->getPost('comp_open_time') ?: null,
+            'comp_close_time' => $this->request->getPost('comp_close_time') ?: null
         ];
 
+        $oldName = $comp['comp_name'];
+        $newName = trim($this->request->getPost('comp_name') ?? '');
+
         if ($this->compModel->update($id, $dataUpdate)) {
+            if ($oldName !== $newName && !empty($newName)) {
+                // Update Tb_ScienceWeek_Registrations reference
+                $db = \Config\Database::connect();
+                $db->table('Tb_ScienceWeek_Registrations')
+                   ->where('reg_competition_type', $oldName)
+                   ->update(['reg_competition_type' => $newName]);
+
+                // Update Tb_Users.u_science_week_competitions (allowed competitions) reference
+                $userModel = new \App\Models\UserModel();
+                $users = $userModel->like('u_science_week_competitions', $oldName)->findAll();
+                foreach ($users as $user) {
+                    $allowedJson = $user['u_science_week_competitions'] ?? '';
+                    $allowedComps = json_decode($allowedJson, true) ?: [];
+                    if (!empty($allowedComps)) {
+                        $updatedComps = array_map(fn($val) => $val === $oldName ? $newName : $val, $allowedComps);
+                        $userModel->update($user['u_id'], [
+                            'u_science_week_competitions' => json_encode(array_values($updatedComps), JSON_UNESCAPED_UNICODE)
+                        ]);
+                    }
+                }
+            }
             return redirect()->to(base_url('staff/science-week/competitions'))->with('success', 'แก้ไขประเภทการแข่งขันสำเร็จ');
         }
 
@@ -1839,8 +1955,15 @@ class ScienceWeek extends BaseController
                         $advisors = json_decode($reg['reg_advisors'], true) ?: [];
                         $recipientName = !empty($advisors) ? $advisors[0] : '';
                     } else {
-                        $members = json_decode($reg['reg_members'], true) ?: [];
-                        $recipientName = !empty($members) ? $members[0] : '';
+                        $membersRaw = json_decode($reg['reg_members'], true) ?: [];
+                        $firstMember = !empty($membersRaw) ? $membersRaw[0] : '';
+                        if (is_array($firstMember)) {
+                            $prefix = trim($firstMember['prefix'] ?? '');
+                            $name = trim($firstMember['name'] ?? '');
+                            $recipientName = ($prefix !== '' ? $prefix . ' ' : '') . $name;
+                        } else {
+                            $recipientName = $firstMember;
+                        }
                     }
                 }
 
@@ -2134,7 +2257,17 @@ class ScienceWeek extends BaseController
             if (!$reg) {
                 throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('ไม่พบรหัสผู้สมัคร');
             }
-            $members = json_decode($reg['reg_members'], true) ?: [];
+            $rawMembers = json_decode($reg['reg_members'], true) ?: [];
+            $members = [];
+            foreach ($rawMembers as $m) {
+                if (is_array($m)) {
+                    $prefix = trim($m['prefix'] ?? '');
+                    $name = trim($m['name'] ?? '');
+                    $members[] = ($prefix !== '' ? $prefix . ' ' : '') . $name;
+                } else {
+                    $members[] = $m;
+                }
+            }
             $advisors = json_decode($reg['reg_advisors'], true) ?: [];
         } else {
             $db = \Config\Database::connect();

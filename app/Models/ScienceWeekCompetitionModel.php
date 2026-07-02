@@ -25,6 +25,7 @@ class ScienceWeekCompetitionModel extends Model
         'comp_group_qr',
         'comp_color',
         'comp_custom_fields',
+        'comp_member_custom_fields',
         'comp_limit',
         'comp_member_limit',
         'comp_status',

@@ -272,6 +272,7 @@
         background: rgba(255, 255, 255, 0.95);
         box-shadow: 0 20px 50px -10px rgba(99, 102, 241, 0.15);
         transform: translateY(-8px);
+        border-color: var(--hover-border, rgba(99, 102, 241, 0.5)) !important;
     }
     .glass-sci-card h3 { color: #0f172a; }
     .glass-sci-card p { color: #475569; transition: color 0.3s ease; }
@@ -586,68 +587,68 @@
                 <div class="rainbow-divider max-w-20 mx-auto"></div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
                 <!-- 1. Register -->
-                <a href="<?= base_url('science-week/register') ?>" class="glass-sci-card rounded-3xl p-6 flex flex-col justify-between glow-border border border-indigo-500/20 hover:scale-105 transition-all text-left">
-                    <div class="space-y-4">
-                        <div class="icon-container w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shadow-md">
-                            <i data-lucide="clipboard-edit" class="w-6 h-6"></i>
+                <a href="<?= base_url('science-week/register') ?>" class="glass-sci-card rounded-3xl p-8 sm:p-10 flex flex-col justify-between glow-border border-2 border-indigo-500/30 hover:border-indigo-500 hover:scale-105 transition-all text-left shadow-lg">
+                    <div class="space-y-5">
+                        <div class="icon-container w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500/25 to-purple-500/25 border-2 border-indigo-500/40 flex items-center justify-center text-indigo-450 dark:text-indigo-400 shadow-md">
+                            <i data-lucide="clipboard-edit" class="w-8 h-8"></i>
                         </div>
-                        <h3 class="text-lg font-black text-white">สมัครแข่งขัน</h3>
-                        <p class="text-slate-400 text-xs leading-relaxed">
+                        <h3 class="text-2xl font-black text-slate-800 dark:text-white">สมัครแข่งขัน</h3>
+                        <p class="text-slate-600 dark:text-slate-300 text-sm sm:text-base leading-relaxed font-semibold">
                             ลงทะเบียนข้อมูลโรงเรียน ทีม และผู้เข้าแข่งขันเพื่อจองสิทธิ์เข้าร่วม
                         </p>
                     </div>
-                    <div class="mt-6 flex items-center gap-1.5 text-xs font-bold text-indigo-400">
-                        <span>ดำเนินการสมัคร</span> <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                    <div class="mt-8 flex items-center gap-2 text-sm sm:text-base font-black text-indigo-600 dark:text-indigo-400 group">
+                        <span>ดำเนินการสมัคร</span> <i data-lucide="arrow-right" class="w-4 h-4 transition-transform group-hover:translate-x-1"></i>
                     </div>
                 </a>
 
                 <!-- 2. Approved List -->
-                <a href="<?= base_url('science-week/approved-list') ?>" class="glass-sci-card rounded-3xl p-6 flex flex-col justify-between glow-border border border-indigo-500/20 hover:scale-105 transition-all text-left">
-                    <div class="space-y-4">
-                        <div class="icon-container w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shadow-md">
-                            <i data-lucide="users" class="w-6 h-6"></i>
+                <a href="<?= base_url('science-week/approved-list') ?>" class="glass-sci-card rounded-3xl p-8 sm:p-10 flex flex-col justify-between glow-border border-2 border-emerald-500/30 hover:border-emerald-500 hover:scale-105 transition-all text-left shadow-lg">
+                    <div class="space-y-5">
+                        <div class="icon-container w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500/25 to-teal-500/25 border-2 border-emerald-500/40 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shadow-md">
+                            <i data-lucide="users" class="w-8 h-8"></i>
                         </div>
-                        <h3 class="text-lg font-black text-white">รายชื่อผู้มีสิทธิ์ & พิมพ์บัตร</h3>
-                        <p class="text-slate-400 text-xs leading-relaxed">
+                        <h3 class="text-2xl font-black text-slate-800 dark:text-white">รายชื่อผู้มีสิทธิ์ & พิมพ์บัตร</h3>
+                        <p class="text-slate-600 dark:text-slate-300 text-sm sm:text-base leading-relaxed font-semibold">
                             ตรวจสอบประกาศรายชื่อทีมที่ได้รับการอนุมัติ และพิมพ์บัตรประจำตัวทีมเพื่อเข้าร่วมงาน
                         </p>
                     </div>
-                    <div class="mt-6 flex items-center gap-1.5 text-xs font-bold text-emerald-400">
-                        <span>ดูประกาศ & พิมพ์บัตร</span> <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                    <div class="mt-8 flex items-center gap-2 text-sm sm:text-base font-black text-emerald-600 dark:text-emerald-400 group">
+                        <span>ดูประกาศ & พิมพ์บัตร</span> <i data-lucide="arrow-right" class="w-4 h-4 transition-transform group-hover:translate-x-1"></i>
                     </div>
                 </a>
 
                 <!-- 3. Results -->
-                <a href="<?= base_url('science-week/results') ?>" class="glass-sci-card rounded-3xl p-6 flex flex-col justify-between glow-border border border-indigo-500/20 hover:scale-105 transition-all text-left">
-                    <div class="space-y-4">
-                        <div class="icon-container w-12 h-12 rounded-2xl bg-gradient-to-br from-yellow-500/20 to-amber-500/20 border border-yellow-500/30 flex items-center justify-center text-yellow-400 shadow-md">
-                            <i data-lucide="award" class="w-6 h-6"></i>
+                <a href="<?= base_url('science-week/results') ?>" class="glass-sci-card rounded-3xl p-8 sm:p-10 flex flex-col justify-between glow-border border-2 border-amber-500/35 hover:border-amber-500 hover:scale-105 transition-all text-left shadow-lg">
+                    <div class="space-y-5">
+                        <div class="icon-container w-16 h-16 rounded-2xl bg-gradient-to-br from-yellow-500/25 to-amber-500/25 border-2 border-yellow-500/40 flex items-center justify-center text-yellow-600 dark:text-yellow-400 shadow-md">
+                            <i data-lucide="award" class="w-8 h-8"></i>
                         </div>
-                        <h3 class="text-lg font-black text-white">ประกาศผลรางวัล</h3>
-                        <p class="text-slate-400 text-xs leading-relaxed">
+                        <h3 class="text-2xl font-black text-slate-800 dark:text-white">ประกาศผลรางวัล</h3>
+                        <p class="text-slate-600 dark:text-slate-300 text-sm sm:text-base leading-relaxed font-semibold">
                             สรุปและประกาศผลรางวัลชนะเลิศตามลำดับกิจกรรมงานวิทยาศาสตร์ทั้งหมด
                         </p>
                     </div>
-                    <div class="mt-6 flex items-center gap-1.5 text-xs font-bold text-yellow-400">
-                        <span>เช็คผลรางวัล</span> <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                    <div class="mt-8 flex items-center gap-2 text-sm sm:text-base font-black text-amber-600 dark:text-amber-400 group">
+                        <span>เช็คผลรางวัล</span> <i data-lucide="arrow-right" class="w-4 h-4 transition-transform group-hover:translate-x-1"></i>
                     </div>
                 </a>
 
                 <!-- 4. Evaluation -->
-                <a href="<?= base_url('science-week/evaluation') ?>" class="glass-sci-card rounded-3xl p-6 flex flex-col justify-between glow-border border border-indigo-500/20 hover:scale-105 transition-all text-left">
-                    <div class="space-y-4">
-                        <div class="icon-container w-12 h-12 rounded-2xl bg-gradient-to-br from-rose-500/20 to-pink-500/20 border border-rose-500/30 flex items-center justify-center text-rose-400 shadow-md">
-                            <i data-lucide="clipboard-list" class="w-6 h-6"></i>
+                <a href="<?= base_url('science-week/evaluation') ?>" class="glass-sci-card rounded-3xl p-8 sm:p-10 flex flex-col justify-between glow-border border-2 border-rose-500/30 hover:border-rose-500 hover:scale-105 transition-all text-left shadow-lg">
+                    <div class="space-y-5">
+                        <div class="icon-container w-16 h-16 rounded-2xl bg-gradient-to-br from-rose-500/25 to-pink-500/25 border-2 border-rose-500/40 flex items-center justify-center text-rose-600 dark:text-rose-455 shadow-md">
+                            <i data-lucide="clipboard-list" class="w-8 h-8"></i>
                         </div>
-                        <h3 class="text-lg font-black text-white">ทำแบบประเมิน</h3>
-                        <p class="text-slate-400 text-xs leading-relaxed">
+                        <h3 class="text-2xl font-black text-slate-800 dark:text-white">ทำแบบประเมิน</h3>
+                        <p class="text-slate-600 dark:text-slate-300 text-sm sm:text-base leading-relaxed font-semibold">
                             ร่วมทำแบบประเมินความพึงพอใจการจัดกิจกรรม เพื่อรับเกียรติบัตรผู้เข้าร่วม
                         </p>
                     </div>
-                    <div class="mt-6 flex items-center gap-1.5 text-xs font-bold text-rose-400">
-                        <span>ทำแบบประเมิน</span> <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                    <div class="mt-8 flex items-center gap-2 text-sm sm:text-base font-black text-rose-650 dark:text-rose-400 group">
+                        <span>ทำแบบประเมิน</span> <i data-lucide="arrow-right" class="w-4 h-4 transition-transform group-hover:translate-x-1"></i>
                     </div>
                 </a>
             </div>
@@ -664,33 +665,36 @@
                 <div class="rainbow-divider max-w-24 mx-auto"></div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                 <?php if (!empty($popular_competitions)): ?>
                     <?php $delay = 100; foreach ($popular_competitions as $comp): 
                         $compColor = $comp['comp_color'] ?? '#6366f1';
                         $compIcon = $comp['comp_icon'] ?? 'award';
                         $compLevel = $comp['comp_level'] ?? 'ทุกระดับชั้น';
                     ?>
-                        <div class="glass-sci-card rounded-3xl p-6 flex flex-col justify-between glow-border scroll-reveal" data-delay="<?= $delay ?>">
+                        <a href="<?= base_url('science-week/register/form?type=' . urlencode($comp['comp_name'])) ?>" class="glass-sci-card rounded-3xl p-6 flex flex-col justify-between glow-border border-2 border-slate-200/10 hover:scale-105 transition-all text-left shadow-lg scroll-reveal group" data-delay="<?= $delay ?>" style="--hover-border: <?= esc($compColor) ?>;">
                             <div class="space-y-4">
-                                <div class="icon-container w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-md" style="background: <?= esc($compColor) ?>; box-shadow: 0 0 15px <?= esc($compColor) ?>40">
+                                <div class="icon-container w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-md transition-transform group-hover:scale-110" style="background: <?= esc($compColor) ?>; box-shadow: 0 0 15px <?= esc($compColor) ?>40">
                                     <i data-lucide="<?= esc($compIcon) ?>" class="w-7 h-7"></i>
                                 </div>
-                                <h3 class="text-xl font-black text-white"><?= esc($comp['comp_name']) ?></h3>
-                                <p class="text-slate-500 text-sm leading-relaxed line-clamp-3">
+                                <h3 class="text-xl font-black text-slate-800 dark:text-white"><?= esc($comp['comp_name']) ?></h3>
+                                <p class="text-slate-600 dark:text-slate-300 text-sm leading-relaxed line-clamp-3 font-semibold">
                                     <?= esc(strip_tags($comp['comp_description'] ?? 'ร่วมแข่งขันชิงถ้วยรางวัล เกียรติบัตร และทุนการศึกษา!')) ?>
                                 </p>
                             </div>
-                            <div class="mt-6 flex flex-col gap-2">
-                                <div class="flex items-center justify-between text-xs text-slate-400 font-semibold">
+                            <div class="mt-6 flex flex-col gap-3">
+                                <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 font-semibold">
                                     <span>ระดับ: <?= esc($compLevel) ?></span>
                                 </div>
-                                <div class="flex items-center justify-between border-t border-slate-800/40 pt-2 text-[11px] text-slate-400 font-bold">
+                                <div class="flex items-center justify-between border-t border-slate-200/20 dark:border-slate-800/40 pt-3 text-[11px] text-slate-500 dark:text-slate-450 font-bold">
                                     <span>สมัครแล้ว:</span>
-                                    <span class="text-indigo-400 font-black font-mono"><?= esc($comp['reg_count']) ?> ทีม</span>
+                                    <span class="text-indigo-600 dark:text-indigo-400 font-black font-mono"><?= esc($comp['reg_count']) ?> ทีม</span>
+                                </div>
+                                <div class="pt-1 flex items-center gap-1.5 text-xs font-black transition-colors" style="color: <?= esc($compColor) ?>;">
+                                    <span>สมัครเข้าร่วมแข่งขัน</span> <i data-lucide="arrow-right" class="w-3.5 h-3.5 transition-transform group-hover:translate-x-1"></i>
                                 </div>
                             </div>
-                        </div>
+                        </a>
                     <?php $delay += 100; endforeach; ?>
                 <?php else: ?>
                     <div class="col-span-full text-center text-slate-400 py-8 font-medium">ไม่มีข้อมูลหัวข้อการแข่งขัน</div>
@@ -700,7 +704,7 @@
             <!-- View All Competitions Button -->
             <div class="text-center pt-8 scroll-reveal" data-delay="100">
                 <a href="<?= base_url('science-week/register') ?>" class="inline-flex items-center gap-2 px-8 py-4 rounded-2xl bg-gradient-to-r from-cyan-500 to-indigo-500 hover:from-cyan-600 hover:to-indigo-600 text-white font-bold text-base transition-all duration-300 shadow-lg shadow-indigo-500/20 hover:scale-105">
-                    <i data-lucide="award" class="w-5 h-5"></i> ดูการแข่งขันทั้งหมด
+                     <i data-lucide="award" class="w-5 h-5"></i> ดูการแข่งขันทั้งหมด
                 </a>
             </div>
         </div>
@@ -716,17 +720,25 @@
                 <div class="rainbow-divider max-w-24 mx-auto"></div>
             </div>
 
-            <div class="max-w-3xl mx-auto relative border-l-2 border-slate-200 pl-8 space-y-10">
+            <div class="max-w-3xl mx-auto relative border-l-2 border-indigo-500/20 pl-8 space-y-10">
                 <?php if (empty($schedules)): ?>
                     <div class="text-slate-400 text-center py-8 font-medium">ยังไม่มีกำหนดการจัดกิจกรรม</div>
                 <?php else: ?>
-                    <?php $delay = 0; foreach ($schedules as $sch): ?>
+                    <?php $delay = 0; foreach ($schedules as $sch): 
+                        $colorName = $sch['sch_color'] ?: 'cyan';
+                        $colorHex = '#22d3ee';
+                        if ($colorName === 'emerald') $colorHex = '#34d399';
+                        elseif ($colorName === 'purple') $colorHex = '#c084fc';
+                        elseif ($colorName === 'yellow') $colorHex = '#facc15';
+                        elseif ($colorName === 'rose') $colorHex = '#f43f5e';
+                        elseif ($colorName === 'indigo') $colorHex = '#818cf8';
+                    ?>
                         <div class="relative scroll-reveal" data-delay="<?= $delay ?>">
-                            <div class="absolute -left-[41px] top-1.5 w-6 h-6 rounded-full bg-<?= esc($sch['sch_color'] ?: 'cyan') ?>-400 timeline-dot border-4 border-white shadow-md animate-pulse"></div>
-                            <div class="glass-sci-card rounded-2xl p-5 space-y-2">
-                                <span class="text-<?= esc($sch['sch_color'] ?: 'cyan') ?>-600 font-mono text-sm font-bold tracking-wider"><?= esc($sch['sch_date']) ?></span>
-                                <h4 class="text-lg font-black text-slate-800"><?= esc($sch['sch_title']) ?></h4>
-                                <p class="text-slate-500 text-sm leading-relaxed"><?= esc($sch['sch_description'] ?: '') ?></p>
+                            <div class="absolute -left-[41px] top-1.5 w-6 h-6 rounded-full border-4 border-slate-900 shadow-md animate-pulse timeline-dot" style="background-color: <?= $colorHex ?>; box-shadow: 0 0 12px <?= $colorHex ?>;"></div>
+                            <div class="glass-sci-card rounded-2xl p-6 space-y-3 shadow-md border border-slate-200/10 hover:border-indigo-500/30 transition-all">
+                                <span class="font-mono text-sm font-extrabold tracking-wider" style="color: <?= $colorHex ?>;"><?= esc($sch['sch_date']) ?></span>
+                                <h4 class="text-xl font-black text-slate-800 dark:text-white"><?= esc($sch['sch_title']) ?></h4>
+                                <p class="text-slate-600 dark:text-slate-350 text-sm leading-relaxed font-semibold"><?= esc($sch['sch_description'] ?: '') ?></p>
                             </div>
                         </div>
                     <?php $delay += 100; endforeach; ?>

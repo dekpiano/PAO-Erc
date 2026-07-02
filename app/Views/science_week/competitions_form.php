@@ -263,16 +263,39 @@
             ?>
             <div class="flex justify-between items-center pb-2 border-b border-slate-200 dark:border-slate-800">
                 <h3 class="text-base font-extrabold text-purple-400 flex items-center gap-2">
-                    <i data-lucide="list-plus" class="w-5 h-5"></i> ฟิลด์ข้อคำถามเพิ่มเติม
+                    <i data-lucide="list-plus" class="w-5 h-5"></i> ฟิลด์ข้อคำถามเพิ่มเติม (สำหรับทีม)
                 </h3>
                 <button type="button" id="add-field-btn" class="px-2.5 py-1.5 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 font-black rounded-xl text-xs flex items-center gap-1 transition-all">
                     <i data-lucide="plus" class="w-3.5 h-3.5"></i> เพิ่มข้อคำถาม
                 </button>
             </div>
-            <p class="text-xs font-semibold text-slate-500 dark:text-slate-400">ใช้ถามคำถามเฉพาะสำหรับการแข่งขันนี้ (เช่น ขนาดเสื้อ, ลิงก์คลิปวิดีโอ)</p>
+            <p class="text-xs font-semibold text-slate-500 dark:text-slate-400">ใช้ถามคำถามเฉพาะสำหรับการแข่งขันนี้ (เช่น ลิงก์คลิปวิดีโอ, แนบสลิป/เอกสารทีม)</p>
             
             <div id="fields-container" class="space-y-4">
                 <!-- Dynamic custom fields config items will go here -->
+            </div>
+        </div>
+
+        <!-- Member Custom Fields Card -->
+        <div class="glass-card rounded-3xl p-6 bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-4">
+            <?php
+            $memberCustomFields = [];
+            if (!empty($comp['comp_member_custom_fields'])) {
+                $memberCustomFields = json_decode($comp['comp_member_custom_fields'], true) ?: [];
+            }
+            ?>
+            <div class="flex justify-between items-center pb-2 border-b border-slate-200 dark:border-slate-800">
+                <h3 class="text-base font-extrabold text-cyan-400 flex items-center gap-2">
+                    <i data-lucide="user-plus" class="w-5 h-5"></i> ฟิลด์ข้อมูลสมาชิกเพิ่มเติม (ต่อรายบุคคล)
+                </h3>
+                <button type="button" id="add-member-field-btn" class="px-2.5 py-1.5 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 font-black rounded-xl text-xs flex items-center gap-1 transition-all">
+                    <i data-lucide="plus" class="w-3.5 h-3.5"></i> เพิ่มฟิลด์สมาชิก
+                </button>
+            </div>
+            <p class="text-xs font-semibold text-slate-500 dark:text-slate-400">ใช้ถามข้อมูลผู้เข้าแข่งขันแต่ละรายบุคคล (เช่น ขนาดเสื้อ, ชั้นเรียน, เลขบัตรประชาชน, เบอร์โทร)</p>
+            
+            <div id="member-fields-container" class="space-y-4">
+                <!-- Dynamic member custom fields config items will go here -->
             </div>
         </div>
 
@@ -439,6 +462,89 @@ document.addEventListener('DOMContentLoaded', function() {
 
     addBtn.addEventListener('click', () => {
         addFieldRow();
+    });
+
+    // --- Member Custom Fields Management ---
+    const memberContainer = document.getElementById('member-fields-container');
+    const addMemberFieldBtn = document.getElementById('add-member-field-btn');
+    const existingMemberFields = <?= json_encode($memberCustomFields) ?>;
+    let memberFieldCount = 0;
+
+    function addMemberFieldRow(data = null) {
+        memberFieldCount++;
+        const id = 'mcf_' + memberFieldCount;
+        
+        const row = document.createElement('div');
+        row.className = 'p-4 rounded-2xl bg-slate-900/40 border border-slate-800 space-y-3 relative member-field-row';
+        row.dataset.id = id;
+        
+        const labelVal = data ? data.label : '';
+        const typeVal = data ? data.type : 'text';
+        const optionsVal = data ? (data.options || '') : '';
+        const requiredVal = data ? (data.required === true || data.required === '1' || data.required === 'true' || data.required === 1) : false;
+        
+        row.innerHTML = `
+            <div class="flex justify-between items-start gap-4">
+                <!-- Field Label/Name -->
+                <div class="flex-1 space-y-1">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase font-mono">ชื่อฟิลด์สมาชิก / Label *</label>
+                    <input type="text" name="member_custom_fields[${id}][label]" required value="${escapeHtml(labelVal)}" placeholder="เช่น ขนาดเสื้อ หรือ ห้องเรียน" class="w-full px-3 py-2 neon-input rounded-xl text-xs outline-none">
+                </div>
+                
+                <!-- Field Type -->
+                <div class="w-[140px] space-y-1">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase font-mono">ประเภทข้อมูล</label>
+                    <select name="member_custom_fields[${id}][type]" onchange="toggleMemberOptions(this, '${id}')" class="w-full px-3 py-2 neon-input rounded-xl text-xs outline-none">
+                        <option value="text" ${typeVal === 'text' ? 'selected' : ''}>ข้อความสั้น (Text)</option>
+                        <option value="textarea" ${typeVal === 'textarea' ? 'selected' : ''}>ข้อความยาว (Textarea)</option>
+                        <option value="select" ${typeVal === 'select' ? 'selected' : ''}>ตัวเลือก (Select)</option>
+                        <option value="url" ${typeVal === 'url' ? 'selected' : ''}>ระบุลิงก์ (URL)</option>
+                    </select>
+                </div>
+
+                <!-- Delete button -->
+                <button type="button" onclick="this.closest('.member-field-row').remove()" class="mt-5 p-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 rounded-xl transition-all" title="ลบฟิลด์นี้">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                </button>
+            </div>
+            
+            <!-- Extra Options -->
+            <div class="options-container space-y-1 ${typeVal === 'select' ? '' : 'hidden'}" id="mopts_${id}">
+                <label class="block text-[10px] font-bold text-slate-400 uppercase font-mono">ตัวเลือกย่อย (แยกด้วยเครื่องหมายจุลภาค , ) *</label>
+                <input type="text" name="member_custom_fields[${id}][options]" value="${escapeHtml(optionsVal)}" placeholder="เช่น S, M, L, XL" class="w-full px-3 py-2 neon-input rounded-xl text-xs outline-none" ${typeVal === 'select' ? 'required' : ''}>
+            </div>
+
+            <!-- Required Toggle -->
+            <div class="flex items-center gap-2 pt-1">
+                <input type="checkbox" name="member_custom_fields[${id}][required]" value="1" id="mreq_${id}" ${requiredVal ? 'checked' : ''} class="rounded border-slate-700/60 bg-slate-900 text-indigo-500 focus:ring-indigo-500">
+                <label for="mreq_${id}" class="text-[10px] font-bold text-slate-350 select-none cursor-pointer">บังคับกรอก (Required)</label>
+            </div>
+        `;
+        
+        memberContainer.appendChild(row);
+        lucide.createIcons();
+    }
+
+    window.toggleMemberOptions = function(select, id) {
+        const optsDiv = document.getElementById('mopts_' + id);
+        if (select.value === 'select') {
+            optsDiv.classList.remove('hidden');
+            optsDiv.querySelector('input').required = true;
+        } else {
+            optsDiv.classList.add('hidden');
+            optsDiv.querySelector('input').required = false;
+        }
+    };
+
+    if (existingMemberFields) {
+        const fieldsArr = Array.isArray(existingMemberFields) ? existingMemberFields : Object.values(existingMemberFields);
+        fieldsArr.forEach(field => {
+            addMemberFieldRow(field);
+        });
+    }
+
+    addMemberFieldBtn.addEventListener('click', () => {
+        addMemberFieldRow();
     });
 
     // Initialize BE Datetimepicker (Flatpickr)

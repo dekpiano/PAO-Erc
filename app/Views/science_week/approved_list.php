@@ -1,4 +1,4 @@
-﻿<?= $this->extend('science_week/layout/main') ?>
+<?= $this->extend('science_week/layout/main') ?>
 
 <?= $this->section('content') ?>
 <style>
@@ -213,10 +213,29 @@
                                                 <?php 
                                                 $members = json_decode($reg['reg_members'], true) ?: []; 
                                                 foreach ($members as $m):
+                                                    $mText = '';
+                                                    if (is_array($m)) {
+                                                        $prefix = trim($m['prefix'] ?? '');
+                                                        $name = trim($m['name'] ?? '');
+                                                        $mText = ($prefix !== '' ? $prefix . ' ' : '') . $name;
+                                                        if (!empty($m['custom_fields'])) {
+                                                            $cfStr = [];
+                                                            foreach ($m['custom_fields'] as $cfKey => $cfVal) {
+                                                                if ($cfVal !== '') {
+                                                                    $cfStr[] = "{$cfKey}: {$cfVal}";
+                                                                }
+                                                            }
+                                                            if (!empty($cfStr)) {
+                                                                $mText .= ' (' . implode(', ', $cfStr) . ')';
+                                                            }
+                                                        }
+                                                    } else {
+                                                        $mText = $m;
+                                                    }
                                                 ?>
-                                                    <div class="flex items-center gap-1.5 py-0.5">
+                                                    <div class="flex items-center gap-1.5 py-0.5" title="<?= esc($mText) ?>">
                                                         <span class="w-1.5 h-1.5 rounded-full bg-indigo-400 shrink-0"></span>
-                                                        <span><?= esc($m) ?></span>
+                                                        <span><?= esc($mText) ?></span>
                                                     </div>
                                                 <?php endforeach; ?>
                                             </td>
@@ -264,10 +283,29 @@
                                         <?php 
                                         $members = json_decode($reg['reg_members'], true) ?: []; 
                                         foreach ($members as $m):
+                                            $mText = '';
+                                            if (is_array($m)) {
+                                                $prefix = trim($m['prefix'] ?? '');
+                                                $name = trim($m['name'] ?? '');
+                                                $mText = ($prefix !== '' ? $prefix . ' ' : '') . $name;
+                                                if (!empty($m['custom_fields'])) {
+                                                    $cfStr = [];
+                                                    foreach ($m['custom_fields'] as $cfKey => $cfVal) {
+                                                        if ($cfVal !== '') {
+                                                            $cfStr[] = "{$cfKey}: {$cfVal}";
+                                                        }
+                                                    }
+                                                    if (!empty($cfStr)) {
+                                                        $mText .= ' (' . implode(', ', $cfStr) . ')';
+                                                    }
+                                                }
+                                            } else {
+                                                $mText = $m;
+                                            }
                                         ?>
-                                            <div class="text-xs text-slate-300 font-medium py-0.5 flex items-center gap-1">
+                                            <div class="text-xs text-slate-300 font-medium py-0.5 flex items-center gap-1" title="<?= esc($mText) ?>">
                                                 <span class="w-1.5 h-1.5 rounded-full bg-indigo-400 shrink-0"></span>
-                                                <span><?= esc($m) ?></span>
+                                                <span><?= esc($mText) ?></span>
                                             </div>
                                         <?php endforeach; ?>
                                     </div>

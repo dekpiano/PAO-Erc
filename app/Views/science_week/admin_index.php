@@ -127,8 +127,28 @@
                                 <div class="max-w-[200px]">
                                     <?php $members = json_decode($reg['reg_members'], true) ?: []; ?>
                                     <ul class="space-y-0.5">
-                                        <?php foreach ($members as $m): ?>
-                                            <li class="text-[11px] text-slate-650 dark:text-slate-300 font-medium truncate">• <?= esc($m) ?></li>
+                                        <?php foreach ($members as $m): 
+                                            $mText = '';
+                                            if (is_array($m)) {
+                                                $prefix = trim($m['prefix'] ?? '');
+                                                $name = trim($m['name'] ?? '');
+                                                $mText = ($prefix !== '' ? $prefix . ' ' : '') . $name;
+                                                if (!empty($m['custom_fields'])) {
+                                                    $cfStr = [];
+                                                    foreach ($m['custom_fields'] as $cfKey => $cfVal) {
+                                                        if ($cfVal !== '') {
+                                                            $cfStr[] = "{$cfKey}: {$cfVal}";
+                                                        }
+                                                    }
+                                                    if (!empty($cfStr)) {
+                                                        $mText .= ' (' . implode(', ', $cfStr) . ')';
+                                                    }
+                                                }
+                                            } else {
+                                                $mText = $m;
+                                            }
+                                        ?>
+                                            <li class="text-[11px] text-slate-650 dark:text-slate-300 font-medium truncate" title="<?= esc($mText) ?>">• <?= esc($mText) ?></li>
                                         <?php endforeach; ?>
                                     </ul>
                                 </div>
@@ -288,7 +308,26 @@
         const members = JSON.parse(reg.reg_members || '[]');
         members.forEach(m => {
             const li = document.createElement('li');
-            li.textContent = m;
+            let mText = '';
+            if (m && typeof m === 'object') {
+                const prefix = (m.prefix || '').trim();
+                const name = (m.name || '').trim();
+                mText = (prefix ? prefix + ' ' : '') + name;
+                if (m.custom_fields && Object.keys(m.custom_fields).length > 0) {
+                    const cfStr = [];
+                    for (const [cfKey, cfVal] of Object.entries(m.custom_fields)) {
+                        if (cfVal) {
+                            cfStr.push(`${cfKey}: ${cfVal}`);
+                        }
+                    }
+                    if (cfStr.length > 0) {
+                        mText += ' (' + cfStr.join(', ') + ')';
+                    }
+                }
+            } else {
+                mText = m;
+            }
+            li.textContent = mText;
             membersList.appendChild(li);
         });
 

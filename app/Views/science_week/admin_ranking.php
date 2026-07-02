@@ -119,8 +119,28 @@ if (!empty($registrations)) {
                                             <div class="max-w-[200px]">
                                                 <?php $members = json_decode($reg['reg_members'], true) ?: []; ?>
                                                 <ul class="space-y-0.5">
-                                                    <?php foreach ($members as $m): ?>
-                                                        <li class="text-[11px] text-slate-650 dark:text-slate-300 font-medium truncate">• <?= esc($m) ?></li>
+                                                    <?php foreach ($members as $m): 
+                                                        $mText = '';
+                                                        if (is_array($m)) {
+                                                            $prefix = trim($m['prefix'] ?? '');
+                                                            $name = trim($m['name'] ?? '');
+                                                            $mText = ($prefix !== '' ? $prefix . ' ' : '') . $name;
+                                                            if (!empty($m['custom_fields'])) {
+                                                                $cfStr = [];
+                                                                foreach ($m['custom_fields'] as $cfKey => $cfVal) {
+                                                                    if ($cfVal !== '') {
+                                                                        $cfStr[] = "{$cfKey}: {$cfVal}";
+                                                                    }
+                                                                }
+                                                                if (!empty($cfStr)) {
+                                                                    $mText .= ' (' . implode(', ', $cfStr) . ')';
+                                                                }
+                                                            }
+                                                        } else {
+                                                            $mText = $m;
+                                                        }
+                                                    ?>
+                                                        <li class="text-[11px] text-slate-650 dark:text-slate-300 font-medium truncate" title="<?= esc($mText) ?>">• <?= esc($mText) ?></li>
                                                     <?php endforeach; ?>
                                                 </ul>
                                             </div>

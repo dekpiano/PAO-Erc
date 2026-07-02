@@ -38,21 +38,29 @@
 $parsedMembers = [];
 $membersJson = json_decode($reg['reg_members'], true) ?: [];
 foreach ($membersJson as $m) {
-    $parts = explode(' ', trim($m), 2);
-    $prefix = '';
-    $name = $m;
-    if (count($parts) > 1) {
-        $possiblePrefix = $parts[0];
-        $knownPrefixes = ['เด็กชาย', 'เด็กหญิง', 'นาย', 'นางสาว', 'นาง', 'ดร.'];
-        if (in_array($possiblePrefix, $knownPrefixes)) {
-            $prefix = $possiblePrefix;
-            $name = $parts[1];
-        } else {
-            $prefix = $possiblePrefix;
-            $name = $parts[1];
+    if (is_array($m)) {
+        $parsedMembers[] = [
+            'prefix' => $m['prefix'] ?? '',
+            'name' => $m['name'] ?? '',
+            'custom_fields' => $m['custom_fields'] ?? []
+        ];
+    } else {
+        $parts = explode(' ', trim($m), 2);
+        $prefix = '';
+        $name = $m;
+        if (count($parts) > 1) {
+            $possiblePrefix = $parts[0];
+            $knownPrefixes = ['เด็กชาย', 'เด็กหญิง', 'นาย', 'นางสาว', 'นาง', 'ดร.'];
+            if (in_array($possiblePrefix, $knownPrefixes)) {
+                $prefix = $possiblePrefix;
+                $name = $parts[1];
+            } else {
+                $prefix = $possiblePrefix;
+                $name = $parts[1];
+            }
         }
+        $parsedMembers[] = ['prefix' => $prefix, 'name' => $name, 'custom_fields' => []];
     }
-    $parsedMembers[] = ['prefix' => $prefix, 'name' => $name];
 }
 
 // Parse advisors
@@ -80,6 +88,11 @@ foreach ($advisorsJson as $a) {
 $customAnswers = [];
 if (!empty($reg['reg_custom_fields'])) {
     $customAnswers = json_decode($reg['reg_custom_fields'], true) ?: [];
+}
+
+$memberCustomFieldsConfig = [];
+if ($comp && !empty($comp['comp_member_custom_fields'])) {
+    $memberCustomFieldsConfig = json_decode($comp['comp_member_custom_fields'], true) ?: [];
 }
 ?>
 
@@ -211,31 +224,67 @@ if (!empty($reg['reg_custom_fields'])) {
                     </div>
                     <div id="members-wrapper" class="space-y-3">
                         <?php foreach ($parsedMembers as $idx => $m): ?>
-                            <div class="flex items-center gap-2 p-3 rounded-2xl border-2 border-slate-800 bg-slate-900/40">
-                                <span class="text-xs font-mono font-black text-slate-400 w-8 text-center"><?= str_pad($idx + 1, 2, '0', STR_PAD_LEFT) ?></span>
-                                <div class="flex-1 flex gap-2 items-center flex-wrap sm:flex-nowrap">
-                                    <div class="w-full sm:w-28 shrink-0">
-                                        <?php $known = in_array($m['prefix'], ['เด็กชาย', 'เด็กหญิง', 'นาย', 'นางสาว', 'นาง', 'ดร.']); ?>
-                                        <select name="member_prefixes[]" class="w-full px-3 py-2.5 neon-input rounded-xl text-xs outline-none">
-                                            <option value="" disabled <?= empty($m['prefix']) ? 'selected' : '' ?>>คำนำหน้า</option>
-                                            <option value="เด็กชาย" <?= $m['prefix'] === 'เด็กชาย' ? 'selected' : '' ?>>เด็กชาย</option>
-                                            <option value="เด็กหญิง" <?= $m['prefix'] === 'เด็กหญิง' ? 'selected' : '' ?>>เด็กหญิง</option>
-                                            <option value="นาย" <?= $m['prefix'] === 'นาย' ? 'selected' : '' ?>>นาย</option>
-                                            <option value="นางสาว" <?= $m['prefix'] === 'นางสาว' ? 'selected' : '' ?>>นางสาว</option>
-                                            <option value="นาง" <?= $m['prefix'] === 'นาง' ? 'selected' : '' ?>>นาง</option>
-                                            <option value="other" <?= (!empty($m['prefix']) && !$known) ? 'selected' : '' ?>>อื่น ๆ</option>
-                                        </select>
-                                    </div>
-                                    <?php if (!empty($m['prefix']) && !$known): ?>
-                                        <div class="w-full sm:w-28 shrink-0 custom-prefix-wrapper">
-                                            <input type="text" name="member_prefixes[]" value="<?= esc($m['prefix']) ?>" placeholder="ระบุเอง..." class="w-full px-3 py-2.5 neon-input rounded-xl text-xs outline-none">
+                            <div class="flex flex-col gap-2 p-3 rounded-2xl border-2 border-slate-800 bg-slate-900/40 dynamic-item">
+                                <div class="flex items-center gap-2 w-full">
+                                    <span class="text-xs font-mono font-black text-slate-400 w-8 text-center"><?= str_pad($idx + 1, 2, '0', STR_PAD_LEFT) ?></span>
+                                    <div class="flex-1 flex gap-2 items-center flex-wrap sm:flex-nowrap">
+                                        <div class="w-full sm:w-28 shrink-0">
+                                            <?php $known = in_array($m['prefix'], ['เด็กชาย', 'เด็กหญิง', 'นาย', 'นางสาว', 'นาง', 'ดร.']); ?>
+                                            <select name="member_prefixes[<?= $idx ?>]" class="w-full px-3 py-2.5 neon-input rounded-xl text-xs outline-none prefix-select">
+                                                <option value="" disabled <?= empty($m['prefix']) ? 'selected' : '' ?>>คำนำหน้า</option>
+                                                <option value="เด็กชาย" <?= $m['prefix'] === 'เด็กชาย' ? 'selected' : '' ?>>เด็กชาย</option>
+                                                <option value="เด็กหญิง" <?= $m['prefix'] === 'เด็กหญิง' ? 'selected' : '' ?>>เด็กหญิง</option>
+                                                <option value="นาย" <?= $m['prefix'] === 'นาย' ? 'selected' : '' ?>>นาย</option>
+                                                <option value="นางสาว" <?= $m['prefix'] === 'นางสาว' ? 'selected' : '' ?>>นางสาว</option>
+                                                <option value="นาง" <?= $m['prefix'] === 'นาง' ? 'selected' : '' ?>>นาง</option>
+                                                <option value="other" <?= (!empty($m['prefix']) && !$known) ? 'selected' : '' ?>>อื่น ๆ</option>
+                                            </select>
                                         </div>
-                                    <?php endif; ?>
-                                    <input type="text" name="member_names[]" required value="<?= esc($m['name']) ?>" placeholder="ชื่อ-นามสกุล..." class="flex-1 w-full px-3 py-2.5 neon-input rounded-xl text-xs sm:text-sm font-bold outline-none">
-                                    <button type="button" class="remove-btn p-2.5 text-rose-450 hover:text-white hover:bg-rose-500 rounded-xl border border-transparent hover:border-rose-600 transition-colors">
-                                        <i data-lucide="trash-2" class="w-4.5 h-4.5"></i>
-                                    </button>
+                                        <?php if (!empty($m['prefix']) && !$known): ?>
+                                            <div class="w-full sm:w-28 shrink-0 custom-prefix-wrapper">
+                                                <input type="text" name="member_prefixes[<?= $idx ?>]" value="<?= esc($m['prefix']) ?>" placeholder="ระบุเอง..." class="w-full px-3 py-2.5 neon-input rounded-xl text-xs outline-none">
+                                            </div>
+                                        <?php endif; ?>
+                                        <input type="text" name="member_names[<?= $idx ?>]" required value="<?= esc($m['name']) ?>" placeholder="ชื่อ-นามสกุล..." class="flex-1 w-full px-3 py-2.5 neon-input rounded-xl text-xs sm:text-sm font-bold outline-none name-input-el">
+                                        <button type="button" class="remove-btn p-2.5 text-rose-450 hover:text-white hover:bg-rose-500 rounded-xl border border-transparent hover:border-rose-600 transition-colors">
+                                            <i data-lucide="trash-2" class="w-4.5 h-4.5"></i>
+                                        </button>
+                                    </div>
                                 </div>
+
+                                <!-- Member Custom Fields -->
+                                <?php if (!empty($memberCustomFieldsConfig)): ?>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2 pl-0 sm:pl-10 pr-0 sm:pr-10 w-full member-custom-fields-container">
+                                        <?php foreach ($memberCustomFieldsConfig as $f): 
+                                            $fName = esc($f['label']);
+                                            $isRequired = !empty($f['required']) ? 'required' : '';
+                                            $requiredStar = !empty($f['required']) ? '<span class="text-rose-455">*</span>' : '';
+                                            $currentVal = $m['custom_fields'][$f['label']] ?? '';
+                                        ?>
+                                            <div class="space-y-1">
+                                                <label class="block text-xs font-bold text-slate-350"><?= esc($f['label']) ?> <?= $requiredStar ?></label>
+                                                <div class="neon-input-wrapper relative">
+                                                    <?php if ($f['type'] === 'select'): 
+                                                        $opts = array_filter(array_map('trim', explode(',', $f['options'] ?? '')));
+                                                    ?>
+                                                        <select name="member_custom_fields[<?= $idx ?>][<?= $fName ?>]" <?= $isRequired ?> class="member-custom-input neon-input w-full px-3 py-2 neon-input rounded-xl text-xs outline-none cursor-pointer" data-label="<?= $fName ?>">
+                                                            <option value="" disabled <?= $currentVal === '' ? 'selected' : '' ?>>-- เลือก --</option>
+                                                            <?php foreach ($opts as $o): ?>
+                                                                <option value="<?= esc($o) ?>" <?= $currentVal === $o ? 'selected' : '' ?>><?= esc($o) ?></option>
+                                                            <?php endforeach; ?>
+                                                        </select>
+                                                    <?php elseif ($f['type'] === 'textarea'): ?>
+                                                        <textarea name="member_custom_fields[<?= $idx ?>][<?= $fName ?>]" <?= $isRequired ?> rows="2" class="member-custom-input neon-input w-full px-3 py-2 neon-input rounded-xl text-xs outline-none resize-none" data-label="<?= $fName ?>"><?= esc($currentVal) ?></textarea>
+                                                    <?php elseif ($f['type'] === 'url'): ?>
+                                                        <input type="url" name="member_custom_fields[<?= $idx ?>][<?= $fName ?>]" <?= $isRequired ?> value="<?= esc($currentVal) ?>" class="member-custom-input neon-input w-full px-3 py-2 neon-input rounded-xl text-xs outline-none" placeholder="https://..." data-label="<?= $fName ?>">
+                                                    <?php else: ?>
+                                                        <input type="text" name="member_custom_fields[<?= $idx ?>][<?= $fName ?>]" <?= $isRequired ?> value="<?= esc($currentVal) ?>" class="member-custom-input neon-input w-full px-3 py-2 neon-input rounded-xl text-xs outline-none" placeholder="ระบุข้อมูล..." data-label="<?= $fName ?>">
+                                                    <?php endif; ?>
+                                                </div>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    </div>
+                                <?php endif; ?>
                             </div>
                         <?php endforeach; ?>
                     </div>
@@ -272,7 +321,7 @@ if (!empty($reg['reg_custom_fields'])) {
                                             <input type="text" name="advisor_prefixes[]" value="<?= esc($a['prefix']) ?>" placeholder="ระบุเอง..." class="w-full px-3 py-2.5 neon-input rounded-xl text-xs outline-none">
                                         </div>
                                     <?php endif; ?>
-                                    <input type="text" name="advisor_names[]" required value="<?= esc($a['name']) ?>" placeholder="ชื่อ-นามสกุล..." class="flex-1 w-full px-3 py-2.5 neon-input rounded-xl text-xs sm:text-sm font-bold outline-none">
+                                    <input type="text" name="advisor_names[]" required value="<?= esc($a['name']) ?>" placeholder="ชื่อ-นามสกุล..." class="flex-1 w-full px-3 py-2.5 neon-input rounded-xl text-xs sm:text-sm font-bold outline-none name-input-el">
                                     <button type="button" class="remove-btn p-2.5 text-rose-450 hover:text-white hover:bg-rose-500 rounded-xl border border-transparent hover:border-rose-600 transition-colors">
                                         <i data-lucide="trash-2" class="w-4.5 h-4.5"></i>
                                     </button>
@@ -444,14 +493,15 @@ if (!empty($reg['reg_custom_fields'])) {
     </div>
 </div>
 
-<script>
-    // Config limit
+<script>    // Config limit
     const compLimit = <?= isset($comp['comp_member_limit']) ? (int)$comp['comp_member_limit'] : 0 ?>;
+    const memberCustomFieldsConfig = <?= json_encode($memberCustomFieldsConfig) ?>;
 
     function setupDynamicList(wrapperId, addBtnId, placeholderText, prefixInputName, nameInputName, maxLimit = 0) {
         const wrapper = document.getElementById(wrapperId);
         const addBtn = document.getElementById(addBtnId);
         const isMember = nameInputName.includes('member');
+        const prefixLabel = isMember ? 'MEMBER' : 'ADVISOR';
         const iconName = isMember ? 'user' : 'user-check';
 
         function checkRemoveButtons() {
@@ -470,11 +520,33 @@ if (!empty($reg['reg_custom_fields'])) {
             for (let idx = 0; idx < items.length; idx++) {
                 const count = idx + 1;
                 const formattedCount = String(count).padStart(2, '0');
-                const span = items[idx].querySelector('span');
+                const span = items[idx].querySelector('span.font-mono');
                 if (span) span.textContent = formattedCount;
-                const input = items[idx].querySelector('input[type="text"]');
-                if (input && input.placeholder.includes('...')) {
-                    input.placeholder = placeholderText.replace('1', count);
+                
+                // Reindex select/input name
+                const prefixSelect = items[idx].querySelector('select.prefix-select') || items[idx].querySelector('select');
+                if (prefixSelect && prefixSelect.name !== '_temp_prefix') {
+                    prefixSelect.name = isMember ? `member_prefixes[${idx}]` : `advisor_prefixes[${idx}]`;
+                }
+                const customPrefixInput = items[idx].querySelector('.custom-prefix-wrapper input') || items[idx].querySelector('input[placeholder="ระบุเอง..."]');
+                if (customPrefixInput) {
+                    customPrefixInput.name = isMember ? `member_prefixes[${idx}]` : `advisor_prefixes[${idx}]`;
+                }
+
+                const nameInput = items[idx].querySelector('.name-input-el');
+                if (nameInput) {
+                    nameInput.name = isMember ? `member_names[${idx}]` : `advisor_names[${idx}]`;
+                    if (nameInput.placeholder.includes('...')) {
+                        nameInput.placeholder = placeholderText.replace('1', count);
+                    }
+                }
+
+                if (isMember) {
+                    const customInputs = items[idx].querySelectorAll('.member-custom-input');
+                    customInputs.forEach(input => {
+                        const fieldLabel = input.dataset.label;
+                        input.name = `member_custom_fields[${idx}][${fieldLabel}]`;
+                    });
                 }
             }
         }
@@ -482,7 +554,7 @@ if (!empty($reg['reg_custom_fields'])) {
         // Initialize remove buttons for existing elements
         wrapper.addEventListener('click', (e) => {
             if (e.target.closest('.remove-btn')) {
-                const item = e.target.closest('.flex');
+                const item = e.target.closest('.dynamic-item') || e.target.closest('.flex');
                 item.remove();
                 checkRemoveButtons();
                 reindexItems();
@@ -505,9 +577,12 @@ if (!empty($reg['reg_custom_fields'])) {
             }
 
             const count = currentItemsCount + 1;
+            const idx = currentItemsCount;
             const formattedCount = String(count).padStart(2, '0');
             const item = document.createElement('div');
-            item.className = 'flex items-center gap-2 p-3 rounded-2xl border-2 border-slate-800 bg-slate-900/40';
+            item.className = isMember 
+                ? 'flex flex-col gap-2 p-3 rounded-2xl border-2 border-slate-800 bg-slate-900/40 dynamic-item'
+                : 'flex items-center gap-2 p-3 rounded-2xl border-2 border-slate-800 bg-slate-900/40';
             
             const prefixOptions = isMember 
                 ? `
@@ -528,26 +603,108 @@ if (!empty($reg['reg_custom_fields'])) {
                     <option value="other">อื่น ๆ</option>
                 `;
 
-            item.innerHTML = `
-                <span class="text-xs font-mono font-black text-slate-500 w-8 text-center">${formattedCount}</span>
-                <div class="flex-1 flex gap-2 items-center flex-wrap sm:flex-nowrap">
-                    <div class="w-full sm:w-28 shrink-0">
-                        <select name="${prefixInputName}" class="w-full px-3 py-2.5 neon-input rounded-xl text-xs outline-none">
-                            ${prefixOptions}
-                        </select>
+            const prefixInputNameValue = isMember ? `member_prefixes[${idx}]` : `advisor_prefixes[${idx}]`;
+            const nameInputNameValue = isMember ? `member_names[${idx}]` : `advisor_names[${idx}]`;
+
+            let customFieldsHtml = '';
+            if (isMember && memberCustomFieldsConfig && memberCustomFieldsConfig.length > 0) {
+                customFieldsHtml += `<div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2 pl-0 sm:pl-10 pr-0 sm:pr-10 w-full member-custom-fields-container">`;
+                memberCustomFieldsConfig.forEach(f => {
+                    const fName = escapeHtml(f.label);
+                    const isRequired = f.required ? 'required' : '';
+                    const requiredStar = f.required ? '<span class="text-rose-455">*</span>' : '';
+                    
+                    customFieldsHtml += `
+                        <div class="space-y-1">
+                            <label class="block text-xs font-bold text-slate-350">${escapeHtml(f.label)} ${requiredStar}</label>
+                            <div class="neon-input-wrapper relative">
+                    `;
+                    
+                    if (f.type === 'select') {
+                        const opts = (f.options || '').split(',').map(o => o.trim()).filter(o => o !== '');
+                        customFieldsHtml += `
+                            <select name="member_custom_fields[${idx}][${fName}]" ${isRequired} class="member-custom-input neon-input w-full px-3 py-2 neon-input rounded-xl text-xs outline-none cursor-pointer" data-label="${fName}">
+                                <option value="" disabled selected>-- เลือก --</option>
+                        `;
+                        opts.forEach(o => {
+                            customFieldsHtml += `<option value="${escapeHtml(o)}">${escapeHtml(o)}</option>`;
+                        });
+                        customFieldsHtml += `
+                            </select>
+                        `;
+                    } else if (f.type === 'textarea') {
+                        customFieldsHtml += `
+                            <textarea name="member_custom_fields[${idx}][${fName}]" ${isRequired} rows="2" class="member-custom-input neon-input w-full px-3 py-2 neon-input rounded-xl text-xs outline-none resize-none" data-label="${fName}"></textarea>
+                        `;
+                    } else if (f.type === 'url') {
+                        customFieldsHtml += `
+                            <input type="url" name="member_custom_fields[${idx}][${fName}]" ${isRequired} class="member-custom-input neon-input w-full px-3 py-2 neon-input rounded-xl text-xs outline-none" placeholder="https://..." data-label="${fName}">
+                        `;
+                    } else {
+                        customFieldsHtml += `
+                            <input type="text" name="member_custom_fields[${idx}][${fName}]" ${isRequired} class="member-custom-input neon-input w-full px-3 py-2 neon-input rounded-xl text-xs outline-none" placeholder="ระบุข้อมูล..." data-label="${fName}">
+                        `;
+                    }
+                    
+                    customFieldsHtml += `
+                            </div>
+                        </div>
+                    `;
+                });
+                customFieldsHtml += `</div>`;
+            }
+
+            if (isMember) {
+                item.innerHTML = `
+                    <div class="flex items-center gap-2 w-full">
+                        <span class="text-xs font-mono font-black text-slate-400 w-8 text-center">${formattedCount}</span>
+                        <div class="flex-1 flex gap-2 items-center flex-wrap sm:flex-nowrap">
+                            <div class="w-full sm:w-28 shrink-0">
+                                <select name="${prefixInputNameValue}" class="w-full px-3 py-2.5 neon-input rounded-xl text-xs outline-none prefix-select">
+                                    ${prefixOptions}
+                                </select>
+                            </div>
+                            <input type="text" name="${nameInputNameValue}" required placeholder="ชื่อ-นามสกุล..." class="flex-1 w-full px-3 py-2.5 neon-input rounded-xl text-xs sm:text-sm font-bold outline-none name-input-el">
+                            <button type="button" class="remove-btn p-2.5 text-rose-450 hover:text-white hover:bg-rose-500 rounded-xl border border-transparent hover:border-rose-600 transition-colors">
+                                <i data-lucide="trash-2" class="w-4.5 h-4.5"></i>
+                            </button>
+                        </div>
                     </div>
-                    <input type="text" name="${nameInputName}" required placeholder="${placeholderText.replace('1', count)}" class="flex-1 w-full px-3 py-2.5 neon-input rounded-xl text-xs sm:text-sm font-bold outline-none">
-                    <button type="button" class="remove-btn p-2.5 text-rose-500 hover:text-white hover:bg-rose-500 rounded-xl border border-transparent hover:border-rose-600 transition-colors">
-                        <i data-lucide="trash-2" class="w-4.5 h-4.5"></i>
-                    </button>
-                </div>
-            `;
+                    ${customFieldsHtml}
+                `;
+            } else {
+                item.innerHTML = `
+                    <span class="text-xs font-mono font-black text-slate-400 w-8 text-center">${formattedCount}</span>
+                    <div class="flex-1 flex gap-2 items-center flex-wrap sm:flex-nowrap">
+                        <div class="w-full sm:w-28 shrink-0">
+                            <select name="${prefixInputNameValue}" class="w-full px-3 py-2.5 neon-input rounded-xl text-xs outline-none prefix-select">
+                                ${prefixOptions}
+                            </select>
+                        </div>
+                        <input type="text" name="${nameInputNameValue}" required placeholder="ชื่อ-นามสกุล..." class="flex-1 w-full px-3 py-2.5 neon-input rounded-xl text-xs sm:text-sm font-bold outline-none name-input-el">
+                        <button type="button" class="remove-btn p-2.5 text-rose-450 hover:text-white hover:bg-rose-500 rounded-xl border border-transparent hover:border-rose-600 transition-colors">
+                            <i data-lucide="trash-2" class="w-4.5 h-4.5"></i>
+                        </button>
+                    </div>
+                `;
+            }
+            
             wrapper.appendChild(item);
             lucide.createIcons();
             checkRemoveButtons();
+            reindexItems();
         });
 
         checkRemoveButtons();
+    }
+
+    function escapeHtml(string) {
+        return String(string)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
     }
 
     setupDynamicList('members-wrapper', 'add-member-btn', 'ชื่อ-นามสกุล สมาชิกคนที่ 1...', 'member_prefixes[]', 'member_names[]', compLimit);
@@ -555,7 +712,7 @@ if (!empty($reg['reg_custom_fields'])) {
 
     // Handle prefix "other" select changes
     document.addEventListener('change', function(e) {
-        if (e.target.name && (e.target.name === 'member_prefixes[]' || e.target.name === 'advisor_prefixes[]') && e.target.tagName === 'SELECT') {
+        if (e.target.name && (e.target.name.startsWith('member_prefixes') || e.target.name.startsWith('advisor_prefixes')) && e.target.tagName === 'SELECT') {
             if (e.target.value === 'other') {
                 const select = e.target;
                 const parentDiv = select.parentElement;

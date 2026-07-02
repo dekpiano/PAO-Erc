@@ -1,6 +1,7 @@
 <?= $this->extend('science_week/layout/main') ?>
 
 <?= $this->section('content') ?>
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <?php
 // Determine primary color of the competition
 $compColor = 'cyan';
@@ -15,6 +16,11 @@ if (strpos($compName, 'จรวด') !== false || strpos($compName, 'water rock
     $compColor = 'yellow';
 } elseif (strpos($compName, 'คณิต') !== false || strpos($compName, 'เลข') !== false || strpos($compName, 'math') !== false) {
     $compColor = 'rose';
+}
+
+$memberCustomFieldsConfig = [];
+if (!empty($comp['comp_member_custom_fields'])) {
+    $memberCustomFieldsConfig = json_decode($comp['comp_member_custom_fields'], true) ?: [];
 }
 ?>
 <style>
@@ -224,15 +230,98 @@ if (strpos($compName, 'จรวด') !== false || strpos($compName, 'water rock
         box-shadow: 0 4px 15px -3px var(--comp-primary-glow) !important;
     }
 
-    .prefix-select {
-        padding-left: 1rem !important;
-        padding-right: 2.2rem !important;
+    .glass-sci-card select {
+        padding-left: 3.2rem !important;
+        padding-right: 2.5rem !important;
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23818cf8' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E") !important;
         background-repeat: no-repeat !important;
-        background-position: right 0.75rem center !important;
+        background-position: right 1rem center !important;
         background-size: 1.15rem !important;
         appearance: none !important;
         -webkit-appearance: none !important;
+    }
+    .prefix-select {
+        padding-left: 1rem !important;
+        padding-right: 2.2rem !important;
+        background-position: right 0.75rem center !important;
+    }
+
+    /* Select2 Dark Neon Custom Styling */
+    .select2-container {
+        width: 100% !important;
+    }
+    .select2-container--default .select2-selection--single {
+        background: rgba(8, 12, 24, 0.6) !important;
+        border: 1px solid rgba(99, 102, 241, 0.3) !important;
+        height: 56px !important;
+        border-radius: 16px !important;
+        padding-left: 2.8rem !important;
+        display: flex !important;
+        align-items: center !important;
+        transition: all 0.4s ease !important;
+    }
+    .prefix-select + .select2-container .select2-selection--single {
+        padding-left: 1rem !important;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        color: #ffffff !important;
+        font-weight: 500 !important;
+        font-size: 16px !important;
+        padding-left: 0px !important;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__placeholder {
+        color: #64748b !important;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 56px !important;
+        right: 15px !important;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__arrow b {
+        border-color: #818cf8 transparent transparent transparent !important;
+        border-width: 6px 6px 0 6px !important;
+    }
+    .select2-container--default.select2-container--open .select2-selection--single .select2-selection__arrow b {
+        border-color: transparent transparent #818cf8 transparent !important;
+        border-width: 0 6px 6px 6px !important;
+    }
+    .select2-container--default.select2-container--open .select2-selection--single {
+        border-color: var(--comp-primary) !important;
+        box-shadow: 0 0 8px var(--comp-primary-glow) !important;
+    }
+
+    /* Dropdown menu styling */
+    .select2-dropdown {
+        background: rgba(15, 23, 42, 0.95) !important;
+        backdrop-filter: blur(12px) !important;
+        -webkit-backdrop-filter: blur(12px) !important;
+        border: 1px solid rgba(99, 102, 241, 0.4) !important;
+        border-radius: 16px !important;
+        overflow: hidden !important;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5) !important;
+    }
+    .select2-container--default .select2-search--dropdown .select2-search__field {
+        background: rgba(8, 12, 24, 0.9) !important;
+        border: 1px solid rgba(99, 102, 241, 0.3) !important;
+        color: white !important;
+        border-radius: 8px !important;
+        padding: 8px 12px !important;
+        outline: none !important;
+    }
+    .select2-container--default .select2-search--dropdown .select2-search__field:focus {
+        border-color: var(--comp-primary) !important;
+    }
+    .select2-container--default .select2-results__option--highlighted[aria-selected] {
+        background: linear-gradient(135deg, var(--comp-primary) 0%, #4f46e5 100%) !important;
+        color: white !important;
+    }
+    .select2-container--default .select2-results__option[aria-selected=true] {
+        background-color: rgba(99, 102, 241, 0.2) !important;
+        color: #a5b4fc !important;
+    }
+    .select2-results__option {
+        padding: 10px 16px !important;
+        font-size: 14px !important;
+        color: #cbd5e1 !important;
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -246,7 +335,7 @@ if (strpos($compName, 'จรวด') !== false || strpos($compName, 'water rock
 <div class="page-container pt-8 pb-20 relative">
     <canvas id="particles-canvas"></canvas>
 
-    <div class="max-w-3xl mx-auto px-4 sm:px-6 relative z-10">
+    <div class="max-w-3xl lg:max-w-5xl mx-auto px-4 sm:px-6 relative z-10">
         
         <!-- Header -->
         <div class="text-center py-8 space-y-4">
@@ -412,11 +501,13 @@ if (strpos($compName, 'จรวด') !== false || strpos($compName, 'water rock
                         </button>
                     </div>
                     <div id="members-wrapper" class="space-y-3">
-                        <div class="flex flex-col sm:flex-row gap-2 sm:items-center list-item-enter dossier-card p-3 rounded-2xl">
-                            <span class="text-xs font-mono font-bold text-indigo-300 px-2 select-none sm:py-0 py-1">[MEMBER 01]</span>
-                            <div class="flex flex-1 gap-2 items-center flex-wrap sm:flex-nowrap w-full">
-                                <div class="w-full sm:w-36 shrink-0">
-                                    <select name="member_prefixes[]" required class="neon-input prefix-select w-full p-3.5 rounded-xl font-medium shadow-inner text-base cursor-pointer">
+                        <div class="list-item-enter dossier-card p-3.5 rounded-2xl">
+                            <div class="flex flex-col lg:flex-row gap-3 items-stretch lg:items-end w-full">
+                                <span class="text-xs font-mono font-bold text-indigo-300 px-2 select-none lg:mb-4 lg:py-0 py-1 shrink-0">[MEMBER 01]</span>
+                                
+                                <div class="w-full lg:w-36 shrink-0 flex flex-col gap-1">
+                                    <label class="block text-[10px] font-bold text-indigo-300/80 lg:block hidden">คำนำหน้า</label>
+                                    <select name="member_prefixes[0]" required class="neon-input prefix-select w-full p-3.5 rounded-xl font-medium shadow-inner text-base cursor-pointer">
                                         <option value="" disabled selected>คำนำหน้า</option>
                                         <option value="เด็กชาย">เด็กชาย</option>
                                         <option value="เด็กหญิง">เด็กหญิง</option>
@@ -426,13 +517,53 @@ if (strpos($compName, 'จรวด') !== false || strpos($compName, 'water rock
                                         <option value="other">อื่น ๆ (ระบุเอง)</option>
                                     </select>
                                 </div>
-                                <div class="neon-input-wrapper flex-1 w-full">
-                                    <input type="text" name="member_names[]" required placeholder="ชื่อ-นามสกุลจริง (เช่น สมชาย ดีใจ)" class="neon-input w-full p-3.5 rounded-xl font-medium shadow-inner text-base">
-                                    <i data-lucide="user" class="input-icon-left w-5 h-5"></i>
+                                <div class="flex-1 min-w-0 flex flex-col gap-1">
+                                    <label class="block text-[10px] font-bold text-indigo-300/80 lg:block hidden">ชื่อ-นามสกุล</label>
+                                    <div class="neon-input-wrapper">
+                                        <input type="text" name="member_names[0]" required placeholder="ชื่อ-นามสกุลจริง (เช่น สมชาย ดีใจ)" class="neon-input w-full p-3.5 rounded-xl font-medium shadow-inner text-base">
+                                        <i data-lucide="user" class="input-icon-left w-5 h-5"></i>
+                                    </div>
                                 </div>
-                                <button type="button" class="remove-btn p-3.5 rounded-xl opacity-0 pointer-events-none">
-                                    <i data-lucide="trash-2" class="w-5 h-5"></i>
-                                </button>
+                                
+                                <?php if (!empty($memberCustomFieldsConfig)): ?>
+                                    <?php foreach ($memberCustomFieldsConfig as $f): 
+                                        $fName = esc($f['label']);
+                                        $isRequired = !empty($f['required']) ? 'required' : '';
+                                        $requiredStar = !empty($f['required']) ? '<span class="text-rose-450">*</span>' : '';
+                                    ?>
+                                        <div class="w-full lg:w-44 shrink-0 flex flex-col gap-1">
+                                            <label class="block text-[10px] font-bold text-indigo-300/80 truncate" title="<?= esc($f['label']) ?>"><?= esc($f['label']) ?> <?= $requiredStar ?></label>
+                                            <div class="neon-input-wrapper">
+                                                <?php if ($f['type'] === 'select'): 
+                                                    $opts = array_filter(array_map('trim', explode(',', $f['options'] ?? '')));
+                                                ?>
+                                                    <select name="member_custom_fields[0][<?= $fName ?>]" <?= $isRequired ?> class="member-custom-input neon-input w-full p-3.5 rounded-xl font-medium shadow-inner text-base cursor-pointer appearance-none" data-label="<?= $fName ?>">
+                                                        <option value="" disabled selected>-- เลือก --</option>
+                                                        <?php foreach ($opts as $o): ?>
+                                                            <option value="<?= esc($o) ?>"><?= esc($o) ?></option>
+                                                        <?php endforeach; ?>
+                                                    </select>
+                                                    <i data-lucide="chevron-down" class="input-icon-left w-5 h-5"></i>
+                                                <?php elseif ($f['type'] === 'textarea'): ?>
+                                                    <textarea name="member_custom_fields[0][<?= $fName ?>]" <?= $isRequired ?> rows="1" class="member-custom-input neon-input w-full p-3.5 rounded-xl font-medium shadow-inner text-base pl-12 pt-2.5 resize-none h-[54px]" data-label="<?= $fName ?>"></textarea>
+                                                    <i data-lucide="align-left" class="input-icon-left w-5 h-5" style="top: 27px; transform: none;"></i>
+                                                <?php elseif ($f['type'] === 'url'): ?>
+                                                    <input type="url" name="member_custom_fields[0][<?= $fName ?>]" <?= $isRequired ?> class="member-custom-input neon-input w-full p-3.5 rounded-xl font-medium shadow-inner text-base" placeholder="https://..." data-label="<?= $fName ?>">
+                                                    <i data-lucide="link" class="input-icon-left w-5 h-5"></i>
+                                                <?php else: ?>
+                                                    <input type="text" name="member_custom_fields[0][<?= $fName ?>]" <?= $isRequired ?> class="member-custom-input neon-input w-full p-3.5 rounded-xl font-medium shadow-inner text-base" placeholder="ระบุข้อมูล..." data-label="<?= $fName ?>">
+                                                    <i data-lucide="edit-3" class="input-icon-left w-5 h-5"></i>
+                                                <?php endif; ?>
+                                            </div>
+                                        </div>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                                
+                                <div class="lg:mb-0 shrink-0">
+                                    <button type="button" class="remove-btn p-3.5 rounded-xl opacity-0 pointer-events-none">
+                                        <i data-lucide="trash-2" class="w-5 h-5"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -573,6 +704,8 @@ if (strpos($compName, 'จรวด') !== false || strpos($compName, 'water rock
     </div>
 </div>
 
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
     // Particle Canvas
     const canvas = document.getElementById('particles-canvas');
@@ -605,8 +738,9 @@ if (strpos($compName, 'จรวด') !== false || strpos($compName, 'water rock
         animate();
     }
 
-    // Dynamic Lists
     const compLimit = <?= isset($comp['comp_member_limit']) ? (int)$comp['comp_member_limit'] : 0 ?>;
+
+    const memberCustomFieldsConfig = <?= json_encode($memberCustomFieldsConfig) ?>;
 
     function setupDynamicList(wrapperId, addBtnId, placeholderText, prefixInputName, nameInputName, maxLimit = 0) {
         const wrapper = document.getElementById(wrapperId);
@@ -632,11 +766,29 @@ if (strpos($compName, 'จรวด') !== false || strpos($compName, 'water rock
             items.forEach((item, idx) => {
                 const count = idx + 1;
                 const formattedCount = String(count).padStart(2, '0');
+                
+                // Reindex label
                 const span = item.querySelector('span');
                 if (span) span.textContent = `[${prefixLabel} ${formattedCount}]`;
-                const input = item.querySelector('input[type="text"]');
-                if (input) {
-                    input.placeholder = placeholderText.replace('1', count);
+                
+                // Reindex prefix select
+                const prefixSelect = item.querySelector('select.prefix-select') || item.querySelector('input[placeholder="ระบุคำนำหน้า"]');
+                if (prefixSelect) prefixSelect.name = isMember ? `member_prefixes[${idx}]` : `advisor_prefixes[${idx}]`;
+                
+                // Reindex name input
+                const nameInput = item.querySelector('input.neon-input[type="text"]:not([placeholder="ระบุคำนำหน้า"]):not(.member-custom-input)');
+                if (nameInput) {
+                    nameInput.name = isMember ? `member_names[${idx}]` : `advisor_names[${idx}]`;
+                    nameInput.placeholder = placeholderText.replace('1', count);
+                }
+
+                if (isMember) {
+                    // Reindex custom fields
+                    const customInputs = item.querySelectorAll('.member-custom-input');
+                    customInputs.forEach(input => {
+                        const fieldLabel = input.dataset.label;
+                        input.name = `member_custom_fields[${idx}][${fieldLabel}]`;
+                    });
                 }
             });
         }
@@ -656,9 +808,10 @@ if (strpos($compName, 'จรวด') !== false || strpos($compName, 'water rock
             }
 
             const count = currentItemsCount + 1;
+            const idx = currentItemsCount; // index for new member
             const formattedCount = String(count).padStart(2, '0');
             const item = document.createElement('div');
-            item.className = 'flex flex-col sm:flex-row gap-2 sm:items-center list-item-enter dossier-card p-3 rounded-2xl';
+            item.className = 'list-item-enter dossier-card p-3.5 rounded-2xl';
             
             const prefixOptions = isMember 
                 ? `
@@ -679,54 +832,138 @@ if (strpos($compName, 'จรวด') !== false || strpos($compName, 'water rock
                     <option value="other">อื่น ๆ (ระบุเอง)</option>
                 `;
 
+            let customFieldsHtml = '';
+            if (isMember && memberCustomFieldsConfig && memberCustomFieldsConfig.length > 0) {
+                memberCustomFieldsConfig.forEach(f => {
+                    const fName = escapeHtml(f.label);
+                    const isRequired = f.required ? 'required' : '';
+                    const requiredStar = f.required ? '<span class="text-rose-450">*</span>' : '';
+                    
+                    customFieldsHtml += `
+                        <div class="w-full lg:w-44 shrink-0 flex flex-col gap-1">
+                            <label class="block text-[10px] font-bold text-indigo-300/80 truncate" title="${escapeHtml(f.label)}">${escapeHtml(f.label)} ${requiredStar}</label>
+                            <div class="neon-input-wrapper">
+                    `;
+                    
+                    if (f.type === 'select') {
+                        const opts = (f.options || '').split(',').map(o => o.trim()).filter(o => o !== '');
+                        customFieldsHtml += `
+                            <select name="member_custom_fields[${idx}][${fName}]" ${isRequired} class="member-custom-input neon-input w-full p-3.5 rounded-xl font-medium shadow-inner text-base cursor-pointer appearance-none" data-label="${fName}">
+                                <option value="" disabled selected>-- เลือก --</option>
+                        `;
+                        opts.forEach(o => {
+                            customFieldsHtml += `<option value="${escapeHtml(o)}">${escapeHtml(o)}</option>`;
+                        });
+                        customFieldsHtml += `
+                            </select>
+                            <i data-lucide="chevron-down" class="input-icon-left w-5 h-5"></i>
+                        `;
+                    } else if (f.type === 'textarea') {
+                        customFieldsHtml += `
+                            <textarea name="member_custom_fields[${idx}][${fName}]" ${isRequired} rows="1" class="member-custom-input neon-input w-full p-3.5 rounded-xl font-medium shadow-inner text-base pl-12 pt-2.5 resize-none h-[54px]" data-label="${fName}"></textarea>
+                            <i data-lucide="align-left" class="input-icon-left w-5 h-5" style="top: 27px; transform: none;"></i>
+                        `;
+                    } else if (f.type === 'url') {
+                        customFieldsHtml += `
+                            <input type="url" name="member_custom_fields[${idx}][${fName}]" ${isRequired} class="member-custom-input neon-input w-full p-3.5 rounded-xl font-medium shadow-inner text-base" placeholder="https://..." data-label="${fName}">
+                            <i data-lucide="link" class="input-icon-left w-5 h-5"></i>
+                        `;
+                    } else {
+                        customFieldsHtml += `
+                            <input type="text" name="member_custom_fields[${idx}][${fName}]" ${isRequired} class="member-custom-input neon-input w-full p-3.5 rounded-xl font-medium shadow-inner text-base" placeholder="ระบุข้อมูล..." data-label="${fName}">
+                            <i data-lucide="edit-3" class="input-icon-left w-5 h-5"></i>
+                        `;
+                    }
+                    
+                    customFieldsHtml += `
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            const prefixInputName = isMember ? `member_prefixes[${idx}]` : `advisor_prefixes[${idx}]`;
+            const nameInputName = isMember ? `member_names[${idx}]` : `advisor_names[${idx}]`;
+
             item.innerHTML = `
-                <span class="text-xs font-mono font-bold text-indigo-300 px-2 select-none sm:py-0 py-1">[${prefixLabel} ${formattedCount}]</span>
-                <div class="flex flex-1 gap-2 items-center flex-wrap sm:flex-nowrap w-full">
-                    <div class="w-full sm:w-36 shrink-0">
-                        <select name="${prefixInputName}" required class="neon-input prefix-select w-full p-3.5 rounded-xl font-medium shadow-inner text-base cursor-pointer">
+                <div class="flex flex-col lg:flex-row gap-3 items-stretch lg:items-end w-full">
+                    <span class="text-xs font-mono font-bold text-indigo-300 px-2 select-none lg:mb-4 lg:py-0 py-1 shrink-0">[${prefixLabel} ${formattedCount}]</span>
+                    
+                    <div class="w-full lg:w-36 shrink-0 flex flex-col gap-1">
+                        <label class="block text-[10px] font-bold text-indigo-300/80 lg:block hidden">คำนำหน้า</label>
+                        <select name="${prefixInputName}" required class="neon-input prefix-select prefix-select-el w-full p-3.5 rounded-xl font-medium shadow-inner text-base cursor-pointer">
                             ${prefixOptions}
                         </select>
                     </div>
-                    <div class="neon-input-wrapper flex-1 w-full">
-                        <input type="text" name="${nameInputName}" required placeholder="${placeholderText.replace('1', count)}" class="neon-input w-full p-3.5 rounded-xl font-medium shadow-inner text-base">
-                        <i data-lucide="${iconName}" class="input-icon-left w-5 h-5"></i>
+                    
+                    <div class="flex-1 min-w-0 flex flex-col gap-1">
+                        <label class="block text-[10px] font-bold text-indigo-300/80 lg:block hidden">ชื่อ-นามสกุล</label>
+                        <div class="neon-input-wrapper">
+                            <input type="text" name="${nameInputName}" required placeholder="${placeholderText.replace('1', count)}" class="neon-input w-full p-3.5 rounded-xl font-medium shadow-inner text-base">
+                            <i data-lucide="${iconName}" class="input-icon-left w-5 h-5"></i>
+                        </div>
                     </div>
-                    <button type="button" class="remove-btn p-3.5 rounded-xl">
-                        <i data-lucide="trash-2" class="w-5 h-5"></i>
-                    </button>
+                    
+                    ${customFieldsHtml}
+                    
+                    <div class="lg:mb-0 shrink-0">
+                        <button type="button" class="remove-btn p-3.5 rounded-xl">
+                            <i data-lucide="trash-2" class="w-5 h-5"></i>
+                        </button>
+                    </div>
                 </div>
             `;
             wrapper.appendChild(item);
             lucide.createIcons();
+            
+            $(item).find('select').each(function() {
+                $(this).select2({
+                    placeholder: $(this).hasClass('prefix-select') ? "คำนำหน้า" : "-- เลือก --",
+                    dropdownParent: $('.glass-sci-card'),
+                    minimumResultsForSearch: $(this).hasClass('prefix-select') ? -1 : 10
+                });
+            });
+
             item.querySelector('.remove-btn').addEventListener('click', () => { item.remove(); checkRemoveButtons(); reindexItems(); });
             checkRemoveButtons();
+            reindexItems();
         });
 
         checkRemoveButtons();
+        reindexItems();
     }
+    
+    function escapeHtml(text) {
+        if (!text) return '';
+        return text.toString().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
+    
+    setupDynamicList('members-wrapper', 'add-member-btn', 'ระบุชื่อ-นามสกุล สมาชิกคนที่ 1', 'member_prefixes[0]', 'member_names[0]', compLimit);
+    setupDynamicList('advisors-wrapper', 'add-advisor-btn', 'ระบุชื่อ-นามสกุล อาจารย์ที่ปรึกษาคนที่ 1', 'advisor_prefixes[0]', 'advisor_names[0]');
 
-    setupDynamicList('members-wrapper', 'add-member-btn', 'ระบุชื่อ-นามสกุล สมาชิกคนที่ 1', 'member_prefixes[]', 'member_names[]', compLimit);
-    setupDynamicList('advisors-wrapper', 'add-advisor-btn', 'ระบุชื่อ-นามสกุล อาจารย์ที่ปรึกษาคนที่ 1', 'advisor_prefixes[]', 'advisor_names[]');
-
-    // Custom Prefix handling for "other"
-    document.addEventListener('change', function(e) {
-        if (e.target.classList.contains('prefix-select') && e.target.value === 'other') {
-            const select = e.target;
-            const parent = select.parentElement;
-            const inputName = select.name;
+    // Custom Prefix handling for "other" using jQuery to support Select2 integration
+    $(document).on('change', '.prefix-select', function(e) {
+        if ($(this).val() === 'other') {
+            const select = $(this);
+            const parent = select.parent();
+            
+            // Destroy Select2 if initialized
+            if (select.hasClass("select2-hidden-accessible")) {
+                select.select2('destroy');
+            }
             
             // Create a custom text input to replace the select
             const input = document.createElement('input');
             input.type = 'text';
-            input.name = inputName;
+            input.name = select.attr('name');
             input.required = true;
             input.placeholder = 'ระบุคำนำหน้า';
             input.className = 'neon-input w-full p-3.5 rounded-xl font-medium shadow-inner text-base';
-            input.style.setProperty('padding-left', '1rem', 'important'); // Left padding adjustments override
+            input.style.setProperty('padding-left', '1rem', 'important'); // Left padding override
             
             // Clear wrapper and append input
-            parent.innerHTML = '';
-            parent.appendChild(input);
+            parent.empty();
+            parent.append(input);
             input.focus();
         }
     });
@@ -776,6 +1013,46 @@ if (strpos($compName, 'จรวด') !== false || strpos($compName, 'water rock
             submitBtn.classList.remove('opacity-80', 'cursor-not-allowed');
             submitBtn.innerHTML = `<i data-lucide="send" class="w-5 h-5"></i> ส่งข้อมูลการสมัครลงทะเบียน`;
             lucide.createIcons();
+        });
+    });
+
+    $(document).ready(function() {
+        $('#school_province').select2({
+            placeholder: "-- เลือกจังหวัด --",
+            dropdownParent: $('.glass-sci-card')
+        });
+        $('#reg_level').select2({
+            placeholder: "-- เลือกระดับชั้น --",
+            dropdownParent: $('.glass-sci-card')
+        });
+        $('.prefix-select').select2({
+            placeholder: "คำนำหน้า",
+            dropdownParent: $('.glass-sci-card'),
+            minimumResultsForSearch: -1
+        });
+
+        // Smart phone number formatter (0XX-XXX-XXXX)
+        $('#contact_phone').on('input', function() {
+            let number = $(this).val().replace(/\D/g, '');
+            number = number.substring(0, 10);
+            
+            let formatted = '';
+            if (number.length > 0) {
+                if (number.startsWith('02')) {
+                    formatted = number.substring(0, 2);
+                    if (number.length > 2) formatted += '-' + number.substring(2, 5);
+                    if (number.length > 5) formatted += '-' + number.substring(5, 9);
+                } else if (number.startsWith('0') && ['03','04','05','07'].some(prefix => number.startsWith(prefix))) {
+                    formatted = number.substring(0, 3);
+                    if (number.length > 3) formatted += '-' + number.substring(3, 5);
+                    if (number.length > 5) formatted += '-' + number.substring(5, 9);
+                } else {
+                    formatted = number.substring(0, 3);
+                    if (number.length > 3) formatted += '-' + number.substring(3, 6);
+                    if (number.length > 6) formatted += '-' + number.substring(6, 10);
+                }
+            }
+            $(this).val(formatted);
         });
     });
 </script>

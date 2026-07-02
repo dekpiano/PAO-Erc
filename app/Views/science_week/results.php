@@ -378,6 +378,10 @@
 
 <script>
     function showMembersModal(membersJson, advisorsJson) {
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text.toString().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
         try {
             const members = JSON.parse(membersJson);
             const advisors = JSON.parse(advisorsJson);
@@ -388,10 +392,29 @@
             htmlList += '<div class="space-y-2">';
             htmlList += '<h5 class="text-xs font-black text-indigo-400 uppercase tracking-wider mb-1.5 flex items-center gap-1.5"><i data-lucide="users" class="w-3.5 h-3.5"></i> รายชื่อสมาชิกทีม</h5>';
             members.forEach((m, idx) => {
+                let mText = '';
+                if (m && typeof m === 'object') {
+                    const prefix = (m.prefix || '').trim();
+                    const name = (m.name || '').trim();
+                    mText = (prefix ? prefix + ' ' : '') + name;
+                    if (m.custom_fields && Object.keys(m.custom_fields).length > 0) {
+                        const cfStr = [];
+                        for (const [cfKey, cfVal] of Object.entries(m.custom_fields)) {
+                            if (cfVal) {
+                                cfStr.push(`${cfKey}: ${cfVal}`);
+                            }
+                        }
+                        if (cfStr.length > 0) {
+                            mText += ' (' + cfStr.join(', ') + ')';
+                        }
+                    }
+                } else {
+                    mText = m;
+                }
                 htmlList += `
                     <div class="flex items-center gap-3 p-3 bg-slate-950/50 rounded-2xl border border-slate-800/80">
                         <span class="w-6 h-6 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center font-bold text-xs shrink-0">${idx + 1}</span>
-                        <span class="text-sm font-bold text-slate-200">${m}</span>
+                        <span class="text-sm font-bold text-slate-200">${escapeHtml(mText)}</span>
                     </div>
                 `;
             });

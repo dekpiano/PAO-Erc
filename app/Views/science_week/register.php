@@ -32,8 +32,11 @@
         background: rgba(15, 23, 42, 0.65) !important;
         transform: translateY(-8px);
         box-shadow: 0 20px 50px -10px rgba(99, 102, 241, 0.2) !important;
-        border-color: rgba(6, 182, 212, 0.3) !important;
+        border-color: var(--hover-border, rgba(6, 182, 212, 0.3)) !important;
     }
+    .glass-sci-card h3 { color: #ffffff !important; }
+    .glass-sci-card p { color: #cbd5e1 !important; }
+    .glass-sci-card:hover p { color: #ffffff !important; }
 
     /* Hover glow per STEAM color */
     .comp-card-purple:hover { border-color: var(--steam-science) !important; box-shadow: 0 20px 50px -10px rgba(168, 85, 247, 0.15); }
@@ -156,7 +159,13 @@
                 </div>
             <?php else: ?>
                 <?php $delay = 400; foreach ($competitions as $comp): 
-                    $color_class = 'comp-card-' . ($comp['comp_color'] ?: 'cyan');
+                    $colorName = $comp['comp_color'] ?: 'cyan';
+                    $colorHex = '#22d3ee';
+                    if ($colorName === 'emerald') $colorHex = '#34d399';
+                    elseif ($colorName === 'purple') $colorHex = '#c084fc';
+                    elseif ($colorName === 'yellow') $colorHex = '#facc15';
+                    elseif ($colorName === 'rose') $colorHex = '#f43f5e';
+                    elseif ($colorName === 'indigo') $colorHex = '#818cf8';
                     
                     $isFull = false;
                     if (!empty($comp['comp_limit']) && $comp['comp_limit'] > 0) {
@@ -165,13 +174,13 @@
                         }
                     }
                 ?>
-                    <div class="glass-sci-card rounded-3xl p-6 flex flex-col justify-between <?= $color_class ?> card-anim relative overflow-hidden" style="animation-delay: <?= $delay ?>ms">
+                    <div class="glass-sci-card rounded-3xl p-6 flex flex-col justify-between card-anim relative overflow-hidden group" style="animation-delay: <?= $delay ?>ms; --hover-border: <?= $colorHex ?>;">
                         <div class="space-y-4">
-                            <div class="icon-container w-14 h-14 rounded-2xl bg-<?= esc($comp['comp_color'] ?: 'cyan') ?>-950/40 border border-<?= esc($comp['comp_color'] ?: 'cyan') ?>-800/30 flex items-center justify-center text-<?= esc($comp['comp_color'] ?: 'cyan') ?>-400 shadow-sm">
+                            <div class="icon-container w-14 h-14 rounded-2xl flex items-center justify-center shadow-sm transition-transform group-hover:scale-110" style="background-color: <?= $colorHex ?>20; border: 1px solid <?= $colorHex ?>35; color: <?= $colorHex ?>;">
                                 <i data-lucide="<?= esc($comp['comp_icon'] ?: 'award') ?>" class="w-7 h-7"></i>
                             </div>
-                            <h3 class="text-lg font-black text-white"><?= esc($comp['comp_name']) ?></h3>
-                            <p class="text-slate-400 text-xs leading-relaxed font-medium">
+                            <h3 class="text-xl font-black text-white"><?= esc($comp['comp_name']) ?></h3>
+                            <p class="text-slate-300 text-xs leading-relaxed font-semibold">
                                 <?= esc($comp['comp_description']) ?>
                             </p>
                             
@@ -184,7 +193,7 @@
                                 }
                                 ?>
                                 <?php if (!empty($levelLimits)): ?>
-                                    <span class="text-slate-500 text-[10px] font-bold block mb-1">สถานะการรับสมัครแบ่งตามระดับชั้น:</span>
+                                    <span class="text-slate-400 text-[10px] font-bold block mb-1">สถานะการรับสมัครแบ่งตามระดับชั้น:</span>
                                     <?php 
                                     $allFull = true;
                                     foreach ($levelLimits as $lvl): 
@@ -203,17 +212,18 @@
                                         
                                         $limitText = $lvlLimit > 0 ? "{$lvlLimit} ทีม" : "ไม่จำกัด";
                                         $pct = $lvlLimit > 0 ? min(100, ($activeCount / $lvlLimit) * 100) : 0;
+                                        $barColor = $lvlFull ? '#f43f5e' : $colorHex;
                                     ?>
                                         <div class="space-y-1">
                                             <div class="flex justify-between items-center text-[10px] font-medium">
-                                                <span class="text-slate-400 font-semibold"><?= esc($lvl['level']) ?></span>
-                                                <span class="<?= $lvlFull ? 'text-rose-400 font-bold' : 'text-cyan-400' ?>">
+                                                <span class="text-slate-300 font-semibold"><?= esc($lvl['level']) ?></span>
+                                                <span class="font-bold" style="color: <?= $barColor ?>;">
                                                     <?= $activeCount ?> / <?= $limitText ?>
                                                 </span>
                                             </div>
                                             <?php if ($lvlLimit > 0): ?>
-                                                <div class="w-full bg-slate-950/60 rounded-full h-1 overflow-hidden border border-slate-900">
-                                                    <div class="h-full rounded-full transition-all <?= $lvlFull ? 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]' : 'bg-cyan-500 shadow-[0_0_8px_rgba(6,182,212,0.5)]' ?>" style="width: <?= $pct ?>%"></div>
+                                                <div class="w-full bg-slate-950/60 rounded-full h-1.5 overflow-hidden border border-slate-900">
+                                                    <div class="h-full rounded-full transition-all" style="width: <?= $pct ?>%; background-color: <?= $barColor ?>; box-shadow: 0 0 8px <?= $barColor ?>80;"></div>
                                                 </div>
                                             <?php endif; ?>
                                         </div>
@@ -221,16 +231,17 @@
                                     <?php $isFull = $allFull; ?>
                                 <?php else: ?>
                                     <div class="flex justify-between items-center text-[10px] font-bold mb-1">
-                                        <span class="text-slate-500">สถานะการรับสมัคร</span>
-                                        <span class="<?= $isFull ? 'text-rose-450' : 'text-cyan-400' ?>">
+                                        <span class="text-slate-400">สถานะการรับสมัคร</span>
+                                        <span class="font-bold" style="color: <?= $isFull ? '#f43f5e' : $colorHex ?>;">
                                             <?= $comp['reg_count'] ?> / <?= !empty($comp['comp_limit']) ? esc($comp['comp_limit']) : 'ไม่จำกัด' ?> ทีม
                                         </span>
                                     </div>
                                     <?php if (!empty($comp['comp_limit']) && $comp['comp_limit'] > 0): 
                                         $pct = min(100, ($comp['reg_count'] / $comp['comp_limit']) * 100);
+                                        $barColor = $isFull ? '#f43f5e' : $colorHex;
                                     ?>
                                         <div class="w-full bg-slate-950/60 rounded-full h-1.5 overflow-hidden border border-slate-900">
-                                            <div class="h-full rounded-full transition-all <?= $isFull ? 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]' : 'bg-cyan-500 shadow-[0_0_8px_rgba(6,182,212,0.5)]' ?>" style="width: <?= $pct ?>%"></div>
+                                            <div class="h-full rounded-full transition-all" style="width: <?= $pct ?>%; background-color: <?= $barColor ?>; box-shadow: 0 0 8px <?= $barColor ?>80;"></div>
                                         </div>
                                     <?php endif; ?>
                                 <?php endif; ?>
@@ -238,12 +249,7 @@
                         </div>
                         <div class="mt-6 space-y-4">
                             <div class="flex items-center justify-between flex-wrap gap-2">
-                                <span class="inline-block text-[10px] font-black text-<?= esc($comp['comp_color'] ?: 'cyan') ?>-400 bg-<?= esc($comp['comp_color'] ?: 'cyan') ?>-950/40 px-3 py-1 rounded-full border border-<?= esc($comp['comp_color'] ?: 'cyan') ?>-800/30 uppercase tracking-wider"><?= esc($comp['comp_level']) ?></span>
-                                <?php if (!empty($comp['comp_rule_file']) || !empty($comp['comp_rule_link'])): ?>
-                                    <a href="<?= !empty($comp['comp_rule_file']) ? base_url($comp['comp_rule_file']) : esc($comp['comp_rule_link']) ?>" target="_blank" class="inline-flex items-center gap-1 text-[10px] font-bold text-indigo-400 hover:text-indigo-300 transition-colors">
-                                        <i data-lucide="file-down" class="w-3.5 h-3.5"></i> ดาวน์โหลดกติกา
-                                    </a>
-                                <?php endif; ?>
+                                <span class="inline-block text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider" style="color: <?= $colorHex ?>; background-color: <?= $colorHex ?>15; border: 1px solid <?= $colorHex ?>25;"><?= esc($comp['comp_level']) ?></span>
                             </div>
 
                             <!-- Show Time Limits in Thai BE Format -->
@@ -282,7 +288,13 @@
                             }
                             ?>
 
-                            <div class="pt-2">
+                            <div class="pt-2 space-y-3">
+                                <?php if (!empty($comp['comp_rule_file']) || !empty($comp['comp_rule_link'])): ?>
+                                    <a href="<?= !empty($comp['comp_rule_file']) ? base_url($comp['comp_rule_file']) : esc($comp['comp_rule_link']) ?>" target="_blank" class="w-full py-2.5 rounded-xl text-center text-cyan-300 bg-cyan-950/40 border border-cyan-800/40 hover:border-cyan-400 text-xs font-black flex items-center justify-center gap-2 transition-all hover:shadow-[0_0_15px_rgba(34,211,238,0.25)]">
+                                        <i data-lucide="file-text" class="w-4 h-4 animate-pulse"></i> ดาวน์โหลดกติกาการแข่งขัน
+                                    </a>
+                                <?php endif; ?>
+
                                 <?php if (!$registration_open): ?>
                                     <button disabled class="w-full py-3 rounded-xl text-center text-rose-300 bg-rose-950/20 border border-rose-900/35 text-xs font-bold cursor-not-allowed flex items-center justify-center gap-2">
                                         <i data-lucide="lock" class="w-4 h-4 text-rose-450 animate-pulse"></i> ปิดรับสมัครระบบหลักแล้ว
@@ -296,7 +308,7 @@
                                         <i data-lucide="minus-circle" class="w-4 h-4"></i> เต็มแล้ว (Full)
                                     </button>
                                 <?php else: ?>
-                                    <a href="<?= base_url('science-week/register/form?type=' . urlencode($comp['comp_name'])) ?>" class="w-full py-3 rounded-xl text-center text-white text-xs font-bold sci-btn-card flex items-center justify-center gap-2">
+                                    <a href="<?= base_url('science-week/register/form?type=' . urlencode($comp['comp_name'])) ?>" class="w-full py-3 rounded-xl text-center text-white text-xs font-bold sci-btn-card flex items-center justify-center gap-2" style="background: linear-gradient(135deg, <?= $colorHex ?> 0%, #4f46e5 100%); box-shadow: 0 4px 15px <?= $colorHex ?>30;">
                                         <i data-lucide="plus-circle" class="w-4 h-4"></i> สมัครการแข่งขัน
                                     </a>
                                 <?php endif; ?>
