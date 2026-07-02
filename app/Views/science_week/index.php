@@ -587,68 +587,84 @@
                 <div class="rainbow-divider max-w-20 mx-auto"></div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 max-w-7xl mx-auto">
                 <!-- 1. Register -->
-                <a href="<?= base_url('science-week/register') ?>" class="glass-sci-card rounded-3xl p-8 sm:p-10 flex flex-col justify-between glow-border border-2 border-indigo-500/30 hover:border-indigo-500 hover:scale-105 transition-all text-left shadow-lg">
-                    <div class="space-y-5">
-                        <div class="icon-container w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500/25 to-purple-500/25 border-2 border-indigo-500/40 flex items-center justify-center text-indigo-450 dark:text-indigo-400 shadow-md">
-                            <i data-lucide="clipboard-edit" class="w-8 h-8"></i>
+                <a href="<?= base_url('science-week/register') ?>" class="glass-sci-card rounded-3xl p-6 sm:p-8 flex flex-col justify-between glow-border border-2 border-indigo-500/30 hover:border-indigo-500 hover:scale-105 transition-all text-left shadow-lg">
+                    <div class="space-y-4">
+                        <div class="icon-container w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500/25 to-purple-500/25 border-2 border-indigo-500/40 flex items-center justify-center text-indigo-450 dark:text-indigo-400 shadow-md">
+                            <i data-lucide="clipboard-edit" class="w-7 h-7"></i>
                         </div>
-                        <h3 class="text-2xl font-black text-slate-800 dark:text-white">สมัครแข่งขัน</h3>
-                        <p class="text-slate-600 dark:text-slate-300 text-sm sm:text-base leading-relaxed font-semibold">
+                        <h3 class="text-xl font-black text-slate-800 dark:text-white">สมัครแข่งขัน</h3>
+                        <p class="text-slate-600 dark:text-slate-300 text-xs leading-relaxed font-semibold">
                             ลงทะเบียนข้อมูลโรงเรียน ทีม และผู้เข้าแข่งขันเพื่อจองสิทธิ์เข้าร่วม
                         </p>
                     </div>
-                    <div class="mt-8 flex items-center gap-2 text-sm sm:text-base font-black text-indigo-600 dark:text-indigo-400 group">
-                        <span>ดำเนินการสมัคร</span> <i data-lucide="arrow-right" class="w-4 h-4 transition-transform group-hover:translate-x-1"></i>
+                    <div class="mt-6 flex items-center gap-1.5 text-xs font-black text-indigo-650 dark:text-indigo-400 group">
+                        <span>ดำเนินการสมัคร</span> <i data-lucide="arrow-right" class="w-3.5 h-3.5 transition-transform group-hover:translate-x-1"></i>
                     </div>
                 </a>
 
-                <!-- 2. Approved List -->
-                <a href="<?= base_url('science-week/approved-list') ?>" class="glass-sci-card rounded-3xl p-8 sm:p-10 flex flex-col justify-between glow-border border-2 border-emerald-500/30 hover:border-emerald-500 hover:scale-105 transition-all text-left shadow-lg">
-                    <div class="space-y-5">
-                        <div class="icon-container w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500/25 to-teal-500/25 border-2 border-emerald-500/40 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shadow-md">
-                            <i data-lucide="users" class="w-8 h-8"></i>
+                <!-- 2. Check Status -->
+                <a href="<?= base_url('science-week/check-status') ?>" class="glass-sci-card rounded-3xl p-6 sm:p-8 flex flex-col justify-between glow-border border-2 border-indigo-500/30 hover:border-indigo-500 hover:scale-105 transition-all text-left shadow-lg">
+                    <div class="space-y-4">
+                        <div class="icon-container w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500/25 to-cyan-500/25 border-2 border-indigo-500/40 flex items-center justify-center text-indigo-455 dark:text-cyan-400 shadow-md">
+                            <i data-lucide="search" class="w-7 h-7"></i>
                         </div>
-                        <h3 class="text-2xl font-black text-slate-800 dark:text-white">รายชื่อผู้มีสิทธิ์ & พิมพ์บัตร</h3>
-                        <p class="text-slate-600 dark:text-slate-300 text-sm sm:text-base leading-relaxed font-semibold">
-                            ตรวจสอบประกาศรายชื่อทีมที่ได้รับการอนุมัติ และพิมพ์บัตรประจำตัวทีมเพื่อเข้าร่วมงาน
+                        <h3 class="text-xl font-black text-slate-800 dark:text-white">ตรวจสอบสถานะ</h3>
+                        <p class="text-slate-600 dark:text-slate-300 text-xs leading-relaxed font-semibold">
+                            ค้นหาข้อมูลใบสมัครเพื่อเช็คสถานะการอนุมัติและรายละเอียดข้อมูลทีม
                         </p>
                     </div>
-                    <div class="mt-8 flex items-center gap-2 text-sm sm:text-base font-black text-emerald-600 dark:text-emerald-400 group">
-                        <span>ดูประกาศ & พิมพ์บัตร</span> <i data-lucide="arrow-right" class="w-4 h-4 transition-transform group-hover:translate-x-1"></i>
+                    <div class="mt-6 flex items-center gap-1.5 text-xs font-black text-indigo-650 dark:text-cyan-400 group">
+                        <span>เช็คสถานะการสมัคร</span> <i data-lucide="arrow-right" class="w-3.5 h-3.5 transition-transform group-hover:translate-x-1"></i>
                     </div>
                 </a>
 
-                <!-- 3. Results -->
-                <a href="<?= base_url('science-week/results') ?>" class="glass-sci-card rounded-3xl p-8 sm:p-10 flex flex-col justify-between glow-border border-2 border-amber-500/35 hover:border-amber-500 hover:scale-105 transition-all text-left shadow-lg">
-                    <div class="space-y-5">
-                        <div class="icon-container w-16 h-16 rounded-2xl bg-gradient-to-br from-yellow-500/25 to-amber-500/25 border-2 border-yellow-500/40 flex items-center justify-center text-yellow-600 dark:text-yellow-400 shadow-md">
-                            <i data-lucide="award" class="w-8 h-8"></i>
+                <!-- 3. Approved List -->
+                <a href="<?= base_url('science-week/approved-list') ?>" class="glass-sci-card rounded-3xl p-6 sm:p-8 flex flex-col justify-between glow-border border-2 border-emerald-500/30 hover:border-emerald-500 hover:scale-105 transition-all text-left shadow-lg">
+                    <div class="space-y-4">
+                        <div class="icon-container w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500/25 to-teal-500/25 border-2 border-emerald-500/40 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shadow-md">
+                            <i data-lucide="users" class="w-7 h-7"></i>
                         </div>
-                        <h3 class="text-2xl font-black text-slate-800 dark:text-white">ประกาศผลรางวัล</h3>
-                        <p class="text-slate-600 dark:text-slate-300 text-sm sm:text-base leading-relaxed font-semibold">
-                            สรุปและประกาศผลรางวัลชนะเลิศตามลำดับกิจกรรมงานวิทยาศาสตร์ทั้งหมด
+                        <h3 class="text-xl font-black text-slate-800 dark:text-white">รายชื่อผู้มีสิทธิ์แข่ง</h3>
+                        <p class="text-slate-600 dark:text-slate-300 text-xs leading-relaxed font-semibold">
+                            ตรวจสอบรายชื่อทีมที่ได้รับการอนุมัติ และพิมพ์บัตรประจำตัวทีมเข้าแข่งขัน
                         </p>
                     </div>
-                    <div class="mt-8 flex items-center gap-2 text-sm sm:text-base font-black text-amber-600 dark:text-amber-400 group">
-                        <span>เช็คผลรางวัล</span> <i data-lucide="arrow-right" class="w-4 h-4 transition-transform group-hover:translate-x-1"></i>
+                    <div class="mt-6 flex items-center gap-1.5 text-xs font-black text-emerald-600 dark:text-emerald-400 group">
+                        <span>ดูรายชื่อผู้มีสิทธิ์</span> <i data-lucide="arrow-right" class="w-3.5 h-3.5 transition-transform group-hover:translate-x-1"></i>
                     </div>
                 </a>
 
-                <!-- 4. Evaluation -->
-                <a href="<?= base_url('science-week/evaluation') ?>" class="glass-sci-card rounded-3xl p-8 sm:p-10 flex flex-col justify-between glow-border border-2 border-rose-500/30 hover:border-rose-500 hover:scale-105 transition-all text-left shadow-lg">
-                    <div class="space-y-5">
-                        <div class="icon-container w-16 h-16 rounded-2xl bg-gradient-to-br from-rose-500/25 to-pink-500/25 border-2 border-rose-500/40 flex items-center justify-center text-rose-600 dark:text-rose-455 shadow-md">
-                            <i data-lucide="clipboard-list" class="w-8 h-8"></i>
+                <!-- 4. Results -->
+                <a href="<?= base_url('science-week/results') ?>" class="glass-sci-card rounded-3xl p-6 sm:p-8 flex flex-col justify-between glow-border border-2 border-amber-500/35 hover:border-amber-500 hover:scale-105 transition-all text-left shadow-lg">
+                    <div class="space-y-4">
+                        <div class="icon-container w-14 h-14 rounded-2xl bg-gradient-to-br from-yellow-500/25 to-amber-500/25 border-2 border-yellow-500/40 flex items-center justify-center text-yellow-600 dark:text-yellow-400 shadow-md">
+                            <i data-lucide="award" class="w-7 h-7"></i>
                         </div>
-                        <h3 class="text-2xl font-black text-slate-800 dark:text-white">ทำแบบประเมิน</h3>
-                        <p class="text-slate-600 dark:text-slate-300 text-sm sm:text-base leading-relaxed font-semibold">
-                            ร่วมทำแบบประเมินความพึงพอใจการจัดกิจกรรม เพื่อรับเกียรติบัตรผู้เข้าร่วม
+                        <h3 class="text-xl font-black text-slate-800 dark:text-white">ประกาศผลรางวัล</h3>
+                        <p class="text-slate-600 dark:text-slate-300 text-xs leading-relaxed font-semibold">
+                            สรุปและประกาศผลรางวัลชนะเลิศตามลำดับกิจกรรมแข่งขันงานวิทยาศาสตร์
                         </p>
                     </div>
-                    <div class="mt-8 flex items-center gap-2 text-sm sm:text-base font-black text-rose-650 dark:text-rose-400 group">
-                        <span>ทำแบบประเมิน</span> <i data-lucide="arrow-right" class="w-4 h-4 transition-transform group-hover:translate-x-1"></i>
+                    <div class="mt-6 flex items-center gap-1.5 text-xs font-black text-amber-600 dark:text-amber-400 group">
+                        <span>เช็คผลรางวัล</span> <i data-lucide="arrow-right" class="w-3.5 h-3.5 transition-transform group-hover:translate-x-1"></i>
+                    </div>
+                </a>
+
+                <!-- 5. Evaluation -->
+                <a href="<?= base_url('science-week/evaluation') ?>" class="glass-sci-card rounded-3xl p-6 sm:p-8 flex flex-col justify-between glow-border border-2 border-rose-500/30 hover:border-rose-500 hover:scale-105 transition-all text-left shadow-lg">
+                    <div class="space-y-4">
+                        <div class="icon-container w-14 h-14 rounded-2xl bg-gradient-to-br from-rose-500/25 to-pink-500/25 border-2 border-rose-500/40 flex items-center justify-center text-rose-600 dark:text-rose-455 shadow-md">
+                            <i data-lucide="clipboard-list" class="w-7 h-7"></i>
+                        </div>
+                        <h3 class="text-xl font-black text-slate-800 dark:text-white">ทำแบบประเมิน</h3>
+                        <p class="text-slate-600 dark:text-slate-300 text-xs leading-relaxed font-semibold">
+                            ร่วมทำแบบประเมินความพึงพอใจการจัดกิจกรรม เพื่อดาวน์โหลดเกียรติบัตร
+                        </p>
+                    </div>
+                    <div class="mt-6 flex items-center gap-1.5 text-xs font-black text-rose-650 dark:text-rose-400 group">
+                        <span>ทำแบบประเมิน</span> <i data-lucide="arrow-right" class="w-3.5 h-3.5 transition-transform group-hover:translate-x-1"></i>
                     </div>
                 </a>
             </div>

@@ -126,6 +126,7 @@ $routes->get('science-week/register/form', 'ScienceWeek::registerForm');
 $routes->post('science-week/register/store', 'ScienceWeek::store');
 $routes->get('science-week/success/(:segment)', 'ScienceWeek::success/$1');
 $routes->get('science-week/approved-list', 'ScienceWeek::publicApprovedList');
+$routes->get('science-week/check-status', 'ScienceWeek::publicCheckStatus');
 $routes->get('science-week/results', 'ScienceWeek::publicResults');
 $routes->get('science-week/evaluation', 'ScienceWeek::publicEvaluation');
 $routes->post('science-week/evaluation/store', 'ScienceWeek::storeEvaluation');

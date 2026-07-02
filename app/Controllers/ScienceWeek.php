@@ -1772,6 +1772,37 @@ class ScienceWeek extends BaseController
     }
 
     /**
+     * หน้าตรวจสอบสถานะการสมัครแข่งขัน (Public Check Status)
+     */
+    public function publicCheckStatus()
+    {
+        $activeYear = $this->getActiveYear();
+        $searchTerm = $this->request->getGet('search');
+        $registrations = [];
+
+        if ($searchTerm !== null && trim($searchTerm) !== '') {
+            $trimmedSearch = trim($searchTerm);
+            $query = $this->regModel->where('reg_year', $activeYear);
+            $query = $query->groupStart()
+                ->like('reg_school_name', $trimmedSearch)
+                ->orLike('reg_team_name', $trimmedSearch)
+                ->orLike('reg_members', $trimmedSearch)
+                ->orLike('reg_code', $trimmedSearch)
+                ->orLike('reg_contact_phone', $trimmedSearch)
+                ->groupEnd();
+            
+            $registrations = $query->orderBy('reg_id', 'DESC')->findAll();
+        }
+
+        $data['title'] = 'ตรวจสอบสถานะการสมัครแข่งขัน | งานสัปดาห์วิทยาศาสตร์';
+        $data['registrations'] = $registrations;
+        $data['search'] = $searchTerm;
+        $data['competitions'] = $this->compModel->where('comp_year', $activeYear)->orderBy('comp_id', 'ASC')->findAll();
+
+        return view('science_week/check_status', $data);
+    }
+
+    /**
      * เปิด-ปิดการประกาศผลรางวัลต่อสาธารณะ (Staff/Admin)
      */
     public function togglePublishResults()
