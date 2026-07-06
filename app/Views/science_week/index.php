@@ -189,6 +189,97 @@
         transform: translateY(-2px);
     }
 
+    /* ===== HERO MEGA REGISTER CTA ===== */
+    .hero-register-wrap {
+        animation: heroCTAIn 1s cubic-bezier(0.16,1,0.3,1) 0.85s both;
+    }
+    .hero-register-btn {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1.1rem 2.5rem;
+        font-size: 1.1rem;
+        font-weight: 900;
+        color: #fff;
+        background: linear-gradient(135deg, #7c3aed 0%, #db2777 50%, #f43f5e 100%);
+        background-size: 200% 200%;
+        animation: heroRegGradient 3s ease infinite;
+        border: none;
+        border-radius: 1.25rem;
+        cursor: pointer;
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        box-shadow:
+            0 4px 15px rgba(124,58,237,0.4),
+            0 0 40px rgba(219,39,119,0.2),
+            inset 0 1px 0 rgba(255,255,255,0.2);
+        text-decoration: none;
+        letter-spacing: 0.02em;
+        z-index: 1;
+    }
+    .hero-register-btn:hover {
+        transform: translateY(-4px) scale(1.04);
+        box-shadow:
+            0 8px 30px rgba(124,58,237,0.5),
+            0 0 60px rgba(219,39,119,0.3),
+            inset 0 1px 0 rgba(255,255,255,0.3);
+    }
+    .hero-register-btn::before {
+        content: '';
+        position: absolute;
+        top: 0; left: -100%; width: 70%; height: 100%;
+        background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.15) 50%, transparent 70%);
+        animation: heroRegShimmer 2.5s ease-in-out infinite;
+        z-index: 2;
+    }
+    @keyframes heroRegGradient {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+    @keyframes heroRegShimmer {
+        0% { left: -100%; }
+        100% { left: 200%; }
+    }
+    /* Glow ring behind the button */
+    .hero-register-glow {
+        position: absolute;
+        inset: -12px;
+        border-radius: 2rem;
+        background: radial-gradient(ellipse at center, rgba(219,39,119,0.25) 0%, transparent 70%);
+        animation: heroRegGlowPulse 2s ease-in-out infinite alternate;
+        pointer-events: none;
+        z-index: 0;
+    }
+    @keyframes heroRegGlowPulse {
+        0% { opacity: 0.3; transform: scale(0.92); }
+        100% { opacity: 1; transform: scale(1.08); }
+    }
+    /* Sparkle dots */
+    .hero-reg-sparkle {
+        position: absolute;
+        width: 4px; height: 4px;
+        border-radius: 50%;
+        background: #fff;
+        pointer-events: none;
+        animation: heroSparkle 3s ease-in-out infinite;
+    }
+    .hero-reg-sparkle:nth-child(1) { top: -6px; left: 20%; animation-delay: 0s; }
+    .hero-reg-sparkle:nth-child(2) { top: 50%; right: -6px; animation-delay: 0.6s; width: 3px; height: 3px; }
+    .hero-reg-sparkle:nth-child(3) { bottom: -5px; left: 60%; animation-delay: 1.2s; width: 3px; height: 3px; }
+    .hero-reg-sparkle:nth-child(4) { top: 30%; left: -5px; animation-delay: 1.8s; width: 2px; height: 2px; }
+    @keyframes heroSparkle {
+        0%, 100% { opacity: 0; transform: scale(0.5); }
+        50% { opacity: 1; transform: scale(1.5); }
+    }
+    /* Divider line between register and other buttons */
+    .hero-cta-divider {
+        width: 1px;
+        height: 44px;
+        background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.4), transparent);
+    }
+
     /* Floating STEAM icons in hero */
     .steam-float-icon {
         position: absolute;
@@ -302,6 +393,112 @@
     @keyframes rainbowSlide {
         0% { background-position: 0% center; }
         100% { background-position: 200% center; }
+    }
+
+    /* === REGISTER CARD MEGA EFFECTS === */
+    .register-mega-card {
+        position: relative;
+        background: linear-gradient(135deg, #1e1b4b 0%, #312e81 30%, #4c1d95 60%, #581c87 100%);
+        border: none;
+        isolation: isolate;
+    }
+    /* Animated rainbow border */
+    .register-mega-card::before {
+        content: '';
+        position: absolute;
+        inset: -3px;
+        border-radius: 1.6rem;
+        background: linear-gradient(90deg, #6366f1, #a855f7, #ec4899, #f43f5e, #f97316, #eab308, #22d3ee, #6366f1);
+        background-size: 300% 100%;
+        animation: borderRainbow 3s linear infinite;
+        z-index: -2;
+    }
+    /* Inner dark fill */
+    .register-mega-card::after {
+        content: '';
+        position: absolute;
+        inset: 2px;
+        border-radius: 1.5rem;
+        background: linear-gradient(135deg, #1e1b4b 0%, #312e81 30%, #4c1d95 60%, #581c87 100%);
+        z-index: -1;
+    }
+    @keyframes borderRainbow {
+        0% { background-position: 0% 50%; }
+        100% { background-position: 300% 50%; }
+    }
+    /* Shimmer sweep */
+    .register-shimmer {
+        position: absolute;
+        inset: 0;
+        border-radius: 1.5rem;
+        overflow: hidden;
+        z-index: 0;
+        pointer-events: none;
+    }
+    .register-shimmer::after {
+        content: '';
+        position: absolute;
+        top: 0; left: -100%; width: 60%; height: 100%;
+        background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.08) 50%, transparent 70%);
+        animation: shimmerSweep 2.5s ease-in-out infinite;
+    }
+    @keyframes shimmerSweep {
+        0% { left: -100%; }
+        100% { left: 200%; }
+    }
+    /* Pulsing glow ring behind card */
+    .register-glow-ring {
+        position: absolute;
+        inset: -20px;
+        border-radius: 2.5rem;
+        background: radial-gradient(ellipse at center, rgba(139,92,246,0.25) 0%, transparent 70%);
+        animation: glowPulse 2s ease-in-out infinite alternate;
+        pointer-events: none;
+        z-index: -3;
+    }
+    @keyframes glowPulse {
+        0% { opacity: 0.4; transform: scale(0.95); }
+        100% { opacity: 1; transform: scale(1.05); }
+    }
+    /* Floating particles */
+    .register-particles {
+        position: absolute; inset: 0;
+        overflow: hidden; border-radius: 1.5rem;
+        pointer-events: none; z-index: 0;
+    }
+    .register-particles span {
+        position: absolute;
+        width: 3px; height: 3px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.5);
+        animation: particleFloat 4s ease-in-out infinite;
+    }
+    .register-particles span:nth-child(1) { top: 20%; left: 15%; animation-delay: 0s; animation-duration: 3.5s; }
+    .register-particles span:nth-child(2) { top: 60%; left: 75%; animation-delay: 0.8s; animation-duration: 4.2s; }
+    .register-particles span:nth-child(3) { top: 80%; left: 35%; animation-delay: 1.5s; animation-duration: 3.8s; }
+    .register-particles span:nth-child(4) { top: 10%; left: 85%; animation-delay: 2s; animation-duration: 4.5s; width: 2px; height: 2px; }
+    .register-particles span:nth-child(5) { top: 45%; left: 50%; animation-delay: 0.3s; animation-duration: 5s; width: 4px; height: 4px; background: rgba(167,139,250,0.6); }
+    @keyframes particleFloat {
+        0%, 100% { transform: translateY(0) scale(1); opacity: 0.4; }
+        50% { transform: translateY(-18px) scale(1.5); opacity: 1; }
+    }
+    /* Badge pulse */
+    .badge-live {
+        animation: badgePulse 1.5s ease-in-out infinite;
+    }
+    @keyframes badgePulse {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(244,63,94,0.6); }
+        50% { box-shadow: 0 0 12px 4px rgba(244,63,94,0.3); }
+    }
+    /* CTA button */
+    .register-cta-btn {
+        background: linear-gradient(135deg, #7c3aed, #db2777);
+        transition: all 0.3s ease;
+    }
+    .register-cta-btn:hover {
+        background: linear-gradient(135deg, #8b5cf6, #ec4899);
+        transform: translateY(-1px);
+        box-shadow: 0 8px 25px -5px rgba(124,58,237,0.5);
     }
 
     /* Glow border on hover */
@@ -451,105 +648,121 @@
     <div class="steam-float-icon"><i data-lucide="palette" class="w-6 h-6"></i></div>
     <div class="steam-float-icon"><i data-lucide="sigma" class="w-6 h-6"></i></div>
 
-    <!-- Hero content -->
-    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-        <div class="flex flex-col lg:flex-row items-center justify-between gap-10 lg:gap-16 py-10">
-            
-            <!-- Left: Text content -->
-            <div class="lg:w-3/5 space-y-6 text-center lg:text-left order-2 lg:order-1">
-                <!-- Badge -->
-                <div class="hero-badge">
-                    <span class="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-white/15 backdrop-blur-md border border-white/30 text-white text-sm font-bold tracking-wider uppercase shadow-lg">
-                        <i data-lucide="sparkles" class="w-4 h-4 animate-pulse"></i> STEAM Science Week 2026
-                    </span>
-                </div>
+    <!-- Hero content — Centered Layout -->
+    <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+        <div class="flex flex-col items-center text-center py-8 sm:py-12 space-y-7">
 
-                <!-- Title -->
-                <h1 class="hero-title text-4xl sm:text-5xl lg:text-7xl font-black tracking-tight leading-[1.1] text-white drop-shadow-lg">
-                    สัปดาห์วิทยาศาสตร์ <br>
-                    <span class="gradient-text-animate">
-                        สนุกคิด ติดปีกจินตนาการ
-                    </span>
-                </h1>
-
-                <!-- Subtitle -->
-                <p class="hero-subtitle text-white/80 text-base sm:text-lg max-w-2xl leading-relaxed font-medium drop-shadow">
-                    เปิดโลกแห่งการเรียนรู้ยุคใหม่ผ่านแนวคิด <strong class="text-white">STEAM Education</strong> ผสมผสานวิทยาศาสตร์ เทคโนโลยี วิศวกรรมศาสตร์ ศิลปะ และคณิตศาสตร์ — ร่วมแข่งขันชิงถ้วยรางวัล เกียรติบัตร และทุนการศึกษา!
-                </p>
-
-                <!-- Hero Cute Mini Countdown -->
-                <div class="hero-countdown flex flex-wrap items-center justify-center lg:justify-start gap-3 py-3">
-                    <span class="text-xs font-black uppercase tracking-wider text-pink-300 flex items-center gap-1.5 bg-pink-500/10 border border-pink-500/30 px-3.5 py-1.5 rounded-full shadow-sm">
-                        <span class="animate-bounce">🚀</span> เริ่มงานในอีก:
-                    </span>
-                    <div class="flex gap-2 text-center text-white text-xs font-black">
-                        <!-- Days -->
-                        <div class="relative overflow-hidden px-3.5 py-2 rounded-2xl bg-gradient-to-b from-indigo-500/25 to-indigo-600/10 border border-indigo-400/40 shadow-[0_0_15px_rgba(99,102,241,0.2)] min-w-[58px]">
-                            <span id="countdown-days" class="font-mono text-base text-cyan-300 tabular-nums">00</span>
-                            <span class="text-[9px] text-slate-300 block mt-0.5 font-bold">วัน</span>
-                        </div>
-                        <!-- Hours -->
-                        <div class="relative overflow-hidden px-3.5 py-2 rounded-2xl bg-gradient-to-b from-purple-500/25 to-purple-600/10 border border-purple-400/40 shadow-[0_0_15px_rgba(168,85,247,0.2)] min-w-[58px]">
-                            <span id="countdown-hours" class="font-mono text-base text-purple-300 tabular-nums">00</span>
-                            <span class="text-[9px] text-slate-300 block mt-0.5 font-bold">ชม.</span>
-                        </div>
-                        <!-- Minutes -->
-                        <div class="relative overflow-hidden px-3.5 py-2 rounded-2xl bg-gradient-to-b from-pink-500/25 to-pink-600/10 border border-pink-400/40 shadow-[0_0_15px_rgba(236,72,153,0.2)] min-w-[58px]">
-                            <span id="countdown-minutes" class="font-mono text-base text-pink-300 tabular-nums">00</span>
-                            <span class="text-[9px] text-slate-300 block mt-0.5 font-bold">นาที</span>
-                        </div>
-                        <!-- Seconds -->
-                        <div class="relative overflow-hidden px-3.5 py-2 rounded-2xl bg-gradient-to-b from-rose-500/35 to-rose-600/20 border border-rose-400/50 shadow-[0_0_20px_rgba(244,63,94,0.35)] min-w-[58px]">
-                            <span id="countdown-seconds" class="font-mono text-base text-rose-300 tabular-nums animate-pulse">00</span>
-                            <span class="text-[9px] text-slate-300 block mt-0.5 font-bold">วิ</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- CTA Buttons -->
-                <div class="hero-cta flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-2">
-                    <a href="#action-menu" class="hero-btn-primary px-8 py-4 rounded-2xl font-bold text-base flex items-center gap-3 shadow-xl">
-                        <i data-lucide="layout-grid" class="w-5 h-5"></i> พอร์ทัลระบบออนไลน์ทั้งหมด
-                    </a>
-                    <a href="#activities" class="hero-btn-outline px-6 py-4 rounded-2xl font-semibold text-base flex items-center gap-2">
-                        <i data-lucide="arrow-down" class="w-4 h-4 scroll-indicator"></i> ดูรายละเอียดกิจกรรม
-                    </a>
-                </div>
-            </div>
-
-            <!-- Right: Logo -->
-            <div class="lg:w-2/5 flex justify-center hero-logo-wrap order-1 lg:order-2">
+            <!-- Logo + Badge Row -->
+            <div class="hero-badge flex flex-col items-center gap-4">
                 <div class="relative floating-logo">
-                    <!-- Morphing blob behind -->
                     <div class="morph-blob"></div>
-                    <!-- Glow ring -->
                     <div class="logo-glow-ring"></div>
-                    <!-- Logo image -->
                     <img src="<?= base_url('uploads/science_week/logo/S__49446940.jpg') ?>" 
                          alt="STEAM Science Week Logo" 
-                         class="relative w-64 h-64 sm:w-80 sm:h-80 rounded-full border-4 border-white/40 object-cover shadow-2xl z-10">
+                         class="relative w-32 h-32 sm:w-40 sm:h-40 rounded-full border-4 border-white/40 object-cover shadow-2xl z-10">
+                </div>
+                <span class="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-white/15 backdrop-blur-md border border-white/30 text-white text-sm font-bold tracking-wider uppercase shadow-lg">
+                    <i data-lucide="sparkles" class="w-4 h-4 animate-pulse"></i> STEAM Science Week 2026
+                </span>
+            </div>
+
+            <!-- Title -->
+            <h1 class="hero-title text-4xl sm:text-5xl lg:text-7xl font-black tracking-tight leading-[1.1] text-white drop-shadow-lg">
+                สัปดาห์วิทยาศาสตร์ <br>
+                <span class="gradient-text-animate">
+                    สนุกคิด ติดปีกจินตนาการ
+                </span>
+            </h1>
+
+            <!-- Subtitle -->
+            <p class="hero-subtitle text-white/80 text-base sm:text-lg max-w-2xl leading-relaxed font-medium drop-shadow">
+                เปิดโลกแห่งการเรียนรู้ยุคใหม่ผ่านแนวคิด <strong class="text-white">STEAM Education</strong> ผสมผสานวิทยาศาสตร์ เทคโนโลยี วิศวกรรมศาสตร์ ศิลปะ และคณิตศาสตร์
+            </p>
+
+            <!-- Feature Highlights Row -->
+            <div class="hero-subtitle flex flex-wrap items-center justify-center gap-3 sm:gap-5 text-xs sm:text-sm font-bold text-white/90">
+                <span class="flex items-center gap-2 px-4 py-2 rounded-2xl bg-yellow-500/15 border border-yellow-400/30 shadow-sm backdrop-blur-sm">
+                    <i data-lucide="trophy" class="w-4 h-4 text-yellow-400"></i> ชิงถ้วยรางวัล
+                </span>
+                <span class="flex items-center gap-2 px-4 py-2 rounded-2xl bg-emerald-500/15 border border-emerald-400/30 shadow-sm backdrop-blur-sm">
+                    <i data-lucide="award" class="w-4 h-4 text-emerald-400"></i> เกียรติบัตร
+                </span>
+                <span class="flex items-center gap-2 px-4 py-2 rounded-2xl bg-cyan-500/15 border border-cyan-400/30 shadow-sm backdrop-blur-sm">
+                    <i data-lucide="graduation-cap" class="w-4 h-4 text-cyan-400"></i> ทุนการศึกษา
+                </span>
+            </div>
+
+            <!-- Countdown -->
+            <div class="hero-countdown flex flex-wrap items-center justify-center gap-3 py-2">
+                <span class="text-xs font-black uppercase tracking-wider text-pink-300 flex items-center gap-1.5 bg-pink-500/10 border border-pink-500/30 px-3.5 py-1.5 rounded-full shadow-sm">
+                    <span class="animate-bounce">🚀</span> เริ่มงานในอีก:
+                </span>
+                <div class="flex gap-2 text-center text-white text-xs font-black">
+                    <div class="relative overflow-hidden px-3.5 py-2 rounded-2xl bg-gradient-to-b from-indigo-500/25 to-indigo-600/10 border border-indigo-400/40 shadow-[0_0_15px_rgba(99,102,241,0.2)] min-w-[58px]">
+                        <span id="countdown-days" class="font-mono text-base text-cyan-300 tabular-nums">00</span>
+                        <span class="text-[9px] text-slate-300 block mt-0.5 font-bold">วัน</span>
+                    </div>
+                    <div class="relative overflow-hidden px-3.5 py-2 rounded-2xl bg-gradient-to-b from-purple-500/25 to-purple-600/10 border border-purple-400/40 shadow-[0_0_15px_rgba(168,85,247,0.2)] min-w-[58px]">
+                        <span id="countdown-hours" class="font-mono text-base text-purple-300 tabular-nums">00</span>
+                        <span class="text-[9px] text-slate-300 block mt-0.5 font-bold">ชม.</span>
+                    </div>
+                    <div class="relative overflow-hidden px-3.5 py-2 rounded-2xl bg-gradient-to-b from-pink-500/25 to-pink-600/10 border border-pink-400/40 shadow-[0_0_15px_rgba(236,72,153,0.2)] min-w-[58px]">
+                        <span id="countdown-minutes" class="font-mono text-base text-pink-300 tabular-nums">00</span>
+                        <span class="text-[9px] text-slate-300 block mt-0.5 font-bold">นาที</span>
+                    </div>
+                    <div class="relative overflow-hidden px-3.5 py-2 rounded-2xl bg-gradient-to-b from-rose-500/35 to-rose-600/20 border border-rose-400/50 shadow-[0_0_20px_rgba(244,63,94,0.35)] min-w-[58px]">
+                        <span id="countdown-seconds" class="font-mono text-base text-rose-300 tabular-nums animate-pulse">00</span>
+                        <span class="text-[9px] text-slate-300 block mt-0.5 font-bold">วิ</span>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Stats row -->
-        <div class="hero-stats grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-3xl mx-auto mt-4 pb-10">
-            <div class="stat-card">
-                <div class="text-2xl sm:text-3xl font-black" data-count="<?= esc($stat_steam ?? 5) ?>">0</div>
-                <div class="text-xs font-bold opacity-80 mt-1 uppercase tracking-wider">สาขา STEAM</div>
+            <!-- CTA Buttons -->
+            <div class="hero-cta flex flex-wrap items-center justify-center gap-4 sm:gap-5 pt-2">
+                <!-- Mega Register Button -->
+                <div class="hero-register-wrap relative">
+                    <div class="hero-register-glow"></div>
+                    <a href="<?= base_url('science-week/register') ?>" class="hero-register-btn">
+                        <span class="hero-reg-sparkle"></span>
+                        <span class="hero-reg-sparkle"></span>
+                        <span class="hero-reg-sparkle"></span>
+                        <span class="hero-reg-sparkle"></span>
+                        <i data-lucide="clipboard-edit" class="w-6 h-6 drop-shadow-lg relative z-10"></i>
+                        <span class="relative z-10">สมัครแข่งขันเลย!</span>
+                        <i data-lucide="arrow-right" class="w-5 h-5 relative z-10"></i>
+                    </a>
+                </div>
+
+                <div class="hero-cta-divider hidden sm:block"></div>
+
+                <a href="#action-menu" class="hero-btn-primary px-7 py-4 rounded-2xl font-bold text-sm flex items-center gap-2.5 shadow-xl">
+                    <i data-lucide="layout-grid" class="w-4 h-4"></i> เมนูบริการทั้งหมด
+                </a>
+                <a href="#activities" class="hero-btn-outline px-5 py-4 rounded-2xl font-semibold text-sm flex items-center gap-2">
+                    <i data-lucide="arrow-down" class="w-4 h-4 scroll-indicator"></i> ดูกิจกรรม
+                </a>
             </div>
-            <div class="stat-card">
-                <div class="text-2xl sm:text-3xl font-black" data-count="<?= esc($stat_comp ?? 0) ?>">0</div>
-                <div class="text-xs font-bold opacity-80 mt-1 uppercase tracking-wider">ประเภทแข่งขัน</div>
+
+            <!-- Stats row -->
+            <div class="hero-stats grid grid-cols-2 sm:grid-cols-4 gap-4 w-full max-w-3xl mx-auto mt-4">
+                <div class="stat-card">
+                    <div class="text-2xl sm:text-3xl font-black" data-count="<?= esc($stat_steam ?? 5) ?>">0</div>
+                    <div class="text-xs font-bold opacity-80 mt-1 uppercase tracking-wider">สาขา STEAM</div>
+                </div>
+                <div class="stat-card">
+                    <div class="text-2xl sm:text-3xl font-black" data-count="<?= esc($stat_comp ?? 0) ?>">0</div>
+                    <div class="text-xs font-bold opacity-80 mt-1 uppercase tracking-wider">ประเภทแข่งขัน</div>
+                </div>
+                <div class="stat-card">
+                    <div class="text-2xl sm:text-3xl font-black" data-count="<?= esc($stat_team ?? 0) ?>">0</div>
+                    <div class="text-xs font-bold opacity-80 mt-1 uppercase tracking-wider">ทีมลงทะเบียน</div>
+                </div>
+                <div class="stat-card">
+                    <div class="text-2xl sm:text-3xl font-black" data-count="<?= esc($stat_student ?? 0) ?>">0</div>
+                    <div class="text-xs font-bold opacity-80 mt-1 uppercase tracking-wider">นักเรียนเข้าร่วม</div>
+                </div>
             </div>
-            <div class="stat-card">
-                <div class="text-2xl sm:text-3xl font-black" data-count="<?= esc($stat_team ?? 0) ?>">0</div>
-                <div class="text-xs font-bold opacity-80 mt-1 uppercase tracking-wider">ทีมลงทะเบียน</div>
-            </div>
-            <div class="stat-card">
-                <div class="text-2xl sm:text-3xl font-black" data-count="<?= esc($stat_student ?? 0) ?>">0</div>
-                <div class="text-xs font-bold opacity-80 mt-1 uppercase tracking-wider">นักเรียนเข้าร่วม</div>
-            </div>
+
         </div>
     </div>
 
@@ -588,21 +801,43 @@
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 max-w-7xl mx-auto">
-                <!-- 1. Register -->
-                <a href="<?= base_url('science-week/register') ?>" class="glass-sci-card rounded-3xl p-6 sm:p-8 flex flex-col justify-between glow-border border-2 border-indigo-500/30 hover:border-indigo-500 hover:scale-105 transition-all text-left shadow-lg">
-                    <div class="space-y-4">
-                        <div class="icon-container w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500/25 to-purple-500/25 border-2 border-indigo-500/40 flex items-center justify-center text-indigo-450 dark:text-indigo-400 shadow-md">
-                            <i data-lucide="clipboard-edit" class="w-7 h-7"></i>
+                <!-- 1. Register (Ultra-Premium Eye-Catching Card) -->
+                <div class="relative group">
+                    <div class="register-glow-ring"></div>
+                    <a href="<?= base_url('science-week/register') ?>" class="register-mega-card rounded-3xl p-6 sm:p-8 flex flex-col justify-between hover:scale-105 transition-all duration-300 text-left shadow-2xl shadow-purple-950/50 hover:shadow-purple-500/30 block min-h-[260px]">
+                        <!-- Shimmer sweep -->
+                        <div class="register-shimmer"></div>
+                        <!-- Floating particles -->
+                        <div class="register-particles"><span></span><span></span><span></span><span></span><span></span></div>
+                        <!-- Glow orbs -->
+                        <div class="absolute -right-8 -top-8 w-28 h-28 bg-purple-500/15 rounded-full blur-2xl group-hover:scale-150 group-hover:bg-purple-400/20 transition-all duration-700"></div>
+                        <div class="absolute -left-6 -bottom-6 w-20 h-20 bg-indigo-500/15 rounded-full blur-2xl group-hover:scale-125 transition-all duration-700"></div>
+                        
+                        <!-- OPEN NOW Badge -->
+                        <span class="badge-live absolute top-4 right-4 px-3 py-1.5 rounded-full text-[10px] font-black tracking-widest bg-gradient-to-r from-rose-500 to-pink-500 text-white border border-rose-400/40 shadow-lg flex items-center gap-1.5 z-20">
+                            <span class="w-1.5 h-1.5 bg-white rounded-full animate-ping"></span>
+                            OPEN NOW
+                        </span>
+                        
+                        <div class="space-y-4 relative z-10">
+                            <div class="w-16 h-16 rounded-2xl bg-white/15 border-2 border-white/25 flex items-center justify-center text-white shadow-lg backdrop-blur-sm group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
+                                <i data-lucide="clipboard-edit" class="w-8 h-8 drop-shadow-lg"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-2xl font-black text-white tracking-tight drop-shadow-md">สมัครแข่งขัน</h3>
+                                <p class="text-indigo-200/90 text-xs leading-relaxed font-semibold mt-2">
+                                    ลงทะเบียนข้อมูลโรงเรียน ทีม<br>และผู้เข้าแข่งขันเพื่อจองสิทธิ์เข้าร่วม
+                                </p>
+                            </div>
                         </div>
-                        <h3 class="text-xl font-black text-slate-800 dark:text-white">สมัครแข่งขัน</h3>
-                        <p class="text-slate-600 dark:text-slate-300 text-xs leading-relaxed font-semibold">
-                            ลงทะเบียนข้อมูลโรงเรียน ทีม และผู้เข้าแข่งขันเพื่อจองสิทธิ์เข้าร่วม
-                        </p>
-                    </div>
-                    <div class="mt-6 flex items-center gap-1.5 text-xs font-black text-indigo-650 dark:text-indigo-400 group">
-                        <span>ดำเนินการสมัคร</span> <i data-lucide="arrow-right" class="w-3.5 h-3.5 transition-transform group-hover:translate-x-1"></i>
-                    </div>
-                </a>
+                        <div class="mt-5 relative z-10">
+                            <span class="register-cta-btn inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black text-white shadow-lg">
+                                <i data-lucide="rocket" class="w-4 h-4"></i> ดำเนินการสมัครเลย
+                                <i data-lucide="arrow-right" class="w-3.5 h-3.5 transition-transform group-hover:translate-x-1.5"></i>
+                            </span>
+                        </div>
+                    </a>
+                </div>
 
                 <!-- 2. Check Status -->
                 <a href="<?= base_url('science-week/check-status') ?>" class="glass-sci-card rounded-3xl p-6 sm:p-8 flex flex-col justify-between glow-border border-2 border-indigo-500/30 hover:border-indigo-500 hover:scale-105 transition-all text-left shadow-lg">

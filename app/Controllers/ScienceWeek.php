@@ -538,6 +538,48 @@ class ScienceWeek extends BaseController
     }
 
     /**
+     * ตรวจสอบว่าเป็น superadmin หรือ admin หรือไม่
+     */
+    private function isFullAdmin(): bool
+    {
+        $roles = session()->get('u_role') ?? '';
+        return strpos($roles, 'superadmin') !== false || strpos($roles, 'admin') !== false;
+    }
+
+    /**
+     * ดึงรายชื่อประเภทการแข่งขันที่ผู้ใช้ปัจจุบันมีสิทธิ์เข้าถึง
+     * คืนค่า null หากเป็น admin (เข้าถึงได้ทั้งหมด) หรือคืนค่า array ของชื่อรายการที่อนุญาต
+     */
+    private function getAllowedCompetitions(): ?array
+    {
+        if ($this->isFullAdmin()) {
+            return null; // admin เข้าถึงได้ทั้งหมด
+        }
+
+        $uid = session()->get('u_id');
+        $dbUser = (new \App\Models\UserModel())->find($uid);
+        $allowedJson = $dbUser['u_science_week_competitions'] ?? '';
+        $allowedComps = !empty($allowedJson) ? (json_decode($allowedJson, true) ?: []) : [];
+
+        return $allowedComps;
+    }
+
+    /**
+     * ตรวจสอบว่าผู้ใช้ปัจจุบันมีสิทธิ์เข้าถึงรายการแข่งขันนี้หรือไม่
+     */
+    private function canAccessCompetition(string $compName): bool
+    {
+        $allowed = $this->getAllowedCompetitions();
+        if ($allowed === null) {
+            return true; // admin เข้าถึงได้ทั้งหมด
+        }
+        if (empty($allowed)) {
+            return true; // ไม่ได้จำกัดรายการ (ยังไม่ได้กำหนด = เข้าถึงได้ทั้งหมด)
+        }
+        return in_array($compName, $allowed);
+    }
+
+    /**
      * ระบบจัดการรายชื่อผู้สมัคร (Staff/Admin)
      */
     public function adminIndex()
@@ -552,6 +594,12 @@ class ScienceWeek extends BaseController
         $status = $this->request->getGet('status');
 
         $query = $this->regModel->where('reg_year', $selectedYear);
+
+        // กรองตามสิทธิ์ของ staff (ไม่ใช่ admin)
+        $allowedComps = $this->getAllowedCompetitions();
+        if ($allowedComps !== null && !empty($allowedComps)) {
+            $query = $query->whereIn('reg_competition_type', $allowedComps);
+        }
 
         if (!empty($searchTerm)) {
             $query = $query->groupStart()
@@ -570,6 +618,12 @@ class ScienceWeek extends BaseController
             $query = $query->where('reg_status', $status);
         }
 
+        // ดึงรายการแข่งขันเฉพาะที่ staff มีสิทธิ์ (สำหรับ dropdown ตัวกรอง)
+        $allComps = $this->compModel->where('comp_year', $selectedYear)->orderBy('comp_id', 'ASC')->findAll();
+        if ($allowedComps !== null && !empty($allowedComps)) {
+            $allComps = array_values(array_filter($allComps, fn($c) => in_array($c['comp_name'], $allowedComps)));
+        }
+
         $data['title'] = "จัดการผู้สมัครแข่งขัน งานสัปดาห์วิทยาศาสตร์ | อบจ.นครสวรรค์";
         $data['registrations'] = $query->orderBy('reg_created_at', 'DESC')->paginate(20, 'default');
         $data['pager'] = $this->regModel->pager;
@@ -578,7 +632,7 @@ class ScienceWeek extends BaseController
         $data['compType_active'] = $compType;
         $data['status_active'] = $status;
         $data['fullname'] = session()->get('u_fullname');
-        $data['competitions'] = $this->compModel->where('comp_year', $selectedYear)->orderBy('comp_id', 'ASC')->findAll();
+        $data['competitions'] = $allComps;
         $data['selected_year'] = $selectedYear;
 
         return view('science_week/admin_index', $data);
@@ -598,7 +652,13 @@ class ScienceWeek extends BaseController
         $compType = $this->request->getGet('competition_type');
 
         // Only rank approved registrations of selected year
-        $query = $this->regModel->where('reg_year', $selectedYear)->where('reg_status', 'approved');
+        $query = $this->regModel->where('reg_year', $selectedYear)->whereIn('reg_status', ['approved', 'approved_reserve']);
+
+        // กรองตามสิทธิ์ของ staff
+        $allowedComps = $this->getAllowedCompetitions();
+        if ($allowedComps !== null && !empty($allowedComps)) {
+            $query = $query->whereIn('reg_competition_type', $allowedComps);
+        }
 
         if (!empty($searchTerm)) {
             $query = $query->groupStart()
@@ -613,6 +673,12 @@ class ScienceWeek extends BaseController
             $query = $query->where('reg_competition_type', $compType);
         }
 
+        // ดึงรายการแข่งขันเฉพาะที่ staff มีสิทธิ์
+        $allComps = $this->compModel->where('comp_year', $selectedYear)->orderBy('comp_id', 'ASC')->findAll();
+        if ($allowedComps !== null && !empty($allowedComps)) {
+            $allComps = array_values(array_filter($allComps, fn($c) => in_array($c['comp_name'], $allowedComps)));
+        }
+
         $data['title'] = "จัดการผลคะแนนและอันดับรางวัล | อบจ.นครสวรรค์";
         $data['registrations'] = $query->orderBy('reg_competition_type', 'ASC')
                                        ->orderBy('CASE WHEN reg_rank IS NULL OR reg_rank = \'\' THEN 1 ELSE 0 END', 'ASC')
@@ -623,7 +689,7 @@ class ScienceWeek extends BaseController
         $data['search'] = $searchTerm;
         $data['compType_active'] = $compType;
         $data['fullname'] = session()->get('u_fullname');
-        $data['competitions'] = $this->compModel->where('comp_year', $selectedYear)->orderBy('comp_id', 'ASC')->findAll();
+        $data['competitions'] = $allComps;
         $data['selected_year'] = $selectedYear;
 
         $settingsModel = new \App\Models\SettingsModel();
@@ -641,8 +707,17 @@ class ScienceWeek extends BaseController
         if ($access !== true)
             return $this->response->setStatusCode(403)->setJSON(['status' => 'error', 'message' => 'Unauthorized']);
 
+        // ตรวจสอบสิทธิ์ตามรายการแข่งขันที่ผู้ใช้ดูแล
+        $reg = $this->regModel->find($id);
+        if (!$reg) {
+            return $this->response->setJSON(['status' => 'error', 'message' => 'ไม่พบข้อมูลผู้สมัครนี้']);
+        }
+        if (!$this->canAccessCompetition($reg['reg_competition_type'])) {
+            return $this->response->setStatusCode(403)->setJSON(['status' => 'error', 'message' => 'คุณไม่มีสิทธิ์จัดการรายการแข่งขันนี้']);
+        }
+
         $status = $this->request->getPost('status');
-        if (!in_array($status, ['pending', 'approved', 'rejected'])) {
+        if (!in_array($status, ['pending', 'approved', 'approved_reserve', 'rejected'])) {
             return $this->response->setJSON(['status' => 'error', 'message' => 'สถานะไม่ถูกต้อง']);
         }
 
@@ -670,6 +745,11 @@ class ScienceWeek extends BaseController
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('ไม่พบข้อมูลผู้สมัครนี้');
         }
 
+        // ตรวจสอบสิทธิ์ตามรายการแข่งขัน
+        if (!$this->canAccessCompetition($reg['reg_competition_type'])) {
+            return redirect()->to(base_url('staff/science-week'))->with('error', 'คุณไม่มีสิทธิ์แก้ไขข้อมูลรายการแข่งขันนี้');
+        }
+
         $comp = $this->compModel->where('comp_name', $reg['reg_competition_type'])->first();
 
         $data['title'] = "แก้ไขข้อมูลผู้สมัคร {$reg['reg_code']} | อบจ.นครสวรรค์";
@@ -692,6 +772,11 @@ class ScienceWeek extends BaseController
         $reg = $this->regModel->find($id);
         if (!$reg) {
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('ไม่พบข้อมูลผู้สมัครนี้');
+        }
+
+        // ตรวจสอบสิทธิ์ตามรายการแข่งขัน
+        if (!$this->canAccessCompetition($reg['reg_competition_type'])) {
+            return redirect()->to(base_url('staff/science-week'))->with('error', 'คุณไม่มีสิทธิ์แก้ไขข้อมูลรายการแข่งขันนี้');
         }
 
         $rules = [
@@ -840,6 +925,12 @@ class ScienceWeek extends BaseController
 
         $query = $this->regModel;
 
+        // กรองตามสิทธิ์ของ staff
+        $allowedComps = $this->getAllowedCompetitions();
+        if ($allowedComps !== null && !empty($allowedComps)) {
+            $query = $query->whereIn('reg_competition_type', $allowedComps);
+        }
+
         if (!empty($searchTerm)) {
             $query = $query->groupStart()
                 ->like('reg_school_name', $searchTerm)
@@ -911,7 +1002,9 @@ class ScienceWeek extends BaseController
 
             $statusText = 'รอการตรวจสอบ';
             if ($reg['reg_status'] == 'approved')
-                $statusText = 'อนุมัติแล้ว';
+                $statusText = 'อนุมัติแล้ว (ตัวจริง)';
+            if ($reg['reg_status'] == 'approved_reserve')
+                $statusText = 'อนุมัติแล้ว (ตัวสำรอง)';
             if ($reg['reg_status'] == 'rejected')
                 $statusText = 'ปฏิเสธ/ไม่ผ่าน';
 
@@ -970,24 +1063,18 @@ class ScienceWeek extends BaseController
             return $access;
 
         $selectedYear = $this->getSelectedYear();
-        $roles = session()->get('u_role') ?? '';
-        $isAdmin = strpos($roles, 'superadmin') !== false || strpos($roles, 'admin') !== false;
 
         $allComps = $this->compModel->where('comp_year', $selectedYear)->orderBy('comp_id', 'ASC')->findAll();
 
-        if (!$isAdmin) {
-            $uid = session()->get('u_id');
-            $dbUser = (new \App\Models\UserModel())->find($uid);
-            $allowedJson = $dbUser['u_science_week_competitions'] ?? '';
-            $allowedComps = !empty($allowedJson) ? (json_decode($allowedJson, true) ?: []) : [];
-            if (!empty($allowedComps)) {
-                $allComps = array_values(array_filter($allComps, fn($c) => in_array($c['comp_name'], $allowedComps)));
-            }
+        // กรองตามสิทธิ์ของ staff (ใช้ helper method กลาง)
+        $allowedComps = $this->getAllowedCompetitions();
+        if ($allowedComps !== null && !empty($allowedComps)) {
+            $allComps = array_values(array_filter($allComps, fn($c) => in_array($c['comp_name'], $allowedComps)));
         }
 
         $data['title']         = 'จัดการประเภทการแข่งขัน | งานสัปดาห์วิทยาศาสตร์';
         $data['competitions']  = $allComps;
-        $data['is_admin']      = $isAdmin;
+        $data['is_admin']      = $this->isFullAdmin();
         $data['fullname']      = session()->get('u_fullname');
         $data['selected_year'] = $selectedYear;
 
@@ -1152,6 +1239,11 @@ class ScienceWeek extends BaseController
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('ไม่พบประเภทการแข่งขันนี้');
         }
 
+        // ตรวจสอบสิทธิ์ตามรายการแข่งขัน
+        if (!$this->canAccessCompetition($comp['comp_name'])) {
+            return redirect()->to(base_url('staff/science-week/competitions'))->with('error', 'คุณไม่มีสิทธิ์แก้ไขรายการแข่งขันนี้');
+        }
+
         $data['title'] = 'แก้ไขประเภทการแข่งขัน | งานสัปดาห์วิทยาศาสตร์';
         $data['comp'] = $comp;
         $data['selected_year'] = $comp['comp_year'];
@@ -1172,6 +1264,11 @@ class ScienceWeek extends BaseController
         $comp = $this->compModel->find($id);
         if (!$comp) {
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('ไม่พบประเภทการแข่งขันนี้');
+        }
+
+        // ตรวจสอบสิทธิ์ตามรายการแข่งขัน
+        if (!$this->canAccessCompetition($comp['comp_name'])) {
+            return redirect()->to(base_url('staff/science-week/competitions'))->with('error', 'คุณไม่มีสิทธิ์แก้ไขรายการแข่งขันนี้');
         }
 
         $rules = [
@@ -1347,6 +1444,12 @@ class ScienceWeek extends BaseController
         if ($access !== true)
             return $this->response->setStatusCode(403)->setJSON(['status' => 'error', 'message' => 'Unauthorized']);
 
+        // ตรวจสอบสิทธิ์ตามรายการแข่งขัน
+        $comp = $this->compModel->find($id);
+        if ($comp && !$this->canAccessCompetition($comp['comp_name'])) {
+            return $this->response->setStatusCode(403)->setJSON(['status' => 'error', 'message' => 'คุณไม่มีสิทธิ์ลบรายการแข่งขันนี้']);
+        }
+
         if ($this->compModel->delete($id)) {
             return $this->response->setJSON([
                 'status' => 'success',
@@ -1395,7 +1498,7 @@ class ScienceWeek extends BaseController
         foreach ($years as $yr) {
             $compCount = $db->table('Tb_ScienceWeek_Competitions')->where('comp_year', $yr)->countAllResults();
             $regCount = $db->table('Tb_ScienceWeek_Registrations')->where('reg_year', $yr)->countAllResults();
-            $approvedCount = $db->table('Tb_ScienceWeek_Registrations')->where('reg_year', $yr)->where('reg_status', 'approved')->countAllResults();
+            $approvedCount = $db->table('Tb_ScienceWeek_Registrations')->where('reg_year', $yr)->whereIn('reg_status', ['approved', 'approved_reserve'])->countAllResults();
             $evalCount = $db->table('Tb_ScienceWeek_Evaluations')->where('eval_year', $yr)->countAllResults();
 
             $yearStats[] = [
@@ -1667,6 +1770,15 @@ class ScienceWeek extends BaseController
         if ($access !== true)
             return $this->response->setStatusCode(403)->setJSON(['status' => 'error', 'message' => 'Unauthorized']);
 
+        // ตรวจสอบสิทธิ์ตามรายการแข่งขัน
+        $reg = $this->regModel->find($id);
+        if (!$reg) {
+            return $this->response->setJSON(['status' => 'error', 'message' => 'ไม่พบข้อมูลผู้สมัครนี้']);
+        }
+        if (!$this->canAccessCompetition($reg['reg_competition_type'])) {
+            return $this->response->setStatusCode(403)->setJSON(['status' => 'error', 'message' => 'คุณไม่มีสิทธิ์จัดการรายการแข่งขันนี้']);
+        }
+
         $score = $this->request->getPost('score');
         $rank = $this->request->getPost('rank');
 
@@ -1698,7 +1810,7 @@ class ScienceWeek extends BaseController
         $compType = $this->request->getGet('competition_type');
         $searchTerm = $this->request->getGet('search');
 
-        $query = $this->regModel->where('reg_year', $activeYear)->where('reg_status', 'approved'); // Only show approved/valid teams of active year
+        $query = $this->regModel->where('reg_year', $activeYear)->whereIn('reg_status', ['approved', 'approved_reserve']); // Only show approved/valid teams of active year
 
         if (!empty($searchTerm)) {
             $query = $query->groupStart()
@@ -1740,33 +1852,26 @@ class ScienceWeek extends BaseController
     {
         $activeYear = $this->getActiveYear();
         $compType = $this->request->getGet('competition_type');
-        $searchTerm = $this->request->getGet('search');
 
-        $query = $this->regModel->where('reg_year', $activeYear)->where('reg_status', 'approved');
+        $hasSearched = ($compType !== null);
+        $registrations = [];
 
-        if (!empty($searchTerm)) {
-            $query = $query->groupStart()
-                ->like('reg_school_name', trim($searchTerm))
-                ->orLike('reg_team_name', trim($searchTerm))
-                ->orLike('reg_members', trim($searchTerm))
-                ->orLike('reg_code', trim($searchTerm))
-                ->groupEnd();
-        }
-
-        if (!empty($compType)) {
+        if ($hasSearched && !empty($compType)) {
+            $query = $this->regModel->where('reg_year', $activeYear)->whereIn('reg_status', ['approved', 'approved_reserve']);
             $query = $query->where('reg_competition_type', $compType);
-        }
 
-        $registrations = $query->orderBy('reg_competition_type', 'ASC')
-                               ->orderBy('reg_level', 'ASC')
-                               ->orderBy('reg_id', 'ASC')
-                               ->findAll();
+            $registrations = $query->orderBy('reg_competition_type', 'ASC')
+                                   ->orderBy('reg_level', 'ASC')
+                                   ->orderBy('reg_id', 'ASC')
+                                   ->findAll();
+        }
 
         $data['title'] = 'ประกาศรายชื่อผู้มีสิทธิ์เข้าร่วมแข่งขัน | งานสัปดาห์วิทยาศาสตร์';
         $data['registrations'] = $registrations;
-        $data['search'] = $searchTerm;
+        $data['search'] = null;
         $data['compType_active'] = $compType;
         $data['competitions'] = $this->compModel->where('comp_year', $activeYear)->orderBy('comp_id', 'ASC')->findAll();
+        $data['has_searched'] = $hasSearched;
 
         return view('science_week/approved_list', $data);
     }
@@ -1972,7 +2077,7 @@ class ScienceWeek extends BaseController
                     $rankName = 'ได้รับรางวัลชนะเลิศ';
                 }
             } else {
-                $reg = $this->regModel->where('reg_code', $code)->where('reg_status', 'approved')->first();
+                $reg = $this->regModel->where('reg_code', $code)->whereIn('reg_status', ['approved', 'approved_reserve'])->first();
                 if (!$reg) {
                     throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('ไม่พบรหัสผู้สมัคร หรือใบสมัครยังไม่ได้รับการอนุมัติ');
                 }

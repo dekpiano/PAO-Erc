@@ -99,23 +99,27 @@
             <div class="rainbow-divider max-w-20 mx-auto"></div>
         </div>
 
+        <!-- Explanation Info Box for Reserve Teams -->
+        <div class="glass-sci-card rounded-3xl p-5 mb-8 border border-blue-500/20 bg-blue-500/5 text-xs text-slate-350 flex items-start gap-3 shadow-md">
+            <i data-lucide="info" class="w-5 h-5 text-blue-400 shrink-0 mt-0.5 animate-pulse"></i>
+            <div>
+                <strong class="text-white text-sm block mb-1">💡 คำแนะนำเกี่ยวกับสถานะผู้เข้าแข่งขัน (ตัวจริง / ตัวสำรอง)</strong>
+                <ul class="list-disc pl-4 space-y-1.5 text-slate-400 font-medium">
+                    <li><span class="text-emerald-400 font-black">ทีมจริง:</span> เป็นทีมที่มีสิทธิ์เข้าร่วมกิจกรรมประกวด/แข่งขันในวันจัดงานอย่างเป็นทางการ</li>
+                    <li><span class="text-blue-400 font-black">ตัวสำรอง:</span> เป็นทีมลำดับถัดไปที่สมัครเข้าแข่งขันเกินโควตาจำกัดของสถาบันศึกษา โดยจะได้รับสิทธิ์เข้าแข่งในกรณีที่มีทีมตัวจริงสละสิทธิ์ หรือตามเงื่อนไขที่คณะกรรมการกำหนดเพิ่มเติม</li>
+                </ul>
+            </div>
+        </div>
+
         <!-- Search / Filter Card -->
         <div class="glass-sci-card rounded-3xl p-6 sm:p-8 mb-10 shadow-lg relative overflow-hidden">
             <div class="rainbow-divider absolute top-0 left-0 right-0"></div>
             
-            <form method="GET" action="<?= base_url('science-week/approved-list') ?>" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-4">
-                <!-- Search input -->
-                <div class="relative lg:col-span-2">
-                    <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400">
-                        <i data-lucide="search" class="w-5 h-5 text-indigo-400"></i>
-                    </span>
-                    <input type="text" name="search" value="<?= esc($search) ?>" placeholder="ค้นหา ชื่อโรงเรียน, ชื่อทีม, รายชื่อสมาชิก..." class="neon-input w-full pl-12 pr-4 py-4 rounded-2xl text-white font-medium">
-                </div>
-
+            <form method="GET" action="<?= base_url('science-week/approved-list') ?>" class="flex flex-col sm:flex-row gap-4 pt-4">
                 <!-- Filter Competition -->
-                <div>
-                    <select name="competition_type" class="w-full px-4 py-4 bg-slate-900 border border-indigo-500/30 text-white rounded-2xl font-medium outline-none cursor-pointer neon-input">
-                        <option value="" class="bg-slate-900 text-white">-- การแข่งขันทั้งหมด --</option>
+                <div class="flex-1">
+                    <select name="competition_type" required class="w-full px-4 py-4 bg-slate-900 border border-indigo-500/30 text-white rounded-2xl font-medium outline-none cursor-pointer neon-input">
+                        <option value="" disabled <?= empty($compType_active) ? 'selected' : '' ?> class="bg-slate-900 text-white">-- เลือกรายการแข่งขันที่ต้องการดูรายชื่อ --</option>
                         <?php if (!empty($competitions)): ?>
                             <?php foreach ($competitions as $comp): ?>
                                 <option value="<?= esc($comp['comp_name']) ?>" <?= $compType_active == $comp['comp_name'] ? 'selected' : '' ?> class="bg-slate-900 text-white"><?= esc($comp['comp_name']) ?></option>
@@ -125,11 +129,11 @@
                 </div>
 
                 <!-- Submit & Clear Buttons -->
-                <div class="flex gap-2">
+                <div class="flex gap-2 sm:w-72">
                     <button type="submit" class="flex-1 py-4 rounded-2xl text-white font-bold neon-btn-search flex items-center justify-center gap-2">
-                        <i data-lucide="filter" class="w-5 h-5"></i> กรองรายชื่อ
+                        <i data-lucide="filter" class="w-5 h-5"></i> ค้นหารายชื่อ
                     </button>
-                    <?php if(!empty($search) || !empty($compType_active)): ?>
+                    <?php if(!empty($compType_active)): ?>
                         <a href="<?= base_url('science-week/approved-list') ?>" class="p-4 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-300 rounded-2xl transition-all flex items-center justify-center" title="ล้างฟิลเตอร์">
                             <i data-lucide="refresh-cw" class="w-5 h-5"></i>
                         </a>
@@ -140,25 +144,32 @@
 
         <!-- Participants List separated by Competitions -->
         <div class="space-y-12">
-            <?php 
-            // Group registrations in PHP to display clearly per competition
-            $groupedRegs = [];
-            foreach ($registrations as $r) {
-                $groupedRegs[$r['reg_competition_type']][] = $r;
-            }
-
-            // If empty, display message
-            if (empty($groupedRegs)): 
-            ?>
+            <?php if (!$has_searched): ?>
                 <div class="glass-sci-card rounded-3xl p-12 text-center text-slate-400 border border-dashed border-indigo-500/20">
-                    <i data-lucide="search-x" class="w-16 h-16 mx-auto text-indigo-400/40 mb-4 animate-pulse"></i>
-                    <p class="font-bold text-lg mb-1 text-white">ไม่พบรายชื่อผู้มีสิทธิ์เข้าร่วมแข่งขัน</p>
-                    <p class="text-xs text-slate-400">กรุณาลองเปลี่ยนคำค้นหา หรือตรวจสอบการเลือกประเภทการแข่งขัน</p>
+                    <i data-lucide="search" class="w-16 h-16 mx-auto text-indigo-400/40 mb-4 animate-pulse"></i>
+                    <p class="font-bold text-lg mb-1 text-white">กรุณากดค้นหาก่อนเพื่อแสดงรายชื่อ</p>
+                    <p class="text-xs text-slate-400">เลือกประเภทการแข่งขัน หรือกรอกคำค้นหา แล้วกดปุ่ม "กรองรายชื่อ"</p>
                 </div>
-            <?php 
-            else:
-                $secDelay = 0;
-                foreach ($groupedRegs as $compName => $regs): 
+            <?php else:
+                // Group registrations in PHP to display clearly per competition
+                $groupedRegs = [];
+                foreach ($registrations as $r) {
+                    $groupedRegs[$r['reg_competition_type']][] = $r;
+                }
+
+                // If empty, display message
+                if (empty($groupedRegs)): 
+                ?>
+                    <div class="glass-sci-card rounded-3xl p-12 text-center text-slate-400 border border-dashed border-indigo-500/20">
+                        <i data-lucide="search-x" class="w-16 h-16 mx-auto text-indigo-400/40 mb-4 animate-pulse"></i>
+                        <p class="font-bold text-lg mb-1 text-white">ไม่พบรายชื่อผู้มีสิทธิ์เข้าร่วมแข่งขัน</p>
+                        <p class="text-xs text-slate-400">กรุณาลองเปลี่ยนคำค้นหา หรือตรวจสอบการเลือกประเภทการแข่งขัน</p>
+                    </div>
+                <?php 
+                else:
+                    $secDelay = 0;
+                    foreach ($groupedRegs as $compName => $regs): 
+
                     // Find corresponding competition icon/color if configured
                     $compMeta = null;
                     foreach ($competitions as $c) {
@@ -201,6 +212,9 @@
                                         <tr class="hover:bg-slate-900/20 transition-colors">
                                             <td class="px-6 py-4 whitespace-nowrap">
                                                 <span class="text-xs font-black text-indigo-400 font-mono tracking-wider bg-indigo-500/5 px-2.5 py-1.5 rounded-xl border border-indigo-500/15"><?= $reg['reg_code'] ?></span>
+                                                <?php if ($reg['reg_status'] === 'approved_reserve'): ?>
+                                                    <span class="block text-[9px] font-black text-blue-400 mt-1 bg-blue-500/10 px-1 py-0.5 rounded text-center border border-blue-500/20">ตัวสำรอง</span>
+                                                <?php endif; ?>
                                             </td>
                                             <td class="px-6 py-4">
                                                 <span class="inline-block px-2.5 py-1 rounded-xl text-xs font-bold bg-slate-900/60 text-slate-200 border border-slate-800"><?= esc($reg['reg_level'] ?: 'ไม่ระบุ') ?></span>
@@ -268,7 +282,10 @@
                         <?php foreach ($regs as $reg): ?>
                             <div class="glass-sci-card rounded-3xl p-5 border border-indigo-500/10 space-y-3">
                                 <div class="flex justify-between items-center gap-3">
-                                    <span class="text-[10px] font-black text-indigo-400 font-mono tracking-wider bg-indigo-500/5 px-2 py-1 rounded-xl border border-indigo-500/15"><?= $reg['reg_code'] ?></span>
+                                    <span class="text-[10px] font-black text-indigo-400 font-mono tracking-wider bg-indigo-500/5 px-2 py-1 rounded-xl border border-indigo-500/15">
+                                        <?= $reg['reg_code'] ?>
+                                        <?= $reg['reg_status'] === 'approved_reserve' ? ' (สำรอง)' : '' ?>
+                                    </span>
                                     <span class="px-2 py-0.5 rounded-lg text-[9px] font-bold bg-slate-900/60 text-slate-300 border border-slate-800"><?= esc($reg['reg_level'] ?: 'ทั่วไป') ?></span>
                                 </div>
 
@@ -339,6 +356,7 @@
             <?php 
                 $secDelay += 100;
                 endforeach; 
+            endif;
             endif;
             ?>
         </div>

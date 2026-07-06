@@ -17,8 +17,21 @@
     </div>
 </div>
 
+<!-- Admin Guidelines Box -->
+<div class="glass-card p-4 rounded-3xl mb-6 bg-blue-50/50 dark:bg-blue-950/10 border border-blue-100 dark:border-blue-900/30 text-xs text-slate-600 dark:text-slate-300 flex items-start gap-3 shadow-sm animate-fade-in">
+    <i data-lucide="info" class="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5 animate-pulse"></i>
+    <div>
+        <strong class="text-slate-800 dark:text-white text-sm block mb-1">📢 แนวทางการจัดการสิทธิ์ผู้สมัคร (ตัวจริง / ตัวสำรอง)</strong>
+        <ul class="list-disc pl-4 space-y-1.5 text-slate-500 dark:text-slate-400 font-medium">
+            <li><span class="text-emerald-600 dark:text-emerald-400 font-black">ปุ่มติ๊กถูก (✔️) - อนุมัติเป็นทีมจริง:</span> สำหรับอนุมัติใบสมัครเป็นผู้เข้าแข่งขันตัวจริง (ตามเงื่อนไขโควตาปกติ เช่น ไม่เกิน 4 ทีมแรกของแต่ละสถาบันศึกษา)</li>
+            <li><span class="text-blue-600 dark:text-blue-400 font-black">ปุ่มติ๊กถูกกล่อง (☑️) - อนุมัติเป็นทีมสำรอง:</span> สำหรับใช้กับทีมสมัครลำดับถัดไป (เช่น ทีมที่ 5 ขึ้นไปของโรงเรียนเดิม) เพื่อปักธงเป็นตัวสำรองอย่างเป็นระบบ</li>
+            <li><span class="text-rose-600 dark:text-rose-400 font-black">ปุ่มกากบาท (❌) - ปฏิเสธสิทธิ์:</span> สำหรับใบสมัครที่กรอกข้อมูลผิดพลาด เอกสารไม่ครบถ้วน หรือทำผิดกฎกติกา</li>
+        </ul>
+    </div>
+</div>
+
 <!-- Filters Card -->
-<div class="glass-card p-4 sm:p-6 rounded-3xl mb-6 bg-white dark:bg-slate-900/60">
+<div class="glass-card p-4 sm:p-6 rounded-3xl mb-6 bg-slate-900/40 dark:bg-slate-900/60">
     <form method="GET" action="<?= base_url('staff/science-week') ?>" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
         <!-- Search input -->
         <div class="relative">
@@ -40,7 +53,8 @@
         <select name="status" class="w-full px-4 py-3 bg-white dark:bg-slate-850 border border-slate-200 dark:border-slate-750 focus:border-blue-500 rounded-2xl text-xs text-slate-850 dark:text-slate-250 outline-none transition-colors">
             <option value="" class="bg-white text-slate-900 dark:bg-slate-900 dark:text-slate-200">-- กรองสถานะทั้งหมด --</option>
             <option value="pending" <?= $status_active == 'pending' ? 'selected' : '' ?> class="bg-white text-slate-900 dark:bg-slate-900 dark:text-slate-200">รอตรวจสอบ (Pending)</option>
-            <option value="approved" <?= $status_active == 'approved' ? 'selected' : '' ?> class="bg-white text-slate-900 dark:bg-slate-900 dark:text-slate-200">อนุมัติสิทธิ์แล้ว (Approved)</option>
+            <option value="approved" <?= $status_active == 'approved' ? 'selected' : '' ?> class="bg-white text-slate-900 dark:bg-slate-900 dark:text-slate-200">อนุมัติสิทธิ์แล้ว (ตัวจริง)</option>
+            <option value="approved_reserve" <?= $status_active == 'approved_reserve' ? 'selected' : '' ?> class="bg-white text-slate-900 dark:bg-slate-900 dark:text-slate-200">อนุมัติสิทธิ์แล้ว (ตัวสำรอง)</option>
             <option value="rejected" <?= $status_active == 'rejected' ? 'selected' : '' ?> class="bg-white text-slate-900 dark:bg-slate-900 dark:text-slate-200">ปฏิเสธ/ไม่ผ่าน (Rejected)</option>
         </select>
 
@@ -59,7 +73,7 @@
 </div>
 
 <!-- List Table -->
-<div class="glass-card rounded-3xl overflow-hidden bg-white dark:bg-slate-900/60 shadow-xl border border-slate-200 dark:border-slate-800">
+<div class="glass-card rounded-3xl overflow-hidden bg-slate-900/40 dark:bg-slate-900/60 shadow-xl border border-slate-200 dark:border-slate-800">
     <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse">
             <thead>
@@ -69,13 +83,14 @@
                     <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">สมาชิกในทีม</th>
                     <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">คุณครูที่ปรึกษา</th>
                     <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">สถานะตรวจสอบ</th>
+                    <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 text-center">อนุมัติ</th>
                     <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 text-center">จัดการ</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                 <?php if (empty($registrations)): ?>
                     <tr>
-                        <td colspan="6" class="px-6 py-12 text-center text-slate-400 font-medium bg-white dark:bg-transparent">
+                        <td colspan="7" class="px-6 py-12 text-center text-slate-400 font-medium bg-white dark:bg-transparent">
                             ไม่พบข้อมูลใบสมัครประกวดหรือแข่งขันตามระบุ
                         </td>
                     </tr>
@@ -166,17 +181,34 @@
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <?php if ($reg['reg_status'] === 'approved'): ?>
                                     <span class="px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-800/30 text-[9px] font-black uppercase tracking-widest flex items-center gap-1 w-max">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> อนุมัติสิทธิ์แล้ว
+                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> อนุมัติ (ตัวจริง)
+                                    </span>
+                                <?php elseif ($reg['reg_status'] === 'approved_reserve'): ?>
+                                    <span class="px-2.5 py-1 rounded-full bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-800/30 text-[9px] font-black uppercase tracking-widest flex items-center gap-1 w-max">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span> อนุมัติ (ตัวสำรอง)
                                     </span>
                                 <?php elseif ($reg['reg_status'] === 'rejected'): ?>
                                     <span class="px-2.5 py-1 rounded-full bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-100 dark:border-rose-800/30 text-[9px] font-black uppercase tracking-widest flex items-center gap-1 w-max">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-rose-505"></span> ปฏิเสธ/ไม่ผ่าน
+                                        <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> ปฏิเสธ/ไม่ผ่าน
                                     </span>
                                 <?php else: ?>
-                                    <span class="px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-100 dark:border-amber-800/30 text-[9px] font-black uppercase tracking-widest flex items-center gap-1 w-max">
+                                    <span class="px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-650 dark:text-amber-400 border border-amber-100 dark:border-amber-800/30 text-[9px] font-black uppercase tracking-widest flex items-center gap-1 w-max">
                                         <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span> รอตรวจสอบ
                                     </span>
                                 <?php endif; ?>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center text-xs">
+                                <div class="flex items-center justify-center gap-2">
+                                    <button onclick="updateRegStatus(<?= $reg['reg_id'] ?>, 'approved')" class="p-1.5 bg-emerald-50 hover:bg-emerald-600 text-emerald-600 hover:text-white rounded-lg border border-emerald-100 dark:border-emerald-900 transition-all cursor-pointer" title="อนุมัติเป็นทีมจริง (ตัวจริง)">
+                                        <i data-lucide="check" class="w-4 h-4"></i>
+                                    </button>
+                                    <button onclick="updateRegStatus(<?= $reg['reg_id'] ?>, 'approved_reserve')" class="p-1.5 bg-blue-50 hover:bg-blue-600 text-blue-600 hover:text-white rounded-lg border border-blue-100 dark:border-blue-900 transition-all cursor-pointer" title="อนุมัติเป็นทีมสำรอง">
+                                        <i data-lucide="check-square" class="w-4 h-4"></i>
+                                    </button>
+                                    <button onclick="updateRegStatus(<?= $reg['reg_id'] ?>, 'rejected')" class="p-1.5 bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white rounded-lg border border-rose-100 dark:border-rose-900 transition-all cursor-pointer" title="ปฏิเสธการเข้าร่วม">
+                                        <i data-lucide="x" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-center text-xs">
                                 <div class="flex items-center justify-center gap-2">
@@ -186,12 +218,6 @@
                                     <a href="<?= base_url('staff/science-week/edit/' . $reg['reg_id']) ?>" class="p-1.5 bg-blue-50 hover:bg-blue-650 text-blue-600 hover:text-white rounded-lg border border-blue-100 dark:border-slate-800 transition-all" title="แก้ไขข้อมูลผู้สมัคร">
                                         <i data-lucide="edit-3" class="w-4 h-4"></i>
                                     </a>
-                                    <button onclick="updateRegStatus(<?= $reg['reg_id'] ?>, 'approved')" class="p-1.5 bg-emerald-50 hover:bg-emerald-600 text-emerald-600 hover:text-white rounded-lg border border-emerald-100 dark:border-emerald-900 transition-all" title="อนุมัติใบสมัคร">
-                                        <i data-lucide="check" class="w-4 h-4"></i>
-                                    </button>
-                                    <button onclick="updateRegStatus(<?= $reg['reg_id'] ?>, 'rejected')" class="p-1.5 bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white rounded-lg border border-rose-100 dark:border-rose-900 transition-all" title="ปฏิเสธการเข้าร่วม">
-                                        <i data-lucide="x" class="w-4 h-4"></i>
-                                    </button>
                                 </div>
                             </td>
                         </tr>
@@ -388,8 +414,19 @@
     }
 
     function updateRegStatus(id, newStatus) {
-        let actionText = newStatus === 'approved' ? 'อนุมัติผู้สมัครรายนี้?' : 'ปฏิเสธผู้สมัครรายนี้?';
-        let confirmBtnColor = newStatus === 'approved' ? '#10b981' : '#ef4444';
+        let actionText = 'ต้องการเปลี่ยนสถานะใบสมัครนี้?';
+        let confirmBtnColor = '#3b82f6';
+        
+        if (newStatus === 'approved') {
+            actionText = 'อนุมัติผู้สมัครรายนี้เป็น "ทีมจริง"?';
+            confirmBtnColor = '#10b981';
+        } else if (newStatus === 'approved_reserve') {
+            actionText = 'อนุมัติผู้สมัครรายนี้เป็น "ทีมสำรอง"?';
+            confirmBtnColor = '#2563eb';
+        } else if (newStatus === 'rejected') {
+            actionText = 'ปฏิเสธผู้สมัครรายนี้?';
+            confirmBtnColor = '#ef4444';
+        }
 
         Swal.fire({
             title: actionText,

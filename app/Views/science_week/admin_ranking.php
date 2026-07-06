@@ -23,7 +23,7 @@
 </div>
 
 <!-- Filters Card -->
-<div class="glass-card p-4 sm:p-6 rounded-3xl mb-6 bg-white dark:bg-slate-900/60">
+<div class="glass-card p-4 sm:p-6 rounded-3xl mb-6 bg-slate-900/40 dark:bg-slate-900/60">
     <form method="GET" action="<?= base_url('staff/science-week/ranking') ?>" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
         <!-- Search input -->
         <div class="relative lg:col-span-2">
@@ -70,7 +70,7 @@ if (!empty($registrations)) {
 <!-- Grouped Tables Section -->
 <div class="space-y-8">
     <?php if (empty($grouped)): ?>
-        <div class="glass-card rounded-3xl overflow-hidden bg-white dark:bg-slate-900/60 shadow-xl border border-slate-200 dark:border-slate-800 p-12 text-center text-slate-400 font-medium">
+        <div class="glass-card rounded-3xl overflow-hidden bg-slate-900/40 dark:bg-slate-900/60 shadow-xl border border-slate-200 dark:border-slate-800 p-12 text-center text-slate-400 font-medium">
             ไม่พบรายชื่อผู้สมัครที่ได้รับการอนุมัติสำหรับกรอกคะแนนรางวัล
         </div>
     <?php else: ?>
@@ -86,7 +86,7 @@ if (!empty($registrations)) {
                 </div>
 
                 <!-- List Table -->
-                <div class="glass-card rounded-3xl overflow-hidden bg-white dark:bg-slate-900/60 shadow-xl border border-slate-200 dark:border-slate-800">
+                <div class="glass-card rounded-3xl overflow-hidden bg-slate-900/40 dark:bg-slate-900/60 shadow-xl border border-slate-200 dark:border-slate-800">
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse">
                             <thead>
