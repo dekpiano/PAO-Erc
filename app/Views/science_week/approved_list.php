@@ -103,10 +103,10 @@
         <div class="glass-sci-card rounded-3xl p-5 mb-8 border border-blue-500/20 bg-blue-500/5 text-xs text-slate-350 flex items-start gap-3 shadow-md">
             <i data-lucide="info" class="w-5 h-5 text-blue-400 shrink-0 mt-0.5 animate-pulse"></i>
             <div>
-                <strong class="text-white text-sm block mb-1">💡 คำแนะนำเกี่ยวกับสถานะผู้เข้าแข่งขัน (ตัวจริง / ตัวสำรอง)</strong>
+                <strong class="text-white text-sm block mb-1">💡 คำแนะนำเกี่ยวกับสถานะผู้เข้าแข่งขัน (ทีมจริง / ทีมสำรอง)</strong>
                 <ul class="list-disc pl-4 space-y-1.5 text-slate-400 font-medium">
                     <li><span class="text-emerald-400 font-black">ทีมจริง:</span> เป็นทีมที่มีสิทธิ์เข้าร่วมกิจกรรมประกวด/แข่งขันในวันจัดงานอย่างเป็นทางการ</li>
-                    <li><span class="text-blue-400 font-black">ตัวสำรอง:</span> เป็นทีมลำดับถัดไปที่สมัครเข้าแข่งขันเกินโควตาจำกัดของสถาบันศึกษา โดยจะได้รับสิทธิ์เข้าแข่งในกรณีที่มีทีมตัวจริงสละสิทธิ์ หรือตามเงื่อนไขที่คณะกรรมการกำหนดเพิ่มเติม</li>
+                    <li><span class="text-blue-400 font-black">ทีมสำรอง:</span> เป็นทีมลำดับถัดไปที่สมัครเข้าแข่งขันเกินโควตาจำกัดของสถาบันศึกษา โดยจะได้รับสิทธิ์เข้าแข่งในกรณีที่มีทีมตัวจริงสละสิทธิ์ หรือตามเงื่อนไขที่คณะกรรมการกำหนดเพิ่มเติม</li>
                 </ul>
             </div>
         </div>
@@ -213,7 +213,7 @@
                                             <td class="px-6 py-4 whitespace-nowrap">
                                                 <span class="text-xs font-black text-indigo-400 font-mono tracking-wider bg-indigo-500/5 px-2.5 py-1.5 rounded-xl border border-indigo-500/15"><?= $reg['reg_code'] ?></span>
                                                 <?php if ($reg['reg_status'] === 'approved_reserve'): ?>
-                                                    <span class="block text-[9px] font-black text-blue-400 mt-1 bg-blue-500/10 px-1 py-0.5 rounded text-center border border-blue-500/20">ตัวสำรอง</span>
+                                                    <span class="block text-[9px] font-black text-blue-400 mt-1 bg-blue-500/10 px-1 py-0.5 rounded text-center border border-blue-500/20">ทีมสำรอง</span>
                                                 <?php endif; ?>
                                             </td>
                                             <td class="px-6 py-4">
@@ -284,7 +284,7 @@
                                 <div class="flex justify-between items-center gap-3">
                                     <span class="text-[10px] font-black text-indigo-400 font-mono tracking-wider bg-indigo-500/5 px-2 py-1 rounded-xl border border-indigo-500/15">
                                         <?= $reg['reg_code'] ?>
-                                        <?= $reg['reg_status'] === 'approved_reserve' ? ' (สำรอง)' : '' ?>
+                                        <?= $reg['reg_status'] === 'approved_reserve' ? ' (ทีมสำรอง)' : '' ?>
                                     </span>
                                     <span class="px-2 py-0.5 rounded-lg text-[9px] font-bold bg-slate-900/60 text-slate-300 border border-slate-800"><?= esc($reg['reg_level'] ?: 'ทั่วไป') ?></span>
                                 </div>

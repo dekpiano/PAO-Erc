@@ -28,16 +28,16 @@
         <!-- Search input -->
         <div class="relative lg:col-span-2">
             <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400"><i data-lucide="search" class="w-4 h-4"></i></span>
-            <input type="text" name="search" value="<?= esc($search) ?>" placeholder="ค้นหา รหัสสิทธิ์, โรงเรียน, ชื่อทีม, รายชื่อสมาชิก..." class="w-full pl-10 pr-4 py-3 bg-white dark:bg-slate-850 border border-slate-200 dark:border-slate-750 focus:border-blue-500 rounded-2xl text-xs text-slate-800 dark:text-slate-200 outline-none transition-colors">
+            <input type="text" name="search" value="<?= esc($search) ?>" placeholder="ค้นหา รหัสสิทธิ์, โรงเรียน, ชื่อทีม, รายชื่อสมาชิก..." class="w-full pl-10 pr-4 py-3 bg-slate-900/60 dark:bg-slate-850 border border-slate-700 dark:border-slate-750 focus:border-blue-500 rounded-2xl text-xs text-slate-200 outline-none transition-colors">
         </div>
 
         <!-- Competition Select -->
         <div>
-            <select name="competition_type" class="w-full px-4 py-3 bg-white dark:bg-slate-850 border border-slate-200 dark:border-slate-750 focus:border-blue-500 rounded-2xl text-xs text-slate-800 dark:text-slate-250 outline-none transition-colors cursor-pointer">
-                <option value="" class="bg-white text-slate-900 dark:bg-slate-900 dark:text-slate-200">-- ประเภทการแข่งขันทั้งหมด --</option>
+            <select name="competition_type" class="w-full px-4 py-3 bg-slate-900/60 dark:bg-slate-850 border border-slate-700 dark:border-slate-750 focus:border-blue-500 rounded-2xl text-xs text-slate-200 outline-none transition-colors cursor-pointer">
+                <option value="" class="bg-slate-950 text-slate-350 dark:bg-slate-900 dark:text-slate-200">-- ประเภทการแข่งขันทั้งหมด --</option>
                 <?php if (!empty($competitions)): ?>
                     <?php foreach ($competitions as $comp): ?>
-                        <option value="<?= esc($comp['comp_name']) ?>" <?= $compType_active == $comp['comp_name'] ? 'selected' : '' ?> class="bg-white text-slate-900 dark:bg-slate-900 dark:text-slate-200"><?= esc($comp['comp_name']) ?></option>
+                        <option value="<?= esc($comp['comp_name']) ?>" <?= $compType_active == $comp['comp_name'] ? 'selected' : '' ?> class="bg-slate-950 text-slate-300 dark:bg-slate-900 dark:text-slate-200"><?= esc($comp['comp_name']) ?></option>
                     <?php endforeach; ?>
                 <?php endif; ?>
             </select>

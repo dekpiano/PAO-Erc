@@ -124,10 +124,10 @@
         <div class="glass-sci-card rounded-3xl p-5 mb-8 border border-blue-500/20 bg-blue-500/5 text-xs text-slate-350 flex items-start gap-3 shadow-md">
             <i data-lucide="info" class="w-5 h-5 text-blue-400 shrink-0 mt-0.5 animate-pulse"></i>
             <div>
-                <strong class="text-white text-sm block mb-1">💡 คำแนะนำเกี่ยวกับสถานะผู้เข้าแข่งขัน (ตัวจริง / ตัวสำรอง)</strong>
+                <strong class="text-white text-sm block mb-1">💡 คำแนะนำเกี่ยวกับสถานะผู้เข้าแข่งขัน (ทีมจริง / ทีมสำรอง)</strong>
                 <ul class="list-disc pl-4 space-y-1.5 text-slate-400 font-medium">
                     <li><span class="text-emerald-400 font-black">ทีมจริง:</span> เป็นทีมที่มีสิทธิ์เข้าร่วมกิจกรรมประกวด/แข่งขันในวันจัดงานอย่างเป็นทางการ</li>
-                    <li><span class="text-blue-400 font-black">ตัวสำรอง:</span> เป็นทีมลำดับถัดไปที่สมัครเข้าแข่งขันเกินโควตาจำกัดของสถาบันศึกษา โดยจะได้รับสิทธิ์เข้าแข่งในกรณีที่มีทีมตัวจริงสละสิทธิ์ หรือตามเงื่อนไขที่คณะกรรมการกำหนดเพิ่มเติม</li>
+                    <li><span class="text-blue-400 font-black">ทีมสำรอง:</span> เป็นทีมลำดับถัดไปที่สมัครเข้าแข่งขันเกินโควตาจำกัดของสถาบันศึกษา โดยจะได้รับสิทธิ์เข้าแข่งในกรณีที่มีทีมตัวจริงสละสิทธิ์ หรือตามเงื่อนไขที่คณะกรรมการกำหนดเพิ่มเติม</li>
                 </ul>
             </div>
         </div>
@@ -170,12 +170,12 @@
                                         <?php if ($reg['reg_status'] === 'approved'): ?>
                                             <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                                                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
-                                                 อนุมัติแล้ว (ตัวจริง)
+                                                 อนุมัติแล้ว (ทีมจริง)
                                             </span>
                                         <?php elseif ($reg['reg_status'] === 'approved_reserve'): ?>
                                             <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20">
                                                 <span class="w-1.5 h-1.5 rounded-full bg-blue-400 animate-ping"></span>
-                                                 อนุมัติแล้ว (ตัวสำรอง)
+                                                 อนุมัติแล้ว (ทีมสำรอง)
                                             </span>
                                         <?php elseif ($reg['reg_status'] === 'rejected'): ?>
                                             <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20">

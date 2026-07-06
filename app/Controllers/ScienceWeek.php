@@ -624,6 +624,85 @@ class ScienceWeek extends BaseController
             $allComps = array_values(array_filter($allComps, fn($c) => in_array($c['comp_name'], $allowedComps)));
         }
 
+        // คำนวณจำนวนผู้สมัครของแต่ละประเภทการแข่งขันในปีปัจจุบัน โดยแยกตามระดับชั้น
+        $compStats = [];
+        $db = \Config\Database::connect();
+        foreach ($allComps as $c) {
+            $levels = [];
+            
+            // ตรวจสอบว่ากิจกรรมนี้มีการกำหนดระดับชั้นและโควตาเฉพาะระดับชั้นไว้หรือไม่ (จาก comp_level_limits หรือ comp_level)
+            $levelLimits = !empty($c['comp_level_limits']) ? (json_decode($c['comp_level_limits'], true) ?: []) : [];
+            
+            if (!empty($levelLimits)) {
+                // หากมีการกำหนด Level Limit แยกห้อง/ระดับชั้น
+                foreach ($levelLimits as $lvl) {
+                    $lvlName = $lvl['level'];
+                    $lvlLimit = (int)$lvl['limit'];
+                    
+                    $totalReg = $db->table('Tb_ScienceWeek_Registrations')
+                        ->where('reg_year', $selectedYear)
+                        ->where('reg_competition_type', $c['comp_name'])
+                        ->where('reg_level', $lvlName)
+                        ->countAllResults();
+
+                    $approvedReg = $db->table('Tb_ScienceWeek_Registrations')
+                        ->where('reg_year', $selectedYear)
+                        ->where('reg_competition_type', $c['comp_name'])
+                        ->where('reg_level', $lvlName)
+                        ->whereIn('reg_status', ['approved', 'approved_reserve'])
+                        ->countAllResults();
+
+                    $pendingReg = $db->table('Tb_ScienceWeek_Registrations')
+                        ->where('reg_year', $selectedYear)
+                        ->where('reg_competition_type', $c['comp_name'])
+                        ->where('reg_level', $lvlName)
+                        ->where('reg_status', 'pending')
+                        ->countAllResults();
+                        
+                    $levels[] = [
+                        'level_name' => $lvlName,
+                        'total' => $totalReg,
+                        'approved' => $approvedReg,
+                        'pending' => $pendingReg,
+                        'limit' => $lvlLimit
+                    ];
+                }
+            } else {
+                // หากไม่มีการแยกโควตาระดับชั้นในระบบ ให้ดึงข้อมูลกลุ่มภาพรวมรายการ
+                $totalReg = $db->table('Tb_ScienceWeek_Registrations')
+                    ->where('reg_year', $selectedYear)
+                    ->where('reg_competition_type', $c['comp_name'])
+                    ->countAllResults();
+
+                $approvedReg = $db->table('Tb_ScienceWeek_Registrations')
+                    ->where('reg_year', $selectedYear)
+                    ->where('reg_competition_type', $c['comp_name'])
+                    ->whereIn('reg_status', ['approved', 'approved_reserve'])
+                    ->countAllResults();
+
+                $pendingReg = $db->table('Tb_ScienceWeek_Registrations')
+                    ->where('reg_year', $selectedYear)
+                    ->where('reg_competition_type', $c['comp_name'])
+                    ->where('reg_status', 'pending')
+                    ->countAllResults();
+
+                $levels[] = [
+                    'level_name' => $c['comp_level'] ?: 'ทุกระดับชั้น',
+                    'total' => $totalReg,
+                    'approved' => $approvedReg,
+                    'pending' => $pendingReg,
+                    'limit' => $c['comp_limit'] ?? 0
+                ];
+            }
+
+            $compStats[] = [
+                'comp_name' => $c['comp_name'],
+                'comp_color' => $c['comp_color'] ?: '#6366f1',
+                'comp_icon' => $c['comp_icon'] ?: 'award',
+                'levels' => $levels
+            ];
+        }
+
         $data['title'] = "จัดการผู้สมัครแข่งขัน งานสัปดาห์วิทยาศาสตร์ | อบจ.นครสวรรค์";
         $data['registrations'] = $query->orderBy('reg_created_at', 'DESC')->paginate(20, 'default');
         $data['pager'] = $this->regModel->pager;
@@ -633,6 +712,7 @@ class ScienceWeek extends BaseController
         $data['status_active'] = $status;
         $data['fullname'] = session()->get('u_fullname');
         $data['competitions'] = $allComps;
+        $data['competition_stats'] = $compStats;
         $data['selected_year'] = $selectedYear;
 
         return view('science_week/admin_index', $data);
@@ -1002,9 +1082,9 @@ class ScienceWeek extends BaseController
 
             $statusText = 'รอการตรวจสอบ';
             if ($reg['reg_status'] == 'approved')
-                $statusText = 'อนุมัติแล้ว (ตัวจริง)';
+                $statusText = 'อนุมัติแล้ว (ทีมจริง)';
             if ($reg['reg_status'] == 'approved_reserve')
-                $statusText = 'อนุมัติแล้ว (ตัวสำรอง)';
+                $statusText = 'อนุมัติแล้ว (ทีมสำรอง)';
             if ($reg['reg_status'] == 'rejected')
                 $statusText = 'ปฏิเสธ/ไม่ผ่าน';
 

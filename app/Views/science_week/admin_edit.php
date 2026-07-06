@@ -422,8 +422,8 @@ if ($comp && !empty($comp['comp_member_custom_fields'])) {
                     </label>
                     <select name="status" id="status" required class="w-full px-4 py-3.5 neon-input rounded-2xl text-sm outline-none transition-colors cursor-pointer">
                         <option value="pending" <?= $reg['reg_status'] === 'pending' ? 'selected' : '' ?>>🟡 รอตรวจสอบ (Pending)</option>
-                        <option value="approved" <?= $reg['reg_status'] === 'approved' ? 'selected' : '' ?>>🟢 อนุมัติสิทธิ์แล้ว (ตัวจริง)</option>
-                        <option value="approved_reserve" <?= $reg['reg_status'] === 'approved_reserve' ? 'selected' : '' ?>>🔵 อนุมัติสิทธิ์แล้ว (ตัวสำรอง)</option>
+                        <option value="approved" <?= $reg['reg_status'] === 'approved' ? 'selected' : '' ?>>🟢 อนุมัติสิทธิ์แล้ว (ทีมจริง)</option>
+                        <option value="approved_reserve" <?= $reg['reg_status'] === 'approved_reserve' ? 'selected' : '' ?>>🔵 อนุมัติสิทธิ์แล้ว (ทีมสำรอง)</option>
                         <option value="rejected" <?= $reg['reg_status'] === 'rejected' ? 'selected' : '' ?>>🔴 ปฏิเสธ/ไม่ผ่าน (Rejected)</option>
                     </select>
                 </div>
@@ -459,9 +459,9 @@ if ($comp && !empty($comp['comp_member_custom_fields'])) {
                 <div class="flex justify-between border-b border-slate-800 pb-3">
                     <span class="text-slate-400">สถานะปัจจุบัน:</span>
                     <?php if ($reg['reg_status'] === 'approved'): ?>
-                        <span class="text-emerald-400 font-black">🟢 อนุมัติ (ตัวจริง)</span>
+                        <span class="text-emerald-400 font-black">🟢 อนุมัติ (ทีมจริง)</span>
                     <?php elseif ($reg['reg_status'] === 'approved_reserve'): ?>
-                        <span class="text-blue-400 font-black">🔵 อนุมัติ (ตัวสำรอง)</span>
+                        <span class="text-blue-400 font-black">🔵 อนุมัติ (ทีมสำรอง)</span>
                     <?php elseif ($reg['reg_status'] === 'rejected'): ?>
                         <span class="text-rose-400 font-black">🔴 ปฏิเสธ/ไม่ผ่าน</span>
                     <?php else: ?>
