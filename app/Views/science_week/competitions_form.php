@@ -108,6 +108,31 @@
                 <textarea name="comp_description" id="comp_description" rows="4" placeholder="ท้าทายจินตนาการความสามารถด้วย..." class="w-full px-4 py-3.5 neon-input rounded-2xl text-xs sm:text-sm font-bold outline-none transition-colors resize-none"><?= old('comp_description', $comp['comp_description'] ?? '') ?></textarea>
             </div>
 
+            <!-- Banner Image Attachment -->
+            <div class="space-y-2">
+                <label for="comp_banner" class="block text-sm sm:text-base font-black text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                    <i data-lucide="image" class="w-5 h-5 text-cyan-400"></i> อัปโหลดรูปภาพแบนเนอร์กิจกรรม (แนะนำสัดส่วน 16:9 หรือ 2:1)
+                </label>
+                <input type="file" name="comp_banner" id="comp_banner" class="w-full px-4 py-3 neon-input rounded-2xl text-xs sm:text-sm font-bold outline-none transition-colors file:mr-4 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-500/10 file:text-indigo-400 hover:file:bg-indigo-500/20" accept="image/*">
+                <?php if (!empty($comp['comp_banner'])): ?>
+                    <div class="space-y-3 mt-2 bg-indigo-950/20 p-4 rounded-2xl border border-indigo-500/10">
+                        <div class="flex items-center justify-between text-xs sm:text-sm">
+                            <span class="text-slate-300 font-bold flex items-center gap-1.5">
+                                <i data-lucide="check-circle" class="w-4 h-4 text-emerald-450"></i> 
+                                รูปแบนเนอร์ปัจจุบัน:
+                            </span>
+                            <label class="flex items-center gap-1.5 text-rose-455 font-black cursor-pointer select-none">
+                                <input type="checkbox" name="delete_banner" value="1" class="rounded border-rose-500/30 text-rose-500 focus:ring-rose-500 bg-slate-900">
+                                ลบรูปแบนเนอร์เดิม
+                            </label>
+                        </div>
+                        <div class="w-full max-w-xs rounded-xl overflow-hidden border border-slate-700/50">
+                            <img src="<?= base_url($comp['comp_banner']) ?>" alt="Banner Preview" class="w-full h-auto object-cover">
+                        </div>
+                    </div>
+                <?php endif; ?>
+            </div>
+
             <!-- Rule File Attachment -->
             <div class="space-y-2">
                 <label for="comp_rule_file" class="block text-sm sm:text-base font-black text-slate-800 dark:text-slate-100 flex items-center gap-2">

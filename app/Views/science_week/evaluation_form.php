@@ -68,22 +68,22 @@
         </div>
 
         <!-- Success Result Card (Hidden by default) -->
-        <div id="success-cert-card" class="glass-sci-card rounded-3xl p-8 text-center space-y-6 hidden mb-10 border border-emerald-500/30">
-            <div class="relative w-20 h-20 mx-auto flex items-center justify-center rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
-                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500/10 opacity-75"></span>
-                <i data-lucide="award" class="w-10 h-10 text-emerald-400"></i>
+        <div id="success-cert-card" class="glass-sci-card rounded-3xl p-8 text-center space-y-6 hidden mb-10 border border-indigo-500/30">
+            <div class="relative w-20 h-20 mx-auto flex items-center justify-center rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-400">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-500/10 opacity-75"></span>
+                <i data-lucide="award" class="w-10 h-10 text-indigo-400"></i>
             </div>
             
             <div class="space-y-2">
-                <h2 class="text-xl sm:text-2xl font-black text-white">ประเมินความพึงพอใจสำเร็จ!</h2>
+                <h2 class="text-xl sm:text-2xl font-black text-white">บันทึกข้อมูลและแบบประเมินสำเร็จ!</h2>
                 <p class="text-slate-350 text-xs sm:text-sm max-w-md mx-auto">
-                    ขอขอบพระคุณสำหรับความคิดเห็นที่เป็นประโยชน์ของท่าน ระบบได้ทำการออกเกียรติบัตรการเข้าร่วมกิจกรรมให้แก่ท่านเรียบร้อยแล้ว
+                    ขอขอบพระคุณสำหรับข้อมูลและการประเมินความพึงพอใจของท่าน ระบบได้ทำการออกเกียรติบัตรการเข้าร่วมกิจกรรมให้เรียบร้อยแล้ว
                 </p>
             </div>
             
             <div class="pt-4 flex flex-col sm:flex-row gap-3 justify-center">
-                <a id="btn-download-cert" href="#" target="_blank" class="px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-extrabold rounded-2xl shadow-lg transition-transform hover:scale-105 flex items-center justify-center gap-2">
-                    <i data-lucide="download" class="w-5 h-5"></i> ดาวน์โหลดเกียรติบัตร (PNG)
+                <a id="btn-download-cert" href="#" target="_blank" class="px-8 py-4 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white font-extrabold rounded-2xl shadow-lg transition-transform hover:scale-105 flex items-center justify-center gap-2">
+                    <i data-lucide="award" class="w-5 h-5"></i> ดูและดาวน์โหลดเกียรติบัตรทั้งหมด
                 </a>
                 <a href="<?= base_url('science-week') ?>" class="px-6 py-4 bg-slate-900 border border-slate-700 hover:bg-slate-800 text-slate-300 font-bold rounded-2xl transition-colors flex items-center justify-center">
                     กลับหน้าหลัก
@@ -97,15 +97,28 @@
             
             <!-- Section 1: Personal Info -->
             <div class="space-y-4 pt-4">
-                <h3 class="text-sm font-black text-indigo-400 uppercase tracking-wider flex items-center gap-2">
-                    <i data-lucide="user" class="w-4 h-4"></i> ข้อมูลผู้ทำแบบประเมิน (เพื่อพิมพ์บนเกียรติบัตร)
-                </h3>
+                <div class="flex justify-between items-center flex-wrap gap-2">
+                    <h3 class="text-sm font-black text-indigo-400 uppercase tracking-wider flex items-center gap-2">
+                        <i data-lucide="user" class="w-4 h-4"></i> ข้อมูลผู้ลงชื่อเข้างาน / ผู้รับเกียรติบัตร
+                    </h3>
+                    <button type="button" id="add-student-btn" class="px-3 py-1.5 bg-indigo-500/10 border border-indigo-500/30 hover:border-indigo-500 text-indigo-300 hover:text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1">
+                        <i data-lucide="plus" class="w-3.5 h-3.5"></i> เพิ่มผู้รับเกียรติบัตร
+                    </button>
+                </div>
                 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div class="sm:col-span-2">
-                        <label class="block text-xs font-bold text-slate-450 mb-1.5">ชื่อ-นามสกุล * (ใช้สำหรับจัดพิมพ์เกียรติบัตร)</label>
-                        <input type="text" name="fullname" required placeholder="เด็กชายสมศักดิ์ รักเรียน" class="neon-input w-full px-4 py-3 rounded-2xl text-xs sm:text-sm">
+                <div id="students-wrapper" class="space-y-3">
+                    <div class="flex items-center gap-2 student-row">
+                        <div class="flex-1">
+                            <label class="block text-xs font-bold text-slate-450 mb-1.5">ชื่อ-นามสกุล ผู้รับเกียรติบัตร คนที่ 1 *</label>
+                            <input type="text" name="student_names[]" required placeholder="เช่น เด็กชายสมศักดิ์ รักเรียน" class="neon-input w-full px-4 py-3 rounded-2xl text-xs sm:text-sm">
+                        </div>
+                        <button type="button" class="remove-student-btn mt-6 p-3 bg-rose-500/10 border border-rose-500/20 text-rose-455 hover:bg-rose-500/25 hover:text-white rounded-2xl transition-all hidden">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
                     </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                     <?php if (!empty($form_config['fields'])): ?>
                         <?php foreach ($form_config['fields'] as $field): ?>
                             <div>
@@ -190,6 +203,61 @@
         animate();
     }
 
+    // Dynamic Add/Remove Students
+    document.getElementById('add-student-btn').addEventListener('click', function() {
+        const wrapper = document.getElementById('students-wrapper');
+        const count = wrapper.getElementsByClassName('student-row').length + 1;
+        
+        const newRow = document.createElement('div');
+        newRow.className = 'flex items-center gap-2 student-row mt-2';
+        newRow.innerHTML = `
+            <div class="flex-1">
+                <label class="block text-xs font-bold text-slate-450 mb-1.5">ชื่อ-นามสกุล ผู้รับเกียรติบัตร คนที่ ${count} *</label>
+                <input type="text" name="student_names[]" required placeholder="เช่น เด็กชายสมศักดิ์ รักเรียน" class="neon-input w-full px-4 py-3 rounded-2xl text-xs sm:text-sm">
+            </div>
+            <button type="button" class="remove-student-btn mt-6 p-3 bg-rose-500/10 border border-rose-500/20 text-rose-455 hover:bg-rose-500/25 hover:text-white rounded-2xl transition-all">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
+        `;
+        
+        wrapper.appendChild(newRow);
+        lucide.createIcons();
+        updateRemoveButtons();
+    });
+
+    document.getElementById('students-wrapper').addEventListener('click', function(e) {
+        const btn = e.target.closest('.remove-student-btn');
+        if (btn) {
+            const row = btn.closest('.student-row');
+            row.remove();
+            renameLabels();
+            updateRemoveButtons();
+        }
+    });
+
+    function renameLabels() {
+        const wrapper = document.getElementById('students-wrapper');
+        const rows = wrapper.getElementsByClassName('student-row');
+        Array.from(rows).forEach((row, index) => {
+            const label = row.querySelector('label');
+            if (label) {
+                label.innerText = `ชื่อ-นามสกุล ผู้รับเกียรติบัตร คนที่ ${index + 1} *`;
+            }
+        });
+    }
+
+    function updateRemoveButtons() {
+        const wrapper = document.getElementById('students-wrapper');
+        const rows = wrapper.getElementsByClassName('student-row');
+        const removeBtns = wrapper.getElementsByClassName('remove-student-btn');
+        
+        if (rows.length <= 1) {
+            if (removeBtns[0]) removeBtns[0].classList.add('hidden');
+        } else {
+            Array.from(removeBtns).forEach(btn => btn.classList.remove('hidden'));
+        }
+    }
+
     function submitEvaluation(event) {
         event.preventDefault();
         Swal.showLoading();
@@ -223,7 +291,7 @@
                 const successCard = document.getElementById('success-cert-card');
                 const downloadBtn = document.getElementById('btn-download-cert');
                 
-                downloadBtn.href = `<?= base_url('science-week/certificate/download/evaluation') ?>/${data.eval_code}?preview=1`;
+                downloadBtn.href = `<?= base_url('science-week/certificate/view-all/evaluation') ?>/${data.eval_code}`;
                 successCard.classList.remove('hidden');
                 
                 // Scroll to top of card

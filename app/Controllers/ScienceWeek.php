@@ -29,6 +29,9 @@ class ScienceWeek extends BaseController
             if (!$db->fieldExists('comp_year', 'Tb_ScienceWeek_Competitions')) {
                 $db->query("ALTER TABLE Tb_ScienceWeek_Competitions ADD COLUMN comp_year INT NULL DEFAULT 2569 AFTER comp_id");
             }
+            if (!$db->fieldExists('comp_banner', 'Tb_ScienceWeek_Competitions')) {
+                $db->query("ALTER TABLE Tb_ScienceWeek_Competitions ADD COLUMN comp_banner VARCHAR(255) NULL AFTER comp_icon");
+            }
             if (!$db->fieldExists('comp_rule_file', 'Tb_ScienceWeek_Competitions')) {
                 $db->query("ALTER TABLE Tb_ScienceWeek_Competitions ADD COLUMN comp_rule_file VARCHAR(255) NULL AFTER comp_description");
             }
@@ -87,6 +90,7 @@ class ScienceWeek extends BaseController
                 eval_id INT AUTO_INCREMENT PRIMARY KEY,
                 eval_year INT NULL DEFAULT 2569,
                 eval_name VARCHAR(255) NOT NULL,
+                eval_students TEXT NULL,
                 eval_school VARCHAR(255) NULL,
                 eval_province VARCHAR(100) NULL,
                 eval_phone VARCHAR(20) NULL,
@@ -97,6 +101,9 @@ class ScienceWeek extends BaseController
         } else {
             if (!$db->fieldExists('eval_year', 'Tb_ScienceWeek_Evaluations')) {
                 $db->query("ALTER TABLE Tb_ScienceWeek_Evaluations ADD COLUMN eval_year INT NULL DEFAULT 2569 AFTER eval_id");
+            }
+            if (!$db->fieldExists('eval_students', 'Tb_ScienceWeek_Evaluations')) {
+                $db->query("ALTER TABLE Tb_ScienceWeek_Evaluations ADD COLUMN eval_students TEXT NULL AFTER eval_name");
             }
         }
     }
@@ -1197,7 +1204,8 @@ class ScienceWeek extends BaseController
             'comp_limit' => 'permit_empty|integer',
             'comp_member_limit' => 'permit_empty|integer',
             'comp_rule_file' => 'max_size[comp_rule_file,10240]|ext_in[comp_rule_file,pdf,doc,docx,zip]',
-            'comp_group_qr' => 'max_size[comp_group_qr,10240]|is_image[comp_group_qr]'
+            'comp_group_qr' => 'max_size[comp_group_qr,10240]|is_image[comp_group_qr]',
+            'comp_banner' => 'max_size[comp_banner,10240]|is_image[comp_banner]'
         ];
 
         if (!$this->validate($rules)) {
@@ -1226,6 +1234,23 @@ class ScienceWeek extends BaseController
             $newName = $groupQrFile->getRandomName();
             $groupQrFile->move(FCPATH . 'uploads/science_week/qr', $newName);
             $groupQrPath = 'uploads/science_week/qr/' . $newName;
+        }
+
+        $bannerPath = null;
+        $bannerFile = $this->request->getFile('comp_banner');
+        if ($bannerFile && $bannerFile->isValid() && !$bannerFile->hasMoved()) {
+            if (!is_dir(FCPATH . 'uploads/science_week/banners')) {
+                mkdir(FCPATH . 'uploads/science_week/banners', 0777, true);
+            }
+            $newName = $bannerFile->getRandomName();
+            $tempPath = $bannerFile->getTempName();
+            $targetFullPath = FCPATH . 'uploads/science_week/banners/' . $newName;
+            
+            // Resize and compress the banner image
+            if (!$this->resizeImage($tempPath, $targetFullPath, 1000, 80)) {
+                $bannerFile->move(FCPATH . 'uploads/science_week/banners', $newName);
+            }
+            $bannerPath = 'uploads/science_week/banners/' . $newName;
         }
 
         $customFields = $this->request->getPost('custom_fields');
@@ -1281,6 +1306,7 @@ class ScienceWeek extends BaseController
             'comp_year' => $selectedYear,
             'comp_name' => $this->request->getPost('comp_name'),
             'comp_icon' => $this->request->getPost('comp_icon'),
+            'comp_banner' => $bannerPath,
             'comp_level' => $this->request->getPost('comp_level'),
             'comp_level_limits' => $levelLimitsJson,
             'comp_description' => $this->request->getPost('comp_description') ?: null,
@@ -1360,7 +1386,8 @@ class ScienceWeek extends BaseController
             'comp_limit' => 'permit_empty|integer',
             'comp_member_limit' => 'permit_empty|integer',
             'comp_rule_file' => 'max_size[comp_rule_file,10240]|ext_in[comp_rule_file,pdf,doc,docx,zip]',
-            'comp_group_qr' => 'max_size[comp_group_qr,10240]|is_image[comp_group_qr]'
+            'comp_group_qr' => 'max_size[comp_group_qr,10240]|is_image[comp_group_qr]',
+            'comp_banner' => 'max_size[comp_banner,10240]|is_image[comp_banner]'
         ];
 
         if (!$this->validate($rules)) {
@@ -1415,6 +1442,36 @@ class ScienceWeek extends BaseController
             $groupQrPath = 'uploads/science_week/qr/' . $newName;
         }
 
+        $bannerPath = $comp['comp_banner'];
+
+        // Handle deleting the banner image if requested
+        if ($this->request->getPost('delete_banner') == '1') {
+            if (!empty($bannerPath) && file_exists(FCPATH . $bannerPath)) {
+                @unlink(FCPATH . $bannerPath);
+            }
+            $bannerPath = null;
+        }
+
+        $bannerFile = $this->request->getFile('comp_banner');
+        if ($bannerFile && $bannerFile->isValid() && !$bannerFile->hasMoved()) {
+            // Delete old file if exists
+            if (!empty($comp['comp_banner']) && file_exists(FCPATH . $comp['comp_banner'])) {
+                @unlink(FCPATH . $comp['comp_banner']);
+            }
+            if (!is_dir(FCPATH . 'uploads/science_week/banners')) {
+                mkdir(FCPATH . 'uploads/science_week/banners', 0777, true);
+            }
+            $newName = $bannerFile->getRandomName();
+            $tempPath = $bannerFile->getTempName();
+            $targetFullPath = FCPATH . 'uploads/science_week/banners/' . $newName;
+            
+            // Resize and compress the banner image
+            if (!$this->resizeImage($tempPath, $targetFullPath, 1000, 80)) {
+                $bannerFile->move(FCPATH . 'uploads/science_week/banners', $newName);
+            }
+            $bannerPath = 'uploads/science_week/banners/' . $newName;
+        }
+
         $customFields = $this->request->getPost('custom_fields');
         $customFieldsJson = null;
         if (!empty($customFields) && is_array($customFields)) {
@@ -1467,6 +1524,7 @@ class ScienceWeek extends BaseController
         $dataUpdate = [
             'comp_name' => $this->request->getPost('comp_name'),
             'comp_icon' => $this->request->getPost('comp_icon'),
+            'comp_banner' => $bannerPath,
             'comp_level' => $this->request->getPost('comp_level'),
             'comp_level_limits' => $levelLimitsJson,
             'comp_description' => $this->request->getPost('comp_description') ?: null,
@@ -2063,19 +2121,40 @@ class ScienceWeek extends BaseController
         $config = $currentConfigJson ? json_decode($currentConfigJson, true) : [];
 
         // Handle File Upload
-        $bgImage = $this->request->getFile('bg_image');
-        if ($bgImage && $bgImage->isValid() && !$bgImage->hasMoved()) {
-            if (!is_dir(FCPATH . 'uploads/science_week/templates')) {
-                mkdir(FCPATH . 'uploads/science_week/templates', 0777, true);
-            }
-            $newName = $bgImage->getRandomName();
-            $bgImage->move(FCPATH . 'uploads/science_week/templates', $newName);
+        $uploadedFilename = $this->request->getPost('bg_image_uploaded');
+        if (!empty($uploadedFilename)) {
+            $uploadedFilename = basename($uploadedFilename);
+            $tempPath = WRITEPATH . 'uploads/temp_certs/' . $uploadedFilename;
+            $targetDir = FCPATH . 'uploads/science_week/templates';
             
-            // Delete old template if exists
-            if (!empty($config['bg_image']) && file_exists(FCPATH . $config['bg_image'])) {
-                @unlink(FCPATH . $config['bg_image']);
+            if (file_exists($tempPath)) {
+                if (!is_dir($targetDir)) {
+                    mkdir($targetDir, 0755, true);
+                }
+                
+                // Delete old template if exists
+                if (!empty($config['bg_image']) && file_exists(FCPATH . $config['bg_image'])) {
+                    @unlink(FCPATH . $config['bg_image']);
+                }
+                
+                rename($tempPath, $targetDir . '/' . $uploadedFilename);
+                $config['bg_image'] = 'uploads/science_week/templates/' . $uploadedFilename;
             }
-            $config['bg_image'] = 'uploads/science_week/templates/' . $newName;
+        } else {
+            $bgImage = $this->request->getFile('bg_image');
+            if ($bgImage && $bgImage->isValid() && !$bgImage->hasMoved()) {
+                if (!is_dir(FCPATH . 'uploads/science_week/templates')) {
+                    mkdir(FCPATH . 'uploads/science_week/templates', 0777, true);
+                }
+                $newName = $bgImage->getRandomName();
+                $bgImage->move(FCPATH . 'uploads/science_week/templates', $newName);
+                
+                // Delete old template if exists
+                if (!empty($config['bg_image']) && file_exists(FCPATH . $config['bg_image'])) {
+                    @unlink(FCPATH . $config['bg_image']);
+                }
+                $config['bg_image'] = 'uploads/science_week/templates/' . $newName;
+            }
         }
 
         // Handle Fields Coordinates
@@ -2091,6 +2170,7 @@ class ScienceWeek extends BaseController
             $config["align_{$field}"] = $this->request->getPost("align_{$field}") ?: 'center';
             $config["color_{$field}"] = $this->request->getPost("color_{$field}") ?: '#000000';
             $config["parent_{$field}"] = $this->request->getPost("parent_{$field}") ?: 'none';
+            $config["weight_{$field}"] = $this->request->getPost("weight_{$field}") ?: 'bold';
         }
 
         $s_description = "การตั้งค่าเกียรติบัตรประเภท {$type} (พิกัด ขนาดอักษร สีตัวหนังสือ ภาพพื้นหลัง)";
@@ -2113,6 +2193,90 @@ class ScienceWeek extends BaseController
         return $this->response->setJSON([
             'status' => 'success',
             'message' => 'บันทึกการตั้งค่าเกียรติบัตรเรียบร้อยแล้ว'
+        ]);
+    }
+
+    /**
+     * อัปโหลดไฟล์ภาพเทมเพลตเกียรติบัตรแบบ Chunked (ชิ้นส่วนย่อย) เพื่อหลีกเลี่ยงข้อจำกัด 413 Request Entity Too Large ของ Nginx
+     */
+    public function uploadCertChunk()
+    {
+        $access = $this->checkAccess();
+        if ($access !== true) {
+            return $this->response->setStatusCode(403)->setJSON(['status' => 'error', 'message' => 'Unauthorized']);
+        }
+
+        $fileId = $this->request->getPost('file_id');
+        $chunkIndex = (int)$this->request->getPost('chunk_index');
+        $totalChunks = (int)$this->request->getPost('total_chunks');
+        $filename = $this->request->getPost('filename');
+        $file = $this->request->getFile('chunk');
+
+        if (empty($fileId) || empty($filename) || !$file) {
+            return $this->response->setStatusCode(400)->setJSON(['status' => 'error', 'message' => 'ข้อมูล Chunk ไม่ครบถ้วน']);
+        }
+
+        // ล้างโฟลเดอร์ชั่วคราวที่มีอายุเกิน 24 ชั่วโมง
+        $tempParent = WRITEPATH . 'uploads/temp_certs/';
+        if (is_dir($tempParent)) {
+            $dirs = glob($tempParent . '*', GLOB_ONLYDIR);
+            $now = time();
+            foreach ($dirs as $dir) {
+                if ($now - filemtime($dir) > 86400) {
+                    $files = glob($dir . '/*');
+                    foreach ($files as $f) {
+                        @unlink($f);
+                    }
+                    @rmdir($dir);
+                }
+            }
+        }
+
+        // โฟลเดอร์ชั่วคราวเก็บ chunks
+        $tempDir = WRITEPATH . 'uploads/temp_certs/' . $fileId . '/';
+        if (!is_dir($tempDir)) {
+            mkdir($tempDir, 0777, true);
+        }
+
+        // บันทึก chunk
+        $file->move($tempDir, (string)$chunkIndex);
+
+        // ตรวจสอบว่า chunks ครบหรือยัง
+        $chunksReceived = count(glob($tempDir . '*'));
+        if ($chunksReceived === $totalChunks) {
+            $ext = pathinfo($filename, PATHINFO_EXTENSION);
+            $newName = bin2hex(random_bytes(16)) . '.' . ($ext ?: 'png');
+            $finalPath = WRITEPATH . 'uploads/temp_certs/' . $newName;
+
+            $out = fopen($finalPath, 'wb');
+            if ($out) {
+                for ($i = 0; $i < $totalChunks; $i++) {
+                    $chunkFile = $tempDir . $i;
+                    $in = fopen($chunkFile, 'rb');
+                    if ($in) {
+                        while ($buff = fread($in, 4096)) {
+                            fwrite($out, $buff);
+                        }
+                        fclose($in);
+                    }
+                }
+                fclose($out);
+            }
+
+            // ลบ temp directory ของ chunks
+            array_map('unlink', glob($tempDir . '*'));
+            rmdir($tempDir);
+
+            return $this->response->setJSON([
+                'status' => 'success',
+                'message' => 'อัปโหลดเสร็จสมบูรณ์',
+                'filename' => $newName
+            ]);
+        }
+
+        return $this->response->setJSON([
+            'status' => 'uploading',
+            'message' => 'ได้รับ Chunk ' . ($chunkIndex + 1) . '/' . $totalChunks
         ]);
     }
 
@@ -2218,7 +2382,13 @@ class ScienceWeek extends BaseController
                     throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('ไม่พบรหัสผู้ทำแบบประเมิน');
                 }
 
-                $recipientName = $eval['eval_name'];
+                $selectedName = $this->request->getGet('name');
+                if (!empty($selectedName)) {
+                    $recipientName = trim($selectedName);
+                } else {
+                    $recipientName = $eval['eval_name'];
+                }
+
                 $dateText = "ให้ไว้ ณ วันที่ " . date('d', strtotime($eval['eval_created_at'])) . " " . 
                             ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'][date('n', strtotime($eval['eval_created_at']))-1] . " พ.ศ. " . 
                             (date('Y', strtotime($eval['eval_created_at'])) + 543);
@@ -2246,8 +2416,8 @@ class ScienceWeek extends BaseController
         imagealphablending($image, true);
         imagesavealpha($image, true);
 
-        // Font Path - Use thsarabunnew_bold.ttf (supports PUA mapping for proper Thai vowel/tone mark rendering in GD)
-        $fontPath = FCPATH . 'assets/fonts/thsarabunnew_bold.ttf';
+        // Font Path - Use Niramit-Bold.ttf
+        $fontPath = FCPATH . 'assets/fonts/Niramit-Bold.ttf';
         if (!file_exists($fontPath)) {
             return $this->response->setBody('ไม่พบไฟล์ฟอนต์เกียรติบัตรในระบบ')->setStatusCode(500);
         }
@@ -2320,8 +2490,16 @@ class ScienceWeek extends BaseController
             // Adjust Thai text vowels and tone marks for GD rendering using thsarabunnew's PUA mappings to prevent overlapping/dropping
             $text = $this->adjustThaiText($text);
 
+            $weight = $config["weight_{$field}"] ?? 'bold';
+            $currentFontPath = ($weight === 'regular') 
+                ? FCPATH . 'assets/fonts/Niramit-Regular.ttf' 
+                : FCPATH . 'assets/fonts/Niramit-Bold.ttf';
+            if (!file_exists($currentFontPath)) {
+                $currentFontPath = $fontPath;
+            }
+
             // Calculate text offset for precise alignment
-            $bbox = imagettfbbox($fontSize, 0, $fontPath, $text);
+            $bbox = imagettfbbox($fontSize, 0, $currentFontPath, $text);
             
             if ($align === 'center') {
                 $drawX = $x - ($bbox[2] + $bbox[0]) / 2;
@@ -2334,7 +2512,29 @@ class ScienceWeek extends BaseController
             // Precisely center the text vertically around $y by offseting the baseline
             $drawY = $y - ($bbox[7] + $bbox[1]) / 2;
 
-            imagettftext($image, (int)$fontSize, 0, (int)$drawX, (int)$drawY, $colorAlloc, $fontPath, $text);
+            // Simulate extra boldness by drawing text with offsets
+            if ($weight === 'extrabold') {
+                // 1px stroke around the text
+                for ($dx = -1; $dx <= 1; $dx++) {
+                    for ($dy = -1; $dy <= 1; $dy++) {
+                        if ($dx !== 0 || $dy !== 0) {
+                            imagettftext($image, (int)$fontSize, 0, (int)($drawX + $dx), (int)($drawY + $dy), $colorAlloc, $currentFontPath, $text);
+                        }
+                    }
+                }
+            } elseif ($weight === 'ultrabold') {
+                // 2px stroke around the text
+                for ($dx = -2; $dx <= 2; $dx++) {
+                    for ($dy = -2; $dy <= 2; $dy++) {
+                        if ($dx !== 0 || $dy !== 0) {
+                            imagettftext($image, (int)$fontSize, 0, (int)($drawX + $dx), (int)($drawY + $dy), $colorAlloc, $currentFontPath, $text);
+                        }
+                    }
+                }
+            }
+
+            // Draw the main text on top
+            imagettftext($image, (int)$fontSize, 0, (int)$drawX, (int)$drawY, $colorAlloc, $currentFontPath, $text);
         }
 
         // 4. Output Image as PNG stream for download
@@ -2491,7 +2691,11 @@ class ScienceWeek extends BaseController
             if (!$eval) {
                 throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('ไม่พบรหัสผู้ทำแบบประเมิน');
             }
-            $members = [$eval['eval_name']];
+            if (!empty($eval['eval_students'])) {
+                $members = json_decode($eval['eval_students'], true) ?: [$eval['eval_name']];
+            } else {
+                $members = [$eval['eval_name']];
+            }
         }
 
         $data = [
@@ -2558,7 +2762,7 @@ class ScienceWeek extends BaseController
 
         // สร้างกฎการตรวจสอบความถูกต้องแบบไดนามิก
         $rules = [
-            'fullname' => 'required|min_length[3]|max_length[255]',
+            'student_names' => 'required',
         ];
 
         foreach ($config['fields'] as $field) {
@@ -2582,7 +2786,23 @@ class ScienceWeek extends BaseController
             ]);
         }
 
-        $fullname = trim($this->request->getPost('fullname'));
+        $studentNamesRaw = $this->request->getPost('student_names') ?: [];
+        $studentNames = [];
+        foreach ($studentNamesRaw as $sName) {
+            $trimmed = trim($sName);
+            if ($trimmed !== '') {
+                $studentNames[] = $trimmed;
+            }
+        }
+
+        if (empty($studentNames)) {
+            return $this->response->setJSON([
+                'status' => 'error',
+                'message' => 'กรุณากรอกรายชื่อผู้รับเกียรติบัตรอย่างน้อย 1 คน'
+            ]);
+        }
+
+        $fullname = $studentNames[0];
         
         // ดึงข้อมูลฟิลด์ไดนามิก
         $fieldsPost = $this->request->getPost('fields') ?: [];
@@ -2643,6 +2863,7 @@ class ScienceWeek extends BaseController
         $dataInsert = [
             'eval_year'       => $activeYear,
             'eval_name'       => $fullname,
+            'eval_students'   => json_encode($studentNames, JSON_UNESCAPED_UNICODE),
             'eval_school'     => $schoolVal,
             'eval_province'   => $provinceVal,
             'eval_phone'      => $phoneVal,
@@ -2806,6 +3027,7 @@ class ScienceWeek extends BaseController
         $eval['ratings'] = $feedback['ratings'] ?? [];
         $eval['comments'] = $feedback['comments'] ?? '';
         $eval['custom_fields'] = $feedback['custom_fields'] ?? [];
+        $eval['students'] = !empty($eval['eval_students']) ? (json_decode($eval['eval_students'], true) ?: [$eval['eval_name']]) : [$eval['eval_name']];
 
         $data['title'] = "แก้ไขข้อมูลผู้ประเมิน | อบจ.นครสวรรค์";
         $data['eval'] = $eval;
@@ -2831,7 +3053,7 @@ class ScienceWeek extends BaseController
         $config = $this->getEvaluationConfig();
 
         $rules = [
-            'fullname' => 'required|min_length[3]|max_length[255]',
+            'student_names' => 'required',
         ];
 
         foreach ($config['fields'] as $field) {
@@ -2852,7 +3074,20 @@ class ScienceWeek extends BaseController
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
 
-        $fullname = trim($this->request->getPost('fullname'));
+        $studentNamesRaw = $this->request->getPost('student_names') ?: [];
+        $studentNames = [];
+        foreach ($studentNamesRaw as $sName) {
+            $trimmed = trim($sName);
+            if ($trimmed !== '') {
+                $studentNames[] = $trimmed;
+            }
+        }
+
+        if (empty($studentNames)) {
+            return redirect()->back()->withInput()->with('error', 'กรุณากรอกรายชื่อผู้รับเกียรติบัตรอย่างน้อย 1 คน');
+        }
+
+        $fullname = $studentNames[0];
         
         $fieldsPost = $this->request->getPost('fields') ?: [];
         $extractedFields = [];
@@ -2907,6 +3142,7 @@ class ScienceWeek extends BaseController
 
         $dataUpdate = [
             'eval_name'     => $fullname,
+            'eval_students' => json_encode($studentNames, JSON_UNESCAPED_UNICODE),
             'eval_school'   => $schoolVal,
             'eval_province' => $provinceVal,
             'eval_phone'    => $phoneVal,
@@ -3152,4 +3388,82 @@ class ScienceWeek extends BaseController
 
         return $this->response->setJSON(['status' => 'error', 'message' => 'ไม่สามารถลบข้อมูลได้']);
     }
+
+    /**
+     * ปรับขนาดรูปภาพเพื่อความเหมาะสมและความเร็วในการโหลด (คง Aspect Ratio และ บีบอัดไฟล์)
+     */
+    private function resizeImage($sourcePath, $targetPath, $maxWidth = 1000, $quality = 85)
+    {
+        list($width, $height, $type) = getimagesize($sourcePath);
+        
+        if ($width > $maxWidth) {
+            $newWidth = $maxWidth;
+            $newHeight = ($height / $width) * $newWidth;
+        } else {
+            $newWidth = $width;
+            $newHeight = $height;
+        }
+
+        switch ($type) {
+            case IMAGETYPE_JPEG:
+                $src = imagecreatefromjpeg($sourcePath);
+                break;
+            case IMAGETYPE_PNG:
+                $src = imagecreatefrompng($sourcePath);
+                break;
+            case IMAGETYPE_GIF:
+                $src = imagecreatefromgif($sourcePath);
+                break;
+            case IMAGETYPE_WEBP:
+                if (function_exists('imagecreatefromwebp')) {
+                    $src = imagecreatefromwebp($sourcePath);
+                } else {
+                    return false;
+                }
+                break;
+            default:
+                return false;
+        }
+
+        if (!$src) {
+            return false;
+        }
+
+        $dst = imagecreatetruecolor($newWidth, $newHeight);
+        
+        if ($type == IMAGETYPE_PNG || $type == IMAGETYPE_WEBP) {
+            imagealphablending($dst, false);
+            imagesavealpha($dst, true);
+            $transparent = imagecolorallocatealpha($dst, 255, 255, 255, 127);
+            imagefilledrectangle($dst, 0, 0, $newWidth, $newHeight, $transparent);
+        }
+
+        imagecopyresampled($dst, $src, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+
+        switch ($type) {
+            case IMAGETYPE_JPEG:
+                imagejpeg($dst, $targetPath, $quality);
+                break;
+            case IMAGETYPE_PNG:
+                $pngQuality = ($quality - 100) / 11.1111;
+                $pngQuality = round(abs($pngQuality));
+                imagepng($dst, $targetPath, $pngQuality);
+                break;
+            case IMAGETYPE_GIF:
+                imagegif($dst, $targetPath);
+                break;
+            case IMAGETYPE_WEBP:
+                if (function_exists('imagewebp')) {
+                    imagewebp($dst, $targetPath, $quality);
+                } else {
+                    imagejpeg($dst, $targetPath, $quality);
+                }
+                break;
+        }
+
+        imagedestroy($src);
+        imagedestroy($dst);
+        return true;
+    }
 }
+

@@ -916,24 +916,58 @@
                 <div class="rainbow-divider max-w-24 mx-auto"></div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <?php if (!empty($popular_competitions)): ?>
                     <?php $delay = 100; foreach ($popular_competitions as $comp): 
                         $compColor = $comp['comp_color'] ?? '#6366f1';
                         $compIcon = $comp['comp_icon'] ?? 'award';
                         $compLevel = $comp['comp_level'] ?? 'ทุกระดับชั้น';
                     ?>
-                        <a href="<?= base_url('science-week/register/form?type=' . urlencode($comp['comp_name'])) ?>" class="glass-sci-card rounded-3xl p-6 flex flex-col justify-between glow-border border-2 border-slate-200/10 hover:scale-105 transition-all text-left shadow-lg scroll-reveal group" data-delay="<?= $delay ?>" style="--hover-border: <?= esc($compColor) ?>;">
-                            <div class="space-y-4">
-                                <div class="icon-container w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-md transition-transform group-hover:scale-110" style="background: <?= esc($compColor) ?>; box-shadow: 0 0 15px <?= esc($compColor) ?>40">
-                                    <i data-lucide="<?= esc($compIcon) ?>" class="w-7 h-7"></i>
-                                </div>
-                                <h3 class="text-xl font-black text-slate-800 dark:text-white"><?= esc($comp['comp_name']) ?></h3>
-                                <p class="text-slate-600 dark:text-slate-300 text-sm leading-relaxed line-clamp-3 font-semibold">
-                                    <?= esc(strip_tags($comp['comp_description'] ?? 'ร่วมแข่งขันชิงถ้วยรางวัล เกียรติบัตร และทุนการศึกษา!')) ?>
-                                </p>
+                    <?php
+                    $isPortrait = false;
+                    if (!empty($comp['comp_banner']) && file_exists(FCPATH . $comp['comp_banner'])) {
+                        list($w, $h) = @getimagesize(FCPATH . $comp['comp_banner']);
+                        if ($h > $w) {
+                            $isPortrait = true;
+                        }
+                    }
+                    ?>
+                        <a href="<?= base_url('science-week/register/form?type=' . urlencode($comp['comp_name'])) ?>" class="glass-sci-card rounded-3xl p-5 flex flex-col justify-between glow-border border-2 border-slate-200/10 hover:scale-105 transition-all text-left shadow-lg scroll-reveal group" data-delay="<?= $delay ?>" style="--hover-border: <?= esc($compColor) ?>;">
+                            <div class="space-y-4 w-full">
+                                <?php if (!empty($comp['comp_banner']) && $isPortrait): ?>
+                                    <div class="flex flex-col sm:flex-row gap-4 items-start mb-2">
+                                        <div class="w-full sm:w-[100px] sm:h-[150px] h-40 shrink-0 rounded-2xl overflow-hidden border border-slate-200/20 dark:border-slate-800 shadow-inner bg-slate-950">
+                                            <img src="<?= base_url($comp['comp_banner']) ?>" alt="<?= esc($comp['comp_name']) ?>" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
+                                        </div>
+                                        <div class="flex-1 space-y-3">
+                                            <div class="icon-container w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-md transition-transform group-hover:scale-110" style="background: <?= esc($compColor) ?>; box-shadow: 0 0 15px <?= esc($compColor) ?>40">
+                                                <i data-lucide="<?= esc($compIcon) ?>" class="w-6 h-6"></i>
+                                            </div>
+                                            <h3 class="text-lg font-black text-slate-800 dark:text-white"><?= esc($comp['comp_name']) ?></h3>
+                                            <p class="text-slate-650 dark:text-slate-300 text-xs leading-relaxed line-clamp-3 font-semibold">
+                                                <?= esc(strip_tags($comp['comp_description'] ?? 'ร่วมแข่งขันชิงถ้วยรางวัล เกียรติบัตร และทุนการศึกษา!')) ?>
+                                            </p>
+                                        </div>
+                                    </div>
+                                <?php else: ?>
+                                    <?php if (!empty($comp['comp_banner'])): ?>
+                                        <div class="relative w-full h-36 rounded-2xl overflow-hidden mb-3 border border-slate-200/20 dark:border-slate-800 shadow-inner bg-slate-950">
+                                            <img src="<?= base_url($comp['comp_banner']) ?>" alt="<?= esc($comp['comp_name']) ?>" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
+                                        </div>
+                                    <?php endif; ?>
+                                    <div class="space-y-3">
+                                        <div class="icon-container w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-md transition-transform group-hover:scale-110" style="background: <?= esc($compColor) ?>; box-shadow: 0 0 15px <?= esc($compColor) ?>40">
+                                            <i data-lucide="<?= esc($compIcon) ?>" class="w-6 h-6"></i>
+                                        </div>
+                                        <h3 class="text-lg font-black text-slate-800 dark:text-white"><?= esc($comp['comp_name']) ?></h3>
+                                        <p class="text-slate-655 dark:text-slate-300 text-xs leading-relaxed line-clamp-3 font-semibold">
+                                            <?= esc(strip_tags($comp['comp_description'] ?? 'ร่วมแข่งขันชิงถ้วยรางวัล เกียรติบัตร และทุนการศึกษา!')) ?>
+                                        </p>
+                                    </div>
+                                <?php endif; ?>
                             </div>
-                            <div class="mt-6 flex flex-col gap-3">
+
+                            <div class="mt-6 flex flex-col gap-3 w-full">
                                 <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 font-semibold">
                                     <span>ระดับ: <?= esc($compLevel) ?></span>
                                 </div>

@@ -16,6 +16,7 @@ class ScienceWeekCompetitionModel extends Model
         'comp_year',
         'comp_name',
         'comp_icon',
+        'comp_banner',
         'comp_level',
         'comp_level_limits',
         'comp_description',

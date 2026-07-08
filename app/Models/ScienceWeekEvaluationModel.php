@@ -15,6 +15,7 @@ class ScienceWeekEvaluationModel extends Model
     protected $allowedFields    = [
         'eval_year',
         'eval_name',
+        'eval_students',
         'eval_school',
         'eval_province',
         'eval_phone',

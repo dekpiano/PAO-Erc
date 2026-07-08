@@ -147,6 +147,7 @@ $routes->group('staff/science-week', ['filter' => 'auth'], function($routes) {
     // Certificates Management
     $routes->get('certificates', 'ScienceWeek::adminCertificates');
     $routes->post('certificates/save', 'ScienceWeek::saveCertConfig');
+    $routes->post('certificates/upload-chunk', 'ScienceWeek::uploadCertChunk');
 
     // Science Week Users/Staff Management
     $routes->get('users', 'ScienceWeek::usersIndex');

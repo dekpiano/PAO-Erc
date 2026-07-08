@@ -38,12 +38,33 @@
     <form action="<?= base_url('staff/science-week/evaluations/update/' . $eval['eval_id']) ?>" method="POST" class="space-y-6">
         <?= csrf_field() ?>
 
-        <!-- Fullname (Primary required field) -->
-        <div class="space-y-2">
-            <label for="fullname" class="block text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-350 flex items-center gap-2">
-                <i data-lucide="user" class="w-4 h-4 text-cyan-400"></i> ชื่อ-นามสกุล <span class="text-rose-450">*</span>
-            </label>
-            <input type="text" name="fullname" id="fullname" required value="<?= old('fullname', $eval['eval_name'] ?? '') ?>" placeholder="ชื่อ-นามสกุล ผู้ได้รับเกียรติบัตร..." class="w-full px-4 py-3 neon-input rounded-2xl text-xs outline-none transition-colors">
+        <!-- Fullname / Students list -->
+        <div class="space-y-4">
+            <div class="flex justify-between items-center flex-wrap gap-2">
+                <label class="block text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-350 flex items-center gap-2">
+                    <i data-lucide="user" class="w-4 h-4 text-cyan-400"></i> รายชื่อผู้รับเกียรติบัตร
+                </label>
+                <button type="button" id="add-student-btn" class="px-3 py-1 bg-indigo-500/10 border border-indigo-500/30 hover:border-indigo-500 text-indigo-400 hover:text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1">
+                    <i data-lucide="plus" class="w-3.5 h-3.5"></i> เพิ่มผู้รับเกียรติบัตร
+                </button>
+            </div>
+            
+            <div id="students-wrapper" class="space-y-3">
+                <?php 
+                $students = $eval['students'] ?? [$eval['eval_name']];
+                foreach ($students as $index => $sName): 
+                ?>
+                    <div class="flex items-center gap-2 student-row">
+                        <div class="flex-1">
+                            <label class="block text-[10px] font-bold text-slate-450 mb-1">คนที่ <?= $index + 1 ?> *</label>
+                            <input type="text" name="student_names[]" required value="<?= esc($sName) ?>" placeholder="ชื่อ-นามสกุล..." class="w-full px-4 py-3 neon-input rounded-2xl text-xs outline-none transition-colors">
+                        </div>
+                        <button type="button" class="remove-student-btn mt-5 p-3 bg-rose-500/10 border border-rose-500/20 text-rose-455 hover:bg-rose-500/25 hover:text-white rounded-2xl transition-all <?= count($students) <= 1 ? 'hidden' : '' ?>">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                <?php endforeach; ?>
+            </div>
         </div>
 
         <!-- Dynamic Fields -->
@@ -113,4 +134,60 @@
         </button>
     </form>
 </div>
+
+<script>
+    document.getElementById('add-student-btn').addEventListener('click', function() {
+        const wrapper = document.getElementById('students-wrapper');
+        const count = wrapper.getElementsByClassName('student-row').length + 1;
+        
+        const newRow = document.createElement('div');
+        newRow.className = 'flex items-center gap-2 student-row mt-2';
+        newRow.innerHTML = `
+            <div class="flex-1">
+                <label class="block text-[10px] font-bold text-slate-450 mb-1">คนที่ ${count} *</label>
+                <input type="text" name="student_names[]" required placeholder="ชื่อ-นามสกุล..." class="w-full px-4 py-3 neon-input rounded-2xl text-xs outline-none transition-colors">
+            </div>
+            <button type="button" class="remove-student-btn mt-5 p-3 bg-rose-500/10 border border-rose-500/20 text-rose-455 hover:bg-rose-500/25 hover:text-white rounded-2xl transition-all">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
+        `;
+        
+        wrapper.appendChild(newRow);
+        lucide.createIcons();
+        updateRemoveButtons();
+    });
+
+    document.getElementById('students-wrapper').addEventListener('click', function(e) {
+        const btn = e.target.closest('.remove-student-btn');
+        if (btn) {
+            const row = btn.closest('.student-row');
+            row.remove();
+            renameLabels();
+            updateRemoveButtons();
+        }
+    });
+
+    function renameLabels() {
+        const wrapper = document.getElementById('students-wrapper');
+        const rows = wrapper.getElementsByClassName('student-row');
+        Array.from(rows).forEach((row, index) => {
+            const label = row.querySelector('label');
+            if (label) {
+                label.innerText = `คนที่ ${index + 1} *`;
+            }
+        });
+    }
+
+    function updateRemoveButtons() {
+        const wrapper = document.getElementById('students-wrapper');
+        const rows = wrapper.getElementsByClassName('student-row');
+        const removeBtns = wrapper.getElementsByClassName('remove-student-btn');
+        
+        if (rows.length <= 1) {
+            if (removeBtns[0]) removeBtns[0].classList.add('hidden');
+        } else {
+            Array.from(removeBtns).forEach(btn => btn.classList.remove('hidden'));
+        }
+    }
+</script>
 <?= $this->endSection() ?>

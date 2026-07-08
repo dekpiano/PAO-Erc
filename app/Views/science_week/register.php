@@ -167,24 +167,49 @@
                     elseif ($colorName === 'rose') $colorHex = '#f43f5e';
                     elseif ($colorName === 'indigo') $colorHex = '#818cf8';
                     
-                    $isFull = false;
-                    if (!empty($comp['comp_limit']) && $comp['comp_limit'] > 0) {
-                        if ($comp['reg_count'] >= $comp['comp_limit']) {
-                            $isFull = true;
+                    $isPortrait = false;
+                    if (!empty($comp['comp_banner']) && file_exists(FCPATH . $comp['comp_banner'])) {
+                        list($w, $h) = @getimagesize(FCPATH . $comp['comp_banner']);
+                        if ($h > $w) {
+                            $isPortrait = true;
                         }
                     }
                 ?>
-                    <div class="glass-sci-card rounded-3xl p-6 flex flex-col justify-between card-anim relative overflow-hidden group" style="animation-delay: <?= $delay ?>ms; --hover-border: <?= $colorHex ?>;">
+                         <div class="glass-sci-card rounded-3xl p-5 flex flex-col justify-between card-anim relative overflow-hidden group" style="animation-delay: <?= $delay ?>ms; --hover-border: <?= $colorHex ?>;">
                         <div class="space-y-4">
-                            <div class="icon-container w-14 h-14 rounded-2xl flex items-center justify-center shadow-sm transition-transform group-hover:scale-110" style="background-color: <?= $colorHex ?>20; border: 1px solid <?= $colorHex ?>35; color: <?= $colorHex ?>;">
-                                <i data-lucide="<?= esc($comp['comp_icon'] ?: 'award') ?>" class="w-7 h-7"></i>
-                            </div>
-                            <h3 class="text-xl font-black text-white"><?= esc($comp['comp_name']) ?></h3>
-                            <p class="text-slate-300 text-xs leading-relaxed font-semibold">
-                                <?= esc($comp['comp_description']) ?>
-                            </p>
-                            
-                            <!-- Quota Progress Indicator -->
+                            <?php if (!empty($comp['comp_banner']) && $isPortrait): ?>
+                                <div class="flex flex-col sm:flex-row gap-4 items-start mb-2">
+                                    <div class="w-full sm:w-[100px] sm:h-[150px] h-40 shrink-0 rounded-2xl overflow-hidden border border-slate-900/60 shadow-inner bg-slate-950">
+                                        <img src="<?= base_url($comp['comp_banner']) ?>" alt="<?= esc($comp['comp_name']) ?>" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
+                                    </div>
+                                    <div class="flex-1 space-y-3">
+                                        <div class="icon-container w-12 h-12 rounded-xl flex items-center justify-center shadow-sm transition-transform group-hover:scale-110" style="background-color: <?= $colorHex ?>20; border: 1px solid <?= $colorHex ?>35; color: <?= $colorHex ?>;">
+                                            <i data-lucide="<?= esc($comp['comp_icon'] ?: 'award') ?>" class="w-6 h-6"></i>
+                                        </div>
+                                        <h3 class="text-lg font-black text-white"><?= esc($comp['comp_name']) ?></h3>
+                                        <p class="text-slate-350 text-[11px] leading-relaxed font-semibold">
+                                            <?= esc($comp['comp_description']) ?>
+                                        </p>
+                                    </div>
+                                </div>
+                            <?php else: ?>
+                                <?php if (!empty($comp['comp_banner'])): ?>
+                                    <div class="relative w-full h-40 rounded-2xl overflow-hidden mb-3 border border-slate-900/60 shadow-inner bg-slate-950">
+                                        <img src="<?= base_url($comp['comp_banner']) ?>" alt="<?= esc($comp['comp_name']) ?>" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
+                                    </div>
+                                <?php endif; ?>
+                                <div class="space-y-3">
+                                    <div class="icon-container w-12 h-12 rounded-xl flex items-center justify-center shadow-sm transition-transform group-hover:scale-110" style="background-color: <?= $colorHex ?>20; border: 1px solid <?= $colorHex ?>35; color: <?= $colorHex ?>;">
+                                        <i data-lucide="<?= esc($comp['comp_icon'] ?: 'award') ?>" class="w-6 h-6"></i>
+                                    </div>
+                                    <h3 class="text-lg font-black text-white"><?= esc($comp['comp_name']) ?></h3>
+                                    <p class="text-slate-350 text-[11px] leading-relaxed font-semibold">
+                                        <?= esc($comp['comp_description']) ?>
+                                    </p>
+                                </div>
+                            <?php endif; ?>
+
+                            <!-- Quota Progress Indicator (Stretches Full Width) -->
                             <div class="pt-2 space-y-2">
                                 <?php
                                 $levelLimits = [];
@@ -247,6 +272,7 @@
                                 <?php endif; ?>
                             </div>
                         </div>
+
                         <div class="mt-6 space-y-4">
                             <div class="flex items-center justify-between flex-wrap gap-2">
                                 <span class="inline-block text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider" style="color: <?= $colorHex ?>; background-color: <?= $colorHex ?>15; border: 1px solid <?= $colorHex ?>25;"><?= esc($comp['comp_level']) ?></span>

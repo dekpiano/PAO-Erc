@@ -2,6 +2,8 @@
 
 <?= $this->section('content') ?>
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Niramit:wght@400;600;700&display=swap');
+
     .config-card {
         background: rgba(17, 25, 40, 0.75) !important;
         backdrop-filter: blur(16px);
@@ -28,6 +30,7 @@
         display: none !important;
     }
     .coordinate-badge {
+        font-family: 'Niramit', sans-serif;
         position: absolute;
         pointer-events: none;
         background: rgba(99, 102, 241, 0.9);
@@ -194,6 +197,7 @@ $types = [
                             $alignVal = $fieldConfig["align_{$fieldKey}"] ?? 'center';
                             $colorVal = $fieldConfig["color_{$fieldKey}"] ?? '#000000';
                             $parentVal = $fieldConfig["parent_{$fieldKey}"] ?? 'none';
+                            $weightVal = $fieldConfig["weight_{$fieldKey}"] ?? 'bold';
                         ?>
                             <div class="p-4 bg-slate-900/30 rounded-xl border border-slate-800/40 space-y-3" id="field-card-<?= $typeKey ?>-<?= $fieldKey ?>">
                                 <div class="flex justify-between items-center">
@@ -236,6 +240,15 @@ $types = [
                                                 <option value="left" <?= $alignVal === 'left' ? 'selected' : '' ?>>ชิดซ้าย</option>
                                                 <option value="center" <?= $alignVal === 'center' ? 'selected' : '' ?>>กึ่งกลาง</option>
                                                 <option value="right" <?= $alignVal === 'right' ? 'selected' : '' ?>>ชิดขวา</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-span-2">
+                                            <label class="block text-[9px] text-slate-450 font-bold mb-1">ความหนาตัวอักษร</label>
+                                            <select name="weight_<?= $fieldKey ?>" class="w-full bg-slate-950 border border-slate-850 rounded-lg py-1.5 px-2.5 text-xs text-slate-350">
+                                                <option value="regular" <?= $weightVal === 'regular' ? 'selected' : '' ?>>ตัวบาง (Regular)</option>
+                                                <option value="bold" <?= $weightVal === 'bold' ? 'selected' : '' ?>>ตัวหนา (Bold)</option>
+                                                <option value="extrabold" <?= $weightVal === 'extrabold' ? 'selected' : '' ?>>ตัวหนาพิเศษ (Extra Bold)</option>
+                                                <option value="ultrabold" <?= $weightVal === 'ultrabold' ? 'selected' : '' ?>>ตัวหนามาก (Ultra Bold)</option>
                                             </select>
                                         </div>
                                     </div>
@@ -378,7 +391,8 @@ $types = [
                         input.name.startsWith('align_') || 
                         input.name.startsWith('color_') || 
                         input.name.startsWith('enabled_') ||
-                        input.name.startsWith('parent_')
+                        input.name.startsWith('parent_') ||
+                        input.name.startsWith('weight_')
                     )) {
                         input.addEventListener('input', () => updateBadges(type));
                         input.addEventListener('change', () => updateBadges(type));
@@ -597,6 +611,7 @@ $types = [
                 const sizeVal = parseInt(form.querySelector(`input[name="size_${field}"]`).value) || 32;
                 const alignVal = form.querySelector(`select[name="align_${field}"]`).value || 'center';
                 const colorVal = form.querySelector(`input[name="color_${field}"]`).value || '#000000';
+                const weightVal = form.querySelector(`select[name="weight_${field}"]`)?.value || 'bold';
                 
                 // Get concatenated text content
                 badge.innerText = getFieldText(type, field, form, samples);
@@ -609,7 +624,13 @@ $types = [
                 badge.style.left = `${displayX}px`;
                 badge.style.top = `${displayY}px`;
                 badge.style.fontSize = `${displayFontSize}px`;
-                badge.style.color = colorVal;
+                badge.style.fontWeight = weightVal === 'regular' ? 'normal' : 'bold';
+                badge.style.textShadow = 'none';
+                if (weightVal === 'extrabold') {
+                    badge.style.textShadow = '-1px -1px 0 currentColor, 1px -1px 0 currentColor, -1px 1px 0 currentColor, 1px 1px 0 currentColor, -1px 0 0 currentColor, 1px 0 0 currentColor, 0 -1px 0 currentColor, 0 1px 0 currentColor';
+                } else if (weightVal === 'ultrabold') {
+                    badge.style.textShadow = '-2px -2px 0 currentColor, 2px -2px 0 currentColor, -2px 2px 0 currentColor, 2px 2px 0 currentColor, -2px 0 0 currentColor, 2px 0 0 currentColor, 0 -2px 0 currentColor, 0 2px 0 currentColor, -1px -1px 0 currentColor, 1px -1px 0 currentColor, -1px 1px 0 currentColor, 1px 1px 0 currentColor';
+                }
                 
                 // Set text alignment positioning transform
                 if (alignVal === 'left') {
@@ -643,6 +664,96 @@ $types = [
         event.preventDefault();
         
         const form = document.getElementById(`form-${type}`);
+        const fileInput = form.querySelector('input[name="bg_image"]');
+        const file = fileInput ? fileInput.files[0] : null;
+
+        if (file) {
+            uploadChunks(file, type, function(uploadedFilename) {
+                proceedWithSave(form, type, uploadedFilename);
+            });
+        } else {
+            proceedWithSave(form, type, null);
+        }
+    }
+
+    function uploadChunks(file, type, callback) {
+        const chunkSize = 512 * 1024; // 512KB chunks
+        const totalChunks = Math.ceil(file.size / chunkSize);
+        const fileId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+        let currentChunk = 0;
+
+        Swal.fire({
+            title: 'กำลังอัปโหลดรูปภาพเทมเพลต...',
+            html: 'กรุณารอสักครู่ (0%)',
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            showConfirmButton: false,
+            background: getSwalColors().bg,
+            color: getSwalColors().text,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        function sendNextChunk() {
+            const start = currentChunk * chunkSize;
+            const end = Math.min(start + chunkSize, file.size);
+            const chunk = file.slice(start, end);
+
+            const chunkForm = new FormData();
+            chunkForm.append('file_id', fileId);
+            chunkForm.append('chunk_index', currentChunk);
+            chunkForm.append('total_chunks', totalChunks);
+            chunkForm.append('filename', file.name);
+            chunkForm.append('chunk', chunk);
+
+            fetch('<?= base_url('staff/science-week/certificates/upload-chunk') ?>', {
+                method: 'POST',
+                body: chunkForm,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success' || data.status === 'uploading') {
+                    currentChunk++;
+                    const percent = Math.round((currentChunk / totalChunks) * 100);
+                    Swal.getHtmlContainer().textContent = `กำลังอัปโหลด... (${percent}%)`;
+
+                    if (currentChunk < totalChunks) {
+                        sendNextChunk();
+                    } else {
+                        Swal.close();
+                        callback(data.filename);
+                    }
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'อัปโหลดล้มเหลว',
+                        text: data.message,
+                        background: getSwalColors().bg,
+                        color: getSwalColors().text,
+                        confirmButtonColor: '#ef4444'
+                    });
+                }
+            })
+            .catch(() => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'เกิดข้อผิดพลาด',
+                    text: 'การอัปโหลดขาดการเชื่อมต่อ',
+                    background: getSwalColors().bg,
+                    color: getSwalColors().text,
+                    confirmButtonColor: '#ef4444'
+                });
+            });
+        }
+
+        sendNextChunk();
+    }
+
+    function proceedWithSave(form, type, uploadedFilename) {
         const formData = new FormData(form);
 
         // Explicitly handle checkbox fields that are unchecked
@@ -656,7 +767,23 @@ $types = [
             }
         });
 
-        // Add headers for AJAX request
+        if (uploadedFilename) {
+            formData.append('bg_image_uploaded', uploadedFilename);
+            formData.delete('bg_image'); // Remove raw file to avoid Nginx 413 error
+        }
+
+        Swal.fire({
+            title: 'กำลังบันทึกข้อมูล...',
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            showConfirmButton: false,
+            background: getSwalColors().bg,
+            color: getSwalColors().text,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
         fetch('<?= base_url('staff/science-week/certificates/save') ?>', {
             method: 'POST',
             body: formData,
@@ -666,6 +793,7 @@ $types = [
         })
         .then(res => res.json())
         .then(data => {
+            Swal.close();
             if (data.status === 'success') {
                 Swal.fire({
                     icon: 'success',
@@ -675,7 +803,13 @@ $types = [
                     color: getSwalColors().text,
                     confirmButtonColor: '#3b82f6',
                     customClass: { popup: 'glass-card rounded-[2rem]' }
-                }).then(() => { window.location.reload(); });
+                });
+
+                // Clear file input since upload is complete (the preview is already updated locally via FileReader)
+                const bgInput = form.querySelector('input[name="bg_image"]');
+                if (bgInput) {
+                    bgInput.value = '';
+                }
             } else {
                 Swal.fire({
                     icon: 'error',
@@ -689,6 +823,7 @@ $types = [
             }
         })
         .catch(() => {
+            Swal.close();
             Swal.fire({
                 icon: 'error',
                 title: 'เกิดข้อผิดพลาด',
