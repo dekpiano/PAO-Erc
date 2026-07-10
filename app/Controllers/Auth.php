@@ -62,7 +62,7 @@ class Auth extends Controller
                 return redirect()->to(base_url('auth/select'));
             }
             if (strpos($user['u_role'] ?? '', 'science_week') !== false && strpos($user['u_role'] ?? '', 'admin') === false && strpos($user['u_role'] ?? '', 'superadmin') === false) {
-                return redirect()->to(base_url('staff/science-week'));
+                return redirect()->to(base_url('science-week/staff'));
             }
             return redirect()->to(base_url('staff'));
         } else {
@@ -146,7 +146,7 @@ class Auth extends Controller
                 return redirect()->to(base_url('auth/select'));
             }
             if (strpos($user['u_role'] ?? '', 'science_week') !== false && strpos($user['u_role'] ?? '', 'admin') === false && strpos($user['u_role'] ?? '', 'superadmin') === false) {
-                return redirect()->to(base_url('staff/science-week'));
+                return redirect()->to(base_url('science-week/staff'));
             }
             return redirect()->to(base_url('staff'));
         } else {

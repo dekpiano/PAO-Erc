@@ -24,7 +24,7 @@
 
 <!-- Header Section -->
 <div class="mb-6">
-    <a href="<?= base_url('staff/science-week/evaluations') ?>" class="inline-flex items-center gap-2 text-indigo-400 hover:text-indigo-300 font-semibold transition-colors text-sm mb-3">
+    <a href="<?= base_url('science-week/staff/evaluations') ?>" class="inline-flex items-center gap-2 text-indigo-400 hover:text-indigo-300 font-semibold transition-colors text-sm mb-3">
         <i data-lucide="arrow-left" class="w-4 h-4"></i> กลับไปหน้ารายการ
     </a>
     <h2 class="text-lg sm:text-2xl md:text-3xl font-extrabold text-slate-800 dark:text-white tracking-tight tech-glow">
@@ -35,7 +35,7 @@
 
 <!-- Form Card -->
 <div class="glass-card rounded-3xl p-6 sm:p-8 bg-white dark:bg-slate-900/60 max-w-3xl border border-slate-200 dark:border-slate-800">
-    <form action="<?= base_url('staff/science-week/evaluations/update/' . $eval['eval_id']) ?>" method="POST" class="space-y-6">
+    <form action="<?= base_url('science-week/staff/evaluations/update/' . $eval['eval_id']) ?>" method="POST" class="space-y-6">
         <?= csrf_field() ?>
 
         <!-- Fullname / Students list -->
@@ -79,6 +79,10 @@
                         if ($field['key'] === 'phone') $fieldVal = $eval['eval_phone'];
                         elseif ($field['key'] === 'school') $fieldVal = $eval['eval_school'];
                         elseif ($field['key'] === 'province') $fieldVal = $eval['eval_province'];
+                        elseif ($field['key'] === 'gender') $fieldVal = $eval['eval_gender'];
+                        elseif ($field['key'] === 'age') $fieldVal = $eval['eval_age'];
+                        elseif ($field['key'] === 'occupation') $fieldVal = $eval['eval_occupation'];
+                        elseif ($field['key'] === 'education_level') $fieldVal = $eval['eval_education_level'];
                     }
                 ?>
                     <div class="space-y-2">

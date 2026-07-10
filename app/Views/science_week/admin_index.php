@@ -11,7 +11,7 @@
     </div>
     
     <div class="flex flex-wrap gap-3 w-full md:w-auto">
-        <a href="<?= base_url('staff/science-week/export?' . http_build_query($_GET)) ?>" class="w-full md:w-auto justify-center px-5 py-3 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:text-slate-900 font-bold text-xs sm:text-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors flex items-center gap-2 shadow-sm">
+        <a href="<?= base_url('science-week/staff/export?' . http_build_query($_GET)) ?>" class="w-full md:w-auto justify-center px-5 py-3 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:text-slate-900 font-bold text-xs sm:text-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors flex items-center gap-2 shadow-sm">
             <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-600"></i> ส่งออกรายงาน Excel
         </a>
     </div>
@@ -74,7 +74,7 @@
 
 <!-- Filters Card -->
 <div class="glass-card p-4 sm:p-6 rounded-3xl mb-6 bg-slate-900/40 dark:bg-slate-900/60">
-    <form method="GET" action="<?= base_url('staff/science-week') ?>" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+    <form method="GET" action="<?= base_url('science-week/staff') ?>" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
         <!-- Search input -->
         <div class="relative">
             <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400"><i data-lucide="search" class="w-4 h-4"></i></span>
@@ -106,7 +106,7 @@
                 <i data-lucide="filter" class="w-4 h-4"></i> กรองรายการ
             </button>
             <?php if(!empty($search) || !empty($compType_active) || !empty($status_active)): ?>
-                <a href="<?= base_url('staff/science-week') ?>" class="p-3 bg-rose-50 hover:bg-rose-100 border border-rose-100 text-rose-600 rounded-2xl transition-all flex items-center justify-center" title="ล้างฟิลเตอร์">
+                <a href="<?= base_url('science-week/staff') ?>" class="p-3 bg-rose-50 hover:bg-rose-100 border border-rose-100 text-rose-600 rounded-2xl transition-all flex items-center justify-center" title="ล้างฟิลเตอร์">
                     <i data-lucide="refresh-cw" class="w-4 h-4"></i>
                 </a>
             <?php endif; ?>
@@ -257,7 +257,7 @@
                                     <button onclick="viewRegDetails(<?= $reg['reg_id'] ?>)" class="p-1.5 bg-indigo-50 hover:bg-indigo-600 text-indigo-600 hover:text-white rounded-lg border border-indigo-100 dark:border-slate-800 transition-all cursor-pointer" title="ดูข้อมูลทั้งหมด">
                                         <i data-lucide="eye" class="w-4 h-4"></i>
                                     </button>
-                                    <a href="<?= base_url('staff/science-week/edit/' . $reg['reg_id']) ?>" class="p-1.5 bg-blue-50 hover:bg-blue-650 text-blue-600 hover:text-white rounded-lg border border-blue-100 dark:border-slate-800 transition-all" title="แก้ไขข้อมูลผู้สมัคร">
+                                    <a href="<?= base_url('science-week/staff/edit/' . $reg['reg_id']) ?>" class="p-1.5 bg-blue-50 hover:bg-blue-650 text-blue-600 hover:text-white rounded-lg border border-blue-100 dark:border-slate-800 transition-all" title="แก้ไขข้อมูลผู้สมัคร">
                                         <i data-lucide="edit-3" class="w-4 h-4"></i>
                                     </a>
                                 </div>
@@ -489,7 +489,7 @@
                 // Show loading
                 Swal.showLoading();
 
-                fetch(`<?= base_url('staff/science-week/update-status') ?>/${id}`, {
+                fetch(`<?= base_url('science-week/staff/update-status') ?>/${id}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded',

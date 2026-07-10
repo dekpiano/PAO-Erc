@@ -13,7 +13,7 @@
     <?php $layoutIsAdmin = $is_admin ?? false; ?>
     <?php if ($layoutIsAdmin): ?>
     <div class="flex flex-wrap gap-3 w-full md:w-auto">
-        <a href="<?= base_url('staff/science-week/competitions/create') ?>" class="w-full md:w-auto justify-center px-5 py-3 rounded-2xl bg-gradient-to-r from-cyan-500 to-indigo-500 hover:from-cyan-600 hover:to-indigo-600 text-white font-bold text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 shadow-lg shadow-indigo-950/20">
+        <a href="<?= base_url('science-week/staff/competitions/create') ?>" class="w-full md:w-auto justify-center px-5 py-3 rounded-2xl bg-gradient-to-r from-cyan-500 to-indigo-500 hover:from-cyan-600 hover:to-indigo-600 text-white font-bold text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 shadow-lg shadow-indigo-950/20">
             <i data-lucide="plus-circle" class="w-4 h-4"></i> เพิ่มประเภทการแข่งขัน
         </a>
     </div>
@@ -113,7 +113,7 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-center text-xs">
                                 <div class="flex items-center justify-center gap-2">
-                                    <a href="<?= base_url('staff/science-week/competitions/edit/' . $comp['comp_id']) ?>" class="p-1.5 bg-blue-50 hover:bg-blue-600 text-blue-600 hover:text-white rounded-lg border border-blue-100 dark:border-slate-800 transition-all" title="แก้ไข">
+                                    <a href="<?= base_url('science-week/staff/competitions/edit/' . $comp['comp_id']) ?>" class="p-1.5 bg-blue-50 hover:bg-blue-600 text-blue-600 hover:text-white rounded-lg border border-blue-100 dark:border-slate-800 transition-all" title="แก้ไข">
                                         <i data-lucide="edit" class="w-4 h-4"></i>
                                     </a>
                                     <?php if ($layoutIsAdmin): ?>
@@ -151,7 +151,7 @@
             if (result.isConfirmed) {
                 Swal.showLoading();
 
-                fetch(`<?= base_url('staff/science-week/competitions/delete') ?>/${id}`, {
+                fetch(`<?= base_url('science-week/staff/competitions/delete') ?>/${id}`, {
                     method: 'GET',
                     headers: {
                         'X-Requested-With': 'XMLHttpRequest'

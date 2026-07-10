@@ -101,7 +101,7 @@
                     <?php endif; ?>
                     
                     <?php if($isAdmin || strpos($userRoles, 'science_week') !== false): ?>
-                        <a href="<?= base_url('staff/science-week') ?>" class="sidebar-item <?= strpos(uri_string(), 'staff/science-week') === 0 ? 'active shadow-lg shadow-amber-100 bg-amber-50/50' : 'text-slate-500 hover:text-amber-600' ?> flex items-center gap-4 px-4 py-3 rounded-2xl font-bold text-sm">
+                        <a href="<?= base_url('science-week/staff') ?>" class="sidebar-item <?= strpos(uri_string(), 'science-week/staff') === 0 ? 'active shadow-lg shadow-amber-100 bg-amber-50/50' : 'text-slate-500 hover:text-amber-600' ?> flex items-center gap-4 px-4 py-3 rounded-2xl font-bold text-sm">
                             <i data-lucide="orbit" class="w-5 h-5 text-indigo-500 animate-pulse"></i><span class="sidebar-text">จัดการสัปดาห์วิทยาศาสตร์</span>
                         </a>
                     <?php endif; ?>

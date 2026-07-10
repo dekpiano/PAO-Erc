@@ -11,7 +11,7 @@
     </div>
     
     <div class="flex flex-wrap gap-3 w-full md:w-auto">
-        <a href="<?= base_url('staff/science-week/schedules/create') ?>" class="w-full md:w-auto justify-center px-5 py-3 rounded-2xl bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white font-bold text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 shadow-lg shadow-indigo-950/20">
+        <a href="<?= base_url('science-week/staff/schedules/create') ?>" class="w-full md:w-auto justify-center px-5 py-3 rounded-2xl bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white font-bold text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 shadow-lg shadow-indigo-950/20">
             <i data-lucide="plus-circle" class="w-4 h-4"></i> เพิ่มกำหนดการกิจกรรม
         </a>
     </div>
@@ -61,7 +61,7 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-center text-xs">
                                 <div class="flex items-center justify-center gap-2">
-                                    <a href="<?= base_url('staff/science-week/schedules/edit/' . $sch['sch_id']) ?>" class="p-1.5 bg-blue-50 hover:bg-blue-600 text-blue-600 hover:text-white rounded-lg border border-blue-100 dark:border-slate-800 transition-all" title="แก้ไข">
+                                    <a href="<?= base_url('science-week/staff/schedules/edit/' . $sch['sch_id']) ?>" class="p-1.5 bg-blue-50 hover:bg-blue-600 text-blue-600 hover:text-white rounded-lg border border-blue-100 dark:border-slate-800 transition-all" title="แก้ไข">
                                         <i data-lucide="edit" class="w-4 h-4"></i>
                                     </a>
                                     <button onclick="deleteSchedule(<?= $sch['sch_id'] ?>, '<?= esc($sch['sch_title']) ?>')" class="p-1.5 bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white rounded-lg border border-rose-100 dark:border-slate-800 transition-all" title="ลบ">
@@ -97,7 +97,7 @@
             if (result.isConfirmed) {
                 Swal.showLoading();
 
-                fetch(`<?= base_url('staff/science-week/schedules/delete') ?>/${id}`, {
+                fetch(`<?= base_url('science-week/staff/schedules/delete') ?>/${id}`, {
                     method: 'GET',
                     headers: {
                         'X-Requested-With': 'XMLHttpRequest'

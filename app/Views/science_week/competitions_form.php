@@ -27,7 +27,7 @@
 
 <!-- Header Section -->
 <div class="mb-6">
-    <a href="<?= base_url('staff/science-week/competitions') ?>" class="inline-flex items-center gap-2 text-indigo-400 hover:text-indigo-300 font-semibold transition-colors text-sm mb-3">
+    <a href="<?= base_url('science-week/staff/competitions') ?>" class="inline-flex items-center gap-2 text-indigo-400 hover:text-indigo-300 font-semibold transition-colors text-sm mb-3">
         <i data-lucide="arrow-left" class="w-4 h-4"></i> กลับไปหน้ารายการ
     </a>
     <h2 class="text-lg sm:text-2xl md:text-3xl font-extrabold text-slate-800 dark:text-white tracking-tight tech-glow">
@@ -37,7 +37,7 @@
 </div>
 
 <!-- Form Layout -->
-<form action="<?= !empty($comp) ? base_url('staff/science-week/competitions/update/' . $comp['comp_id']) : base_url('staff/science-week/competitions/store') ?>" method="POST" class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start w-full" enctype="multipart/form-data">
+<form action="<?= !empty($comp) ? base_url('science-week/staff/competitions/update/' . $comp['comp_id']) : base_url('science-week/staff/competitions/store') ?>" method="POST" class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start w-full" enctype="multipart/form-data">
     <?= csrf_field() ?>
 
     <!-- Left Column: Main Details & Level Quotas -->

@@ -73,6 +73,9 @@
     <button onclick="switchTab('evaluation')" id="tab-btn-evaluation" class="px-4 py-2.5 rounded-xl text-xs font-bold transition-all border border-transparent text-slate-450 hover:bg-slate-900/40">
         เกียรติบัตรการทำแบบประเมิน
     </button>
+    <button onclick="switchTab('student_staff')" id="tab-btn-student_staff" class="px-4 py-2.5 rounded-xl text-xs font-bold transition-all border border-transparent text-slate-450 hover:bg-slate-900/40">
+        เกียรติบัตรนักเรียนช่วยงาน (Staff)
+    </button>
 </div>
 
 <!-- Config Forms -->
@@ -109,6 +112,18 @@ $types = [
             'name' => 'ชื่อ-นามสกุล',
             'text' => 'ข้อความประเมิน',
             'date' => 'วันที่ออกเกียรติบัตร',
+            'code' => 'รหัสเกียรติบัตร (เลขที่)'
+        ]
+    ],
+    'student_staff' => [
+        'title' => 'เกียรติบัตรนักเรียนช่วยงาน (Staff)',
+        'config' => $student_staff_config,
+        'fields' => [
+            'name' => 'ชื่อ-นามสกุล',
+            'school' => 'ชื่อโรงเรียน',
+            'level' => 'ระดับชั้นเรียน',
+            'comp' => 'รายการที่รับผิดชอบ/ช่วยงาน',
+            'rank' => 'บทบาทหน้าที่/ข้อความช่วยงาน',
             'code' => 'รหัสเกียรติบัตร (เลขที่)'
         ]
     ]
@@ -380,7 +395,7 @@ $types = [
         });
 
         // Set up real-time preview updates when changing control panel inputs
-        ['competition', 'trainer', 'evaluation'].forEach(type => {
+        ['competition', 'trainer', 'evaluation', 'student_staff'].forEach(type => {
             const form = document.getElementById(`form-${type}`);
             if (form) {
                 form.querySelectorAll('input, select').forEach(input => {
@@ -423,7 +438,7 @@ $types = [
         activeTab = tab;
         
         // Update tab buttons style
-        ['competition', 'trainer', 'evaluation'].forEach(t => {
+        ['competition', 'trainer', 'evaluation', 'student_staff'].forEach(t => {
             const btn = document.getElementById(`tab-btn-${t}`);
             const panel = document.getElementById(`panel-${t}`);
             
@@ -540,7 +555,7 @@ $types = [
         
         let text = samples[fieldKey] || '';
         
-        const fields = (type === 'competition' || type === 'trainer')
+        const fields = (type === 'competition' || type === 'trainer' || type === 'student_staff')
             ? ['name', 'school', 'level', 'comp', 'rank', 'code']
             : ['name', 'text', 'date', 'code'];
             
@@ -570,7 +585,7 @@ $types = [
         
         // Find all fields for this type
         const form = document.getElementById(`form-${type}`);
-        const fields = (type === 'competition' || type === 'trainer')
+        const fields = (type === 'competition' || type === 'trainer' || type === 'student_staff')
             ? ['name', 'school', 'level', 'comp', 'rank', 'code']
             : ['name', 'text', 'date', 'code'];
 
@@ -588,6 +603,13 @@ $types = [
             comp: 'ประกวดโครงงานวิทยาศาสตร์ประเภททดลอง',
             rank: 'ผู้ควบคุมทีม ที่ได้รับรางวัลชนะเลิศ',
             code: 'SCI-2026-00042'
+        } : type === 'student_staff' ? {
+            name: 'นายกิตติคุณ มุ่งดี',
+            school: 'โรงเรียนองค์การบริหารส่วนจังหวัดเชียงราย',
+            level: 'ชั้นมัธยมศึกษาปีที่ 5/1',
+            comp: 'กิจกรรมประกวดภาพยนตร์สั้นวิทยาศาสตร์',
+            rank: 'ได้ปฏิบัติหน้าที่ คณะกรรมการดำเนินงานนักเรียนช่วยงาน',
+            code: 'SW-ST-0001'
         } : {
             name: 'นายสมคิด ใฝ่เรียน',
             text: 'ได้ผ่านการประเมินผลการเรียนรู้ด้วยคะแนน 85%',
@@ -707,7 +729,7 @@ $types = [
             chunkForm.append('filename', file.name);
             chunkForm.append('chunk', chunk);
 
-            fetch('<?= base_url('staff/science-week/certificates/upload-chunk') ?>', {
+            fetch('<?= base_url('science-week/staff/certificates/upload-chunk') ?>', {
                 method: 'POST',
                 body: chunkForm,
                 headers: {
@@ -757,7 +779,7 @@ $types = [
         const formData = new FormData(form);
 
         // Explicitly handle checkbox fields that are unchecked
-        const fields = (type === 'competition' || type === 'trainer')
+        const fields = (type === 'competition' || type === 'trainer' || type === 'student_staff')
             ? ['name', 'school', 'level', 'comp', 'rank', 'code']
             : ['name', 'text', 'date', 'code'];
             
@@ -784,7 +806,7 @@ $types = [
             }
         });
 
-        fetch('<?= base_url('staff/science-week/certificates/save') ?>', {
+        fetch('<?= base_url('science-week/staff/certificates/save') ?>', {
             method: 'POST',
             body: formData,
             headers: {

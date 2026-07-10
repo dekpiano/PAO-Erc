@@ -96,37 +96,104 @@
             <div class="rainbow-divider absolute top-0 left-0 right-0"></div>
             
             <!-- Section 1: Personal Info -->
-            <div class="space-y-4 pt-4">
-                <div class="flex justify-between items-center flex-wrap gap-2">
-                    <h3 class="text-sm font-black text-indigo-400 uppercase tracking-wider flex items-center gap-2">
-                        <i data-lucide="user" class="w-4 h-4"></i> ข้อมูลผู้ลงชื่อเข้างาน / ผู้รับเกียรติบัตร
-                    </h3>
-                    <button type="button" id="add-student-btn" class="px-3 py-1.5 bg-indigo-500/10 border border-indigo-500/30 hover:border-indigo-500 text-indigo-300 hover:text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1">
-                        <i data-lucide="plus" class="w-3.5 h-3.5"></i> เพิ่มผู้รับเกียรติบัตร
-                    </button>
-                </div>
-                
-                <div id="students-wrapper" class="space-y-3">
-                    <div class="flex items-center gap-2 student-row">
-                        <div class="flex-1">
-                            <label class="block text-xs font-bold text-slate-450 mb-1.5">ชื่อ-นามสกุล ผู้รับเกียรติบัตร คนที่ 1 *</label>
-                            <input type="text" name="student_names[]" required placeholder="เช่น เด็กชายสมศักดิ์ รักเรียน" class="neon-input w-full px-4 py-3 rounded-2xl text-xs sm:text-sm">
-                        </div>
-                        <button type="button" class="remove-student-btn mt-6 p-3 bg-rose-500/10 border border-rose-500/20 text-rose-455 hover:bg-rose-500/25 hover:text-white rounded-2xl transition-all hidden">
-                            <i data-lucide="trash-2" class="w-4 h-4"></i>
-                        </button>
+            <div class="space-y-6 pt-4">
+                <h3 class="text-sm font-black text-indigo-400 uppercase tracking-wider flex items-center gap-2">
+                    <i data-lucide="user" class="w-4 h-4"></i> ส่วนที่ 1: ข้อมูลทั่วไป
+                </h3>
+
+                <!-- 1.1 เพศ -->
+                <div class="space-y-2">
+                    <label class="block text-xs font-bold text-slate-200">1.1 เพศ *</label>
+                    <div class="flex gap-4">
+                        <label class="flex-1 max-w-[120px] text-center cursor-pointer">
+                            <input type="radio" name="gender" value="ชาย" required class="peer hidden">
+                            <div class="py-3 text-xs font-bold rounded-2xl border border-slate-700 bg-slate-900/60 text-slate-400 peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:border-indigo-500 transition-all duration-300">
+                                ชาย
+                            </div>
+                        </label>
+                        <label class="flex-1 max-w-[120px] text-center cursor-pointer">
+                            <input type="radio" name="gender" value="หญิง" required class="peer hidden">
+                            <div class="py-3 text-xs font-bold rounded-2xl border border-slate-700 bg-slate-900/60 text-slate-400 peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:border-indigo-500 transition-all duration-300">
+                                หญิง
+                            </div>
+                        </label>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                    <?php if (!empty($form_config['fields'])): ?>
-                        <?php foreach ($form_config['fields'] as $field): ?>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-450 mb-1.5"><?= esc($field['label']) ?> <?= $field['required'] ? '*' : '' ?></label>
-                                <input type="<?= esc($field['type']) ?>" name="fields[<?= esc($field['key']) ?>]" <?= $field['required'] ? 'required' : '' ?> placeholder="<?= esc($field['placeholder']) ?>" class="neon-input w-full px-4 py-3 rounded-2xl text-xs sm:text-sm">
-                            </div>
+                <!-- 1.2 อายุ -->
+                <div class="space-y-2">
+                    <label class="block text-xs font-bold text-slate-200">1.2 อายุ *</label>
+                    <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                        <?php foreach (['ต่ำกว่า 15 ปี', '16 - 25 ปี', '26 - 35 ปี', '36 - 45 ปี', '46 ปีขึ้นไป'] as $ageGroup): ?>
+                            <label class="text-center cursor-pointer">
+                                <input type="radio" name="age" value="<?= $ageGroup ?>" required class="peer hidden">
+                                <div class="py-3 px-2 text-xs font-bold rounded-2xl border border-slate-700 bg-slate-900/60 text-slate-400 peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:border-indigo-500 transition-all duration-300">
+                                    <?= $ageGroup ?>
+                                </div>
+                            </label>
                         <?php endforeach; ?>
-                    <?php endif; ?>
+                    </div>
+                </div>
+
+                <!-- 1.3 อาชีพ -->
+                <div class="space-y-2">
+                    <label class="block text-xs font-bold text-slate-200">1.3 อาชีพ *</label>
+                    <div class="grid grid-cols-1 gap-3">
+                        <?php 
+                        $occupations = [
+                            'นักเรียน / นักศึกษา',
+                            'ครู บุคลากรทางการศึกษา',
+                            'ผู้บริหาร ข้าราชการ เจ้าหน้าที่องค์กรปกครองส่วนท้องถิ่น',
+                            'อื่นๆ'
+                        ];
+                        foreach ($occupations as $occ): 
+                        ?>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="occupation" value="<?= $occ ?>" required class="peer hidden" onchange="toggleOccupationOther(this.value)">
+                                <div class="py-3.5 px-4 text-xs font-bold rounded-2xl border border-slate-700 bg-slate-900/60 text-slate-400 peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:border-indigo-500 transition-all duration-300 flex items-center justify-between">
+                                    <span><?= $occ ?></span>
+                                    <div class="w-4 h-4 rounded-full border border-slate-650 flex items-center justify-center peer-checked:border-white">
+                                        <div class="w-2 h-2 rounded-full bg-transparent peer-checked:bg-white"></div>
+                                    </div>
+                                </div>
+                            </label>
+                        <?php endforeach; ?>
+                        
+                        <div id="occupation-other-wrapper" class="hidden mt-2">
+                            <label class="block text-xs font-bold text-slate-450 mb-1.5">โปรดระบุอาชีพของคุณ</label>
+                            <input type="text" name="occupation_other" id="occupation_other" placeholder="ระบุอาชีพ..." class="neon-input w-full px-4 py-3 rounded-2xl text-xs sm:text-sm">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 1.4 ระดับการศึกษา -->
+                <div class="space-y-2">
+                    <label class="block text-xs font-bold text-slate-200">1.4 ระดับการศึกษา *</label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
+                        <?php 
+                        $levels = [
+                            'ต่ำกว่าหรือเทียบเท่าประถมศึกษา',
+                            'มัธยมศึกษา',
+                            'อนุปริญญา',
+                            'ปริญญาตรี',
+                            'ปริญญาโท'
+                        ];
+                        foreach ($levels as $lvl): 
+                        ?>
+                            <label class="text-center cursor-pointer">
+                                <input type="radio" name="education_level" value="<?= $lvl ?>" required class="peer hidden">
+                                <div class="py-3 px-2 text-[11px] font-bold rounded-2xl border border-slate-700 bg-slate-900/60 text-slate-400 peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:border-indigo-500 transition-all duration-300 h-full flex items-center justify-center">
+                                    <?= $lvl ?>
+                                </div>
+                            </label>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+
+                <!-- 1.5 จังหวัดที่อาศัยอยู่ -->
+                <div class="space-y-2">
+                    <label for="province" class="block text-xs font-bold text-slate-200">1.5 อาศัยอยู่ ณ จังหวัด *</label>
+                    <input type="text" name="province" id="province" required placeholder="ระบุชื่อจังหวัดที่อาศัยอยู่ เช่น นครสวรรค์" class="neon-input w-full px-4 py-3 rounded-2xl text-xs sm:text-sm">
                 </div>
             </div>
 
@@ -139,13 +206,13 @@
 
                 <?php if (!empty($form_config['questions'])): ?>
                     <?php foreach ($form_config['questions'] as $q): ?>
-                        <div class="space-y-2">
-                            <label class="block text-xs font-bold text-slate-200"><?= esc($q['label']) ?> *</label>
-                            <div class="flex items-center gap-1.5 sm:gap-3">
+                        <div class="space-y-3">
+                            <label class="block text-sm sm:text-base font-bold text-slate-200"><?= esc($q['label']) ?> *</label>
+                            <div class="flex items-center gap-2 sm:gap-4">
                                 <?php for ($i = 5; $i >= 1; $i--): ?>
-                                    <label class="flex-1 max-w-[48px] sm:max-w-[60px] text-center cursor-pointer">
+                                    <label class="flex-1 max-w-[64px] sm:max-w-[80px] text-center cursor-pointer">
                                         <input type="radio" name="ratings[<?= esc($q['key']) ?>]" value="<?= $i ?>" required class="peer hidden">
-                                        <div class="rating-btn py-2 text-xs font-bold rounded-xl border border-slate-700 bg-slate-900/60 text-slate-400 peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:border-indigo-500 transition-colors">
+                                        <div class="rating-btn py-3 sm:py-4 text-base sm:text-xl font-black rounded-2xl border border-slate-700 bg-slate-900/60 text-slate-400 peer-checked:bg-gradient-to-r peer-checked:from-indigo-500 peer-checked:to-purple-500 peer-checked:text-white peer-checked:border-indigo-400 peer-checked:shadow-lg peer-checked:shadow-indigo-500/30 transition-all duration-300">
                                             <?= $i ?>
                                         </div>
                                     </label>
@@ -165,7 +232,7 @@
             </div>
 
             <button type="submit" class="w-full py-4 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white font-extrabold rounded-2xl transition-transform hover:scale-[1.02] shadow-lg shadow-indigo-500/20 text-xs sm:text-sm flex items-center justify-center gap-2">
-                <i data-lucide="check-circle" class="w-5 h-5"></i> ส่งแบบประเมินและขอรับเกียรติบัตร
+                <i data-lucide="check-circle" class="w-5 h-5"></i> ส่งแบบประเมินความพึงพอใจ
             </button>
         </form>
     </div>
@@ -203,58 +270,16 @@
         animate();
     }
 
-    // Dynamic Add/Remove Students
-    document.getElementById('add-student-btn').addEventListener('click', function() {
-        const wrapper = document.getElementById('students-wrapper');
-        const count = wrapper.getElementsByClassName('student-row').length + 1;
-        
-        const newRow = document.createElement('div');
-        newRow.className = 'flex items-center gap-2 student-row mt-2';
-        newRow.innerHTML = `
-            <div class="flex-1">
-                <label class="block text-xs font-bold text-slate-450 mb-1.5">ชื่อ-นามสกุล ผู้รับเกียรติบัตร คนที่ ${count} *</label>
-                <input type="text" name="student_names[]" required placeholder="เช่น เด็กชายสมศักดิ์ รักเรียน" class="neon-input w-full px-4 py-3 rounded-2xl text-xs sm:text-sm">
-            </div>
-            <button type="button" class="remove-student-btn mt-6 p-3 bg-rose-500/10 border border-rose-500/20 text-rose-455 hover:bg-rose-500/25 hover:text-white rounded-2xl transition-all">
-                <i data-lucide="trash-2" class="w-4 h-4"></i>
-            </button>
-        `;
-        
-        wrapper.appendChild(newRow);
-        lucide.createIcons();
-        updateRemoveButtons();
-    });
-
-    document.getElementById('students-wrapper').addEventListener('click', function(e) {
-        const btn = e.target.closest('.remove-student-btn');
-        if (btn) {
-            const row = btn.closest('.student-row');
-            row.remove();
-            renameLabels();
-            updateRemoveButtons();
-        }
-    });
-
-    function renameLabels() {
-        const wrapper = document.getElementById('students-wrapper');
-        const rows = wrapper.getElementsByClassName('student-row');
-        Array.from(rows).forEach((row, index) => {
-            const label = row.querySelector('label');
-            if (label) {
-                label.innerText = `ชื่อ-นามสกุล ผู้รับเกียรติบัตร คนที่ ${index + 1} *`;
-            }
-        });
-    }
-
-    function updateRemoveButtons() {
-        const wrapper = document.getElementById('students-wrapper');
-        const rows = wrapper.getElementsByClassName('student-row');
-        const removeBtns = wrapper.getElementsByClassName('remove-student-btn');
-        
-        if (rows.length <= 1) {
-            if (removeBtns[0]) removeBtns[0].classList.add('hidden');
+    function toggleOccupationOther(value) {
+        const wrapper = document.getElementById('occupation-other-wrapper');
+        const input = document.getElementById('occupation_other');
+        if (value === 'อื่นๆ') {
+            wrapper.classList.remove('hidden');
+            input.setAttribute('required', 'required');
         } else {
-            Array.from(removeBtns).forEach(btn => btn.classList.remove('hidden'));
+            wrapper.classList.add('hidden');
+            input.removeAttribute('required');
+            input.value = '';
         }
     }
 
@@ -277,25 +302,17 @@
             if (data.status === 'success') {
                 Swal.fire({
                     icon: 'success',
-                    title: 'ขอบคุณสำหรับการประเมิน',
+                    title: 'บันทึกสำเร็จ',
                     text: data.message,
                     background: getSwalColors().bg,
                     color: getSwalColors().text,
                     confirmButtonColor: '#10b981',
-                    customClass: { popup: 'glass-card rounded-[2rem]' }
+                    customClass: { popup: 'glass-card rounded-[2rem]' },
+                    timer: 1500,
+                    showConfirmButton: false
+                }).then(() => {
+                    window.location.href = `<?= base_url('science-week/evaluation/claim') ?>/${data.eval_code}`;
                 });
-
-                // Display download certificate card and hide form
-                form.classList.add('hidden');
-                
-                const successCard = document.getElementById('success-cert-card');
-                const downloadBtn = document.getElementById('btn-download-cert');
-                
-                downloadBtn.href = `<?= base_url('science-week/certificate/view-all/evaluation') ?>/${data.eval_code}`;
-                successCard.classList.remove('hidden');
-                
-                // Scroll to top of card
-                successCard.scrollIntoView({ behavior: 'smooth' });
             } else {
                 Swal.fire({
                     icon: 'error',

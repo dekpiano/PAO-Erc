@@ -11,7 +11,7 @@
     </div>
     
     <div class="flex flex-wrap gap-3 w-full md:w-auto">
-        <a href="<?= base_url('staff/science-week/evaluations/create') ?>" class="w-full md:w-auto justify-center px-5 py-3 rounded-2xl bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white font-bold text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 shadow-lg shadow-indigo-950/20">
+        <a href="<?= base_url('science-week/staff/evaluations/create') ?>" class="w-full md:w-auto justify-center px-5 py-3 rounded-2xl bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white font-bold text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 shadow-lg shadow-indigo-950/20">
             <i data-lucide="settings" class="w-4 h-4 text-cyan-300"></i> ตั้งค่าโครงสร้างฟอร์มประเมิน
         </a>
     </div>
@@ -19,7 +19,7 @@
 
 <!-- Search & Filter Card -->
 <div class="glass-card rounded-3xl p-4 sm:p-6 mb-6 bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800">
-    <form action="<?= base_url('staff/science-week/evaluations') ?>" method="GET" class="flex flex-col md:flex-row gap-4">
+    <form action="<?= base_url('science-week/staff/evaluations') ?>" method="GET" class="flex flex-col md:flex-row gap-4">
         <div class="flex-1 relative">
             <i data-lucide="search" class="w-5 h-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2"></i>
             <input type="text" name="search" value="<?= esc($search ?? '') ?>" placeholder="ค้นหาตามชื่อ, โรงเรียน, จังหวัด, เบอร์โทร หรือรหัสแบบประเมิน..." class="w-full pl-12 pr-4 py-3 bg-slate-950/50 border border-slate-800 rounded-2xl text-xs sm:text-sm text-slate-200 focus:outline-none focus:border-indigo-500 transition-colors">
@@ -29,7 +29,7 @@
                 ค้นหา
             </button>
             <?php if (!empty($search)): ?>
-                <a href="<?= base_url('staff/science-week/evaluations') ?>" class="px-6 py-3 bg-slate-850 hover:bg-slate-800 text-slate-350 font-bold rounded-2xl text-xs sm:text-sm transition-colors flex items-center justify-center">
+                <a href="<?= base_url('science-week/staff/evaluations') ?>" class="px-6 py-3 bg-slate-850 hover:bg-slate-800 text-slate-350 font-bold rounded-2xl text-xs sm:text-sm transition-colors flex items-center justify-center">
                     ล้างตัวกรอง
                 </a>
             <?php endif; ?>
@@ -44,8 +44,9 @@
             <thead>
                 <tr class="bg-slate-50 dark:bg-slate-800/40 border-b border-slate-100 dark:border-slate-800">
                     <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 w-[140px]">รหัสประเมิน</th>
-                    <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">ข้อมูลผู้ประเมิน</th>
-                    <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">สังกัด / จังหวัด</th>
+                    <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">ผู้รับเกียรติบัตร (เคลมสิทธิ์)</th>
+                    <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">ข้อมูลทั่วไปผู้ประเมิน</th>
+                    <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">จังหวัด</th>
                     <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 text-center w-[120px]">คะแนนเฉลี่ย</th>
                     <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 w-[200px]">ข้อเสนอแนะ</th>
                     <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 text-center w-[160px]">จัดการ</th>
@@ -54,7 +55,7 @@
             <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                 <?php if (empty($evaluations)): ?>
                     <tr>
-                        <td colspan="6" class="px-6 py-12 text-center text-slate-400 font-medium bg-white dark:bg-transparent">
+                        <td colspan="7" class="px-6 py-12 text-center text-slate-400 font-medium bg-white dark:bg-transparent">
                             ไม่พบข้อมูลแบบประเมินในระบบ
                         </td>
                     </tr>
@@ -66,6 +67,9 @@
                         $sum = array_sum($ratings);
                         $count = count($ratings);
                         $avg = $count > 0 ? number_format($sum / $count, 2) : '-';
+
+                        $students = json_decode($eval['eval_students'] ?? '', true) ?: [];
+                        $claimName = !empty($students) ? implode(', ', $students) : null;
                     ?>
                         <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
                             <td class="px-6 py-4">
@@ -73,12 +77,24 @@
                                 <span class="text-[9px] text-slate-500 block mt-1"><?= date('d/m/Y H:i', strtotime($eval['eval_created_at'])) ?></span>
                             </td>
                             <td class="px-6 py-4">
-                                <div class="font-bold text-xs text-slate-800 dark:text-slate-200"><?= esc($eval['eval_name']) ?></div>
-                                <div class="text-[10px] text-slate-500 mt-1 font-mono">โทร: <?= esc($eval['eval_phone']) ?></div>
+                                <?php if ($claimName): ?>
+                                    <div class="font-bold text-xs text-slate-850 dark:text-slate-200"><?= esc($claimName) ?></div>
+                                    <span class="inline-flex mt-1 items-center gap-1 px-1.5 py-0.5 rounded text-[9px] bg-emerald-500/10 text-emerald-450 border border-emerald-500/20 font-bold">
+                                        <i data-lucide="check-circle" class="w-3 h-3"></i> เคลมสิทธิ์แล้ว
+                                    </span>
+                                <?php else: ?>
+                                    <div class="text-xs text-rose-450 dark:text-rose-400 font-semibold italic">ยังไม่ได้เคลมเกียรติบัตร</div>
+                                <?php endif; ?>
                             </td>
                             <td class="px-6 py-4">
-                                <div class="text-xs text-slate-700 dark:text-slate-300"><?= esc($eval['eval_school'] ?: '-') ?></div>
-                                <div class="text-[10px] text-slate-500 mt-1"><?= esc($eval['eval_province'] ?: '-') ?></div>
+                                <div class="text-xs text-slate-800 dark:text-slate-200 font-semibold">
+                                    เพศ: <?= esc($eval['eval_gender'] ?: '-') ?> | อายุ: <?= esc($eval['eval_age'] ?: '-') ?>
+                                </div>
+                                <div class="text-[10px] text-slate-500 mt-1">อาชีพ: <?= esc($eval['eval_occupation'] ?: '-') ?></div>
+                                <div class="text-[10px] text-slate-500 mt-0.5">การศึกษา: <?= esc($eval['eval_education_level'] ?: '-') ?></div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="text-xs text-slate-700 dark:text-slate-350"><?= esc($eval['eval_province'] ?: '-') ?></span>
                             </td>
                             <td class="px-6 py-4 text-center">
                                 <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-extrabold bg-indigo-950/40 text-indigo-400 border border-indigo-900/30">
@@ -94,11 +110,11 @@
                             <td class="px-6 py-4 whitespace-nowrap text-center text-xs">
                                 <div class="flex items-center justify-center gap-2">
                                     <!-- Print/View Certificate -->
-                                    <a href="<?= base_url('science-week/certificate/view-all/evaluation/' . $eval['eval_code']) ?>" target="_blank" class="p-1.5 bg-emerald-50 hover:bg-emerald-600 text-emerald-600 hover:text-white rounded-lg border border-emerald-100 dark:border-slate-800 transition-all" title="ดูเกียรติบัตร">
+                                    <a href="<?= base_url('science-week/certificate/view-all/evaluation/' . $eval['eval_code']) ?>" target="_blank" class="p-1.5 bg-emerald-50 hover:bg-emerald-600 text-emerald-600 hover:text-white rounded-lg border border-emerald-100 dark:border-slate-800 transition-all" title="พิมพ์เกียรติบัตร">
                                         <i data-lucide="award" class="w-4 h-4"></i>
                                     </a>
                                     <!-- Edit -->
-                                    <a href="<?= base_url('staff/science-week/evaluations/edit/' . $eval['eval_id']) ?>" class="p-1.5 bg-blue-50 hover:bg-blue-600 text-blue-600 hover:text-white rounded-lg border border-blue-100 dark:border-slate-800 transition-all" title="แก้ไข">
+                                    <a href="<?= base_url('science-week/staff/evaluations/edit/' . $eval['eval_id']) ?>" class="p-1.5 bg-blue-50 hover:bg-blue-600 text-blue-600 hover:text-white rounded-lg border border-blue-100 dark:border-slate-800 transition-all" title="แก้ไข">
                                         <i data-lucide="edit" class="w-4 h-4"></i>
                                     </a>
                                     <!-- Delete -->
@@ -147,7 +163,7 @@
             if (result.isConfirmed) {
                 Swal.showLoading();
 
-                fetch(`<?= base_url('staff/science-week/evaluations/delete') ?>/${id}`, {
+                fetch(`<?= base_url('science-week/staff/evaluations/delete') ?>/${id}`, {
                     method: 'GET',
                     headers: {
                         'X-Requested-With': 'XMLHttpRequest'

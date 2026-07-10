@@ -6,6 +6,7 @@ use App\Models\ScienceWeekRegistrationModel;
 use App\Models\ScienceWeekCompetitionModel;
 use App\Models\ScienceWeekScheduleModel;
 use App\Models\ScienceWeekEvaluationModel;
+use App\Models\ScienceWeekStudentStaffModel;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
@@ -91,6 +92,10 @@ class ScienceWeek extends BaseController
                 eval_year INT NULL DEFAULT 2569,
                 eval_name VARCHAR(255) NOT NULL,
                 eval_students TEXT NULL,
+                eval_gender VARCHAR(50) NULL DEFAULT NULL,
+                eval_age VARCHAR(100) NULL DEFAULT NULL,
+                eval_occupation VARCHAR(255) NULL DEFAULT NULL,
+                eval_education_level VARCHAR(255) NULL DEFAULT NULL,
                 eval_school VARCHAR(255) NULL,
                 eval_province VARCHAR(100) NULL,
                 eval_phone VARCHAR(20) NULL,
@@ -104,6 +109,18 @@ class ScienceWeek extends BaseController
             }
             if (!$db->fieldExists('eval_students', 'Tb_ScienceWeek_Evaluations')) {
                 $db->query("ALTER TABLE Tb_ScienceWeek_Evaluations ADD COLUMN eval_students TEXT NULL AFTER eval_name");
+            }
+            if (!$db->fieldExists('eval_gender', 'Tb_ScienceWeek_Evaluations')) {
+                $db->query("ALTER TABLE Tb_ScienceWeek_Evaluations ADD COLUMN eval_gender VARCHAR(50) NULL DEFAULT NULL AFTER eval_students");
+            }
+            if (!$db->fieldExists('eval_age', 'Tb_ScienceWeek_Evaluations')) {
+                $db->query("ALTER TABLE Tb_ScienceWeek_Evaluations ADD COLUMN eval_age VARCHAR(100) NULL DEFAULT NULL AFTER eval_gender");
+            }
+            if (!$db->fieldExists('eval_occupation', 'Tb_ScienceWeek_Evaluations')) {
+                $db->query("ALTER TABLE Tb_ScienceWeek_Evaluations ADD COLUMN eval_occupation VARCHAR(255) NULL DEFAULT NULL AFTER eval_age");
+            }
+            if (!$db->fieldExists('eval_education_level', 'Tb_ScienceWeek_Evaluations')) {
+                $db->query("ALTER TABLE Tb_ScienceWeek_Evaluations ADD COLUMN eval_education_level VARCHAR(255) NULL DEFAULT NULL AFTER eval_occupation");
             }
         }
     }
@@ -576,6 +593,18 @@ class ScienceWeek extends BaseController
      */
     private function canAccessCompetition(string $compName): bool
     {
+        $generalRoles = [
+            'ฝ่ายงานทั่วไป / ส่วนกลาง',
+            'ฝ่ายลงทะเบียนและประเมินผล',
+            'ฝ่ายสถานที่และโสตทัศนูปกรณ์',
+            'ฝ่ายอาหารและเครื่องดื่ม',
+            'ฝ่ายประชาสัมพันธ์และต้อนรับ',
+            'ฝ่ายจัดนิทรรศการและกิจกรรมพิเศษ'
+        ];
+        if (in_array($compName, $generalRoles)) {
+            return true;
+        }
+
         $allowed = $this->getAllowedCompetitions();
         if ($allowed === null) {
             return true; // admin เข้าถึงได้ทั้งหมด
@@ -834,7 +863,7 @@ class ScienceWeek extends BaseController
 
         // ตรวจสอบสิทธิ์ตามรายการแข่งขัน
         if (!$this->canAccessCompetition($reg['reg_competition_type'])) {
-            return redirect()->to(base_url('staff/science-week'))->with('error', 'คุณไม่มีสิทธิ์แก้ไขข้อมูลรายการแข่งขันนี้');
+            return redirect()->to(base_url('science-week/staff'))->with('error', 'คุณไม่มีสิทธิ์แก้ไขข้อมูลรายการแข่งขันนี้');
         }
 
         $comp = $this->compModel->where('comp_name', $reg['reg_competition_type'])->first();
@@ -863,7 +892,7 @@ class ScienceWeek extends BaseController
 
         // ตรวจสอบสิทธิ์ตามรายการแข่งขัน
         if (!$this->canAccessCompetition($reg['reg_competition_type'])) {
-            return redirect()->to(base_url('staff/science-week'))->with('error', 'คุณไม่มีสิทธิ์แก้ไขข้อมูลรายการแข่งขันนี้');
+            return redirect()->to(base_url('science-week/staff'))->with('error', 'คุณไม่มีสิทธิ์แก้ไขข้อมูลรายการแข่งขันนี้');
         }
 
         $rules = [
@@ -991,7 +1020,7 @@ class ScienceWeek extends BaseController
         ];
 
         if ($this->regModel->update($id, $dataUpdate)) {
-            return redirect()->to(base_url('staff/science-week'))->with('success', 'แก้ไขข้อมูลผู้สมัครสำเร็จเรียบร้อยแล้ว');
+            return redirect()->to(base_url('science-week/staff'))->with('success', 'แก้ไขข้อมูลผู้สมัครสำเร็จเรียบร้อยแล้ว');
         }
 
         return redirect()->back()->withInput()->with('error', 'เกิดข้อผิดพลาดในการบันทึกข้อมูล กรุณาลองใหม่อีกครั้ง');
@@ -1325,7 +1354,7 @@ class ScienceWeek extends BaseController
         ];
 
         if ($this->compModel->insert($dataInsert)) {
-            return redirect()->to(base_url('staff/science-week/competitions'))->with('success', 'เพิ่มประเภทการแข่งขันสำเร็จ');
+            return redirect()->to(base_url('science-week/staff/competitions'))->with('success', 'เพิ่มประเภทการแข่งขันสำเร็จ');
         }
 
         return redirect()->back()->withInput()->with('error', 'ไม่สามารถบันทึกข้อมูลได้');
@@ -1347,7 +1376,7 @@ class ScienceWeek extends BaseController
 
         // ตรวจสอบสิทธิ์ตามรายการแข่งขัน
         if (!$this->canAccessCompetition($comp['comp_name'])) {
-            return redirect()->to(base_url('staff/science-week/competitions'))->with('error', 'คุณไม่มีสิทธิ์แก้ไขรายการแข่งขันนี้');
+            return redirect()->to(base_url('science-week/staff/competitions'))->with('error', 'คุณไม่มีสิทธิ์แก้ไขรายการแข่งขันนี้');
         }
 
         $data['title'] = 'แก้ไขประเภทการแข่งขัน | งานสัปดาห์วิทยาศาสตร์';
@@ -1374,7 +1403,7 @@ class ScienceWeek extends BaseController
 
         // ตรวจสอบสิทธิ์ตามรายการแข่งขัน
         if (!$this->canAccessCompetition($comp['comp_name'])) {
-            return redirect()->to(base_url('staff/science-week/competitions'))->with('error', 'คุณไม่มีสิทธิ์แก้ไขรายการแข่งขันนี้');
+            return redirect()->to(base_url('science-week/staff/competitions'))->with('error', 'คุณไม่มีสิทธิ์แก้ไขรายการแข่งขันนี้');
         }
 
         $rules = [
@@ -1567,7 +1596,7 @@ class ScienceWeek extends BaseController
                     }
                 }
             }
-            return redirect()->to(base_url('staff/science-week/competitions'))->with('success', 'แก้ไขประเภทการแข่งขันสำเร็จ');
+            return redirect()->to(base_url('science-week/staff/competitions'))->with('success', 'แก้ไขประเภทการแข่งขันสำเร็จ');
         }
 
         return redirect()->back()->withInput()->with('error', 'ไม่สามารถแก้ไขข้อมูลได้');
@@ -1681,6 +1710,8 @@ class ScienceWeek extends BaseController
         $data['active_year'] = $activeYear;
         $data['registration_open'] = $settingsModel->getVal('science_week_registration_open') !== '0';
         $data['year_stats'] = $yearStats;
+        $data['evaluation_claim_limit'] = (int)($settingsModel->getVal('science_week_evaluation_claim_limit') ?: 20);
+        $data['evaluation_open'] = $settingsModel->getVal('science_week_evaluation_open') !== '0';
         $data['fullname'] = session()->get('u_fullname');
 
         // Settings Hub specific variables
@@ -1752,7 +1783,37 @@ class ScienceWeek extends BaseController
             $settingsModel->insert($dataRegOpen);
         }
 
-        return redirect()->to(base_url('staff/science-week/settings'))->with('success', 'บันทึกข้อมูลการตั้งค่าระบบเรียบร้อยแล้ว');
+        // 4. Save evaluation claim limit
+        $claimLimit = $this->request->getPost('evaluation_claim_limit');
+        if (!empty($claimLimit) && is_numeric($claimLimit)) {
+            $existingLimit = $settingsModel->where('s_key', 'science_week_evaluation_claim_limit')->first();
+            $dataLimit = [
+                's_key' => 'science_week_evaluation_claim_limit',
+                's_value' => (int)$claimLimit,
+                's_description' => 'จำนวนรายชื่อที่สามารถเคลมเกียรติบัตรการเข้าร่วมจากการประเมินได้สูงสุดต่อครั้ง'
+            ];
+            if ($existingLimit) {
+                $settingsModel->update($existingLimit['s_id'], $dataLimit);
+            } else {
+                $settingsModel->insert($dataLimit);
+            }
+        }
+
+        // 5. Save evaluation open status
+        $evalOpenVal = $this->request->getPost('evaluation_open') === '1' ? '1' : '0';
+        $existingEvalOpen = $settingsModel->where('s_key', 'science_week_evaluation_open')->first();
+        $dataEvalOpen = [
+            's_key' => 'science_week_evaluation_open',
+            's_value' => $evalOpenVal,
+            's_description' => 'สถานะการเปิดทำแบบประเมินความพึงพอใจ (1 = เปิด, 0 = ปิด)'
+        ];
+        if ($existingEvalOpen) {
+            $settingsModel->update($existingEvalOpen['s_id'], $dataEvalOpen);
+        } else {
+            $settingsModel->insert($dataEvalOpen);
+        }
+
+        return redirect()->to(base_url('science-week/staff/settings'))->with('success', 'บันทึกข้อมูลการตั้งค่าระบบเรียบร้อยแล้ว');
     }
 
     /**
@@ -1821,7 +1882,7 @@ class ScienceWeek extends BaseController
         ];
 
         if ($this->schModel->insert($dataInsert)) {
-            return redirect()->to(base_url('staff/science-week/schedules'))->with('success', 'เพิ่มกำหนดการเรียบร้อยแล้ว');
+            return redirect()->to(base_url('science-week/staff/schedules'))->with('success', 'เพิ่มกำหนดการเรียบร้อยแล้ว');
         }
 
         return redirect()->back()->withInput()->with('error', 'ไม่สามารถบันทึกข้อมูลได้');
@@ -1874,7 +1935,7 @@ class ScienceWeek extends BaseController
         ];
 
         if ($this->schModel->update($id, $dataUpdate)) {
-            return redirect()->to(base_url('staff/science-week/schedules'))->with('success', 'แก้ไขกำหนดการเรียบร้อยแล้ว');
+            return redirect()->to(base_url('science-week/staff/schedules'))->with('success', 'แก้ไขกำหนดการเรียบร้อยแล้ว');
         }
 
         return redirect()->back()->withInput()->with('error', 'ไม่สามารถแก้ไขข้อมูลได้');
@@ -2090,11 +2151,13 @@ class ScienceWeek extends BaseController
         $compConfigJson = $settingsModel->getVal('science_week_cert_competition_config');
         $trainerConfigJson = $settingsModel->getVal('science_week_cert_trainer_config');
         $evalConfigJson = $settingsModel->getVal('science_week_cert_evaluation_config');
+        $studentStaffConfigJson = $settingsModel->getVal('science_week_cert_student_staff_config');
 
         $data['title'] = 'ตั้งค่าการออกเกียรติบัตร | งานสัปดาห์วิทยาศาสตร์';
         $data['comp_config'] = $compConfigJson ? json_decode($compConfigJson, true) : [];
         $data['trainer_config'] = $trainerConfigJson ? json_decode($trainerConfigJson, true) : [];
         $data['eval_config'] = $evalConfigJson ? json_decode($evalConfigJson, true) : [];
+        $data['student_staff_config'] = $studentStaffConfigJson ? json_decode($studentStaffConfigJson, true) : [];
 
         return view('science_week/admin_certificates', $data);
     }
@@ -2110,7 +2173,7 @@ class ScienceWeek extends BaseController
         }
 
         $type = $this->request->getPost('cert_type');
-        if (!in_array($type, ['competition', 'trainer', 'evaluation'])) {
+        if (!in_array($type, ['competition', 'trainer', 'evaluation', 'student_staff'])) {
             return $this->response->setJSON(['status' => 'error', 'message' => 'ประเภทเกียรติบัตรไม่ถูกต้อง']);
         }
 
@@ -2158,7 +2221,7 @@ class ScienceWeek extends BaseController
         }
 
         // Handle Fields Coordinates
-        $fields = ($type === 'competition' || $type === 'trainer')
+        $fields = ($type === 'competition' || $type === 'trainer' || $type === 'student_staff')
             ? ['name', 'school', 'level', 'comp', 'rank', 'code']
             : ['name', 'text', 'date', 'code'];
 
@@ -2282,7 +2345,7 @@ class ScienceWeek extends BaseController
 
     public function downloadCertificate($type, $code)
     {
-        if (!in_array($type, ['competition', 'trainer', 'evaluation'])) {
+        if (!in_array($type, ['competition', 'trainer', 'evaluation', 'student_staff'])) {
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('ประเภทเกียรติบัตรไม่ถูกต้อง');
         }
 
@@ -2308,64 +2371,80 @@ class ScienceWeek extends BaseController
         $certCode = $code;
         $dateText = '';
 
-        if ($type === 'competition' || $type === 'trainer') {
+        if ($type === 'competition' || $type === 'trainer' || $type === 'student_staff') {
             if ($code === 'demo') {
-                $recipientName = $this->request->getGet('name') ?: ($type === 'trainer' ? 'ครูสมหญิง ฝึกซ้อมดี' : 'นายสมศักดิ์ รักดี');
-                $schoolName = 'โรงเรียนตัวอย่างวิทยาคม จังหวัดนครสวรรค์';
-                $levelName = 'ระดับมัธยมศึกษาตอนต้น';
-                $compName = 'การแข่งขันจรวดขวดน้ำประเภทสร้างสรรค์';
-                $certCode = 'SW-COMP-DEMO';
+                $recipientName = $this->request->getGet('name') ?: ($type === 'trainer' ? 'ครูสมหญิง ฝึกซ้อมดี' : ($type === 'student_staff' ? 'นายสมบัติ ทำดี' : 'นายสมศักดิ์ รักดี'));
+                $schoolName = ($type === 'student_staff') ? 'โรงเรียนองค์การบริหารส่วนจังหวัดเชียงราย' : 'โรงเรียนตัวอย่างวิทยาคม จังหวัดนครสวรรค์';
+                $levelName = ($type === 'student_staff') ? 'ชั้นมัธยมศึกษาปีที่ 5/1' : 'ระดับมัธยมศึกษาตอนต้น';
+                $compName = ($type === 'student_staff') ? 'กิจกรรมประกวดภาพยนตร์สั้นวิทยาศาสตร์' : 'การแข่งขันจรวดขวดน้ำประเภทสร้างสรรค์';
+                $certCode = ($type === 'student_staff') ? 'SW-STAFF-DEMO' : 'SW-COMP-DEMO';
                 if ($type === 'trainer') {
                     $rankName = 'ผู้ควบคุมทีม ที่ได้รับรางวัลชนะเลิศ';
+                } elseif ($type === 'student_staff') {
+                    $rankName = 'ได้ปฏิบัติหน้าที่ คณะกรรมการดำเนินงานนักเรียนช่วยงาน';
                 } else {
                     $rankName = 'ได้รับรางวัลชนะเลิศ';
                 }
             } else {
-                $reg = $this->regModel->where('reg_code', $code)->whereIn('reg_status', ['approved', 'approved_reserve'])->first();
-                if (!$reg) {
-                    throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('ไม่พบรหัสผู้สมัคร หรือใบสมัครยังไม่ได้รับการอนุมัติ');
-                }
-
-                // Get selected name from query parameter
-                $selectedName = $this->request->getGet('name');
-                if (!empty($selectedName)) {
-                    $recipientName = trim($selectedName);
+                if ($type === 'student_staff') {
+                    $staffModel = new ScienceWeekStudentStaffModel();
+                    $st = $staffModel->find($code);
+                    if (!$st) {
+                        throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('ไม่พบรหัสผู้ช่วยงาน');
+                    }
+                    $recipientName = $st['staff_prefix'] . $st['staff_firstname'] . ' ' . $st['staff_lastname'];
+                    $schoolName = 'โรงเรียนองค์การบริหารส่วนจังหวัดเชียงราย';
+                    $levelName = 'ชั้น' . $st['staff_class'];
+                    $compName = $st['staff_competition_type'];
+                    $certCode = 'SW-ST-' . str_pad($st['staff_id'], 4, '0', STR_PAD_LEFT);
+                    $rankName = 'ได้ปฏิบัติหน้าที่ คณะกรรมการดำเนินงานนักเรียนช่วยงาน';
                 } else {
-                    if ($type === 'trainer') {
-                        $advisors = json_decode($reg['reg_advisors'], true) ?: [];
-                        $recipientName = !empty($advisors) ? $advisors[0] : '';
+                    $reg = $this->regModel->where('reg_code', $code)->whereIn('reg_status', ['approved', 'approved_reserve'])->first();
+                    if (!$reg) {
+                        throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('ไม่พบรหัสผู้สมัคร หรือใบสมัครยังไม่ได้รับการอนุมัติ');
+                    }
+
+                    // Get selected name from query parameter
+                    $selectedName = $this->request->getGet('name');
+                    if (!empty($selectedName)) {
+                        $recipientName = trim($selectedName);
                     } else {
-                        $membersRaw = json_decode($reg['reg_members'], true) ?: [];
-                        $firstMember = !empty($membersRaw) ? $membersRaw[0] : '';
-                        if (is_array($firstMember)) {
-                            $prefix = trim($firstMember['prefix'] ?? '');
-                            $name = trim($firstMember['name'] ?? '');
-                            $recipientName = ($prefix !== '' ? $prefix . ' ' : '') . $name;
+                        if ($type === 'trainer') {
+                            $advisors = json_decode($reg['reg_advisors'], true) ?: [];
+                            $recipientName = !empty($advisors) ? $advisors[0] : '';
                         } else {
-                            $recipientName = $firstMember;
+                            $membersRaw = json_decode($reg['reg_members'], true) ?: [];
+                            $firstMember = !empty($membersRaw) ? $membersRaw[0] : '';
+                            if (is_array($firstMember)) {
+                                $prefix = trim($firstMember['prefix'] ?? '');
+                                $name = trim($firstMember['name'] ?? '');
+                                $recipientName = ($prefix !== '' ? $prefix . ' ' : '') . $name;
+                            } else {
+                                $recipientName = $firstMember;
+                            }
                         }
                     }
-                }
 
-                $schoolName = $reg['reg_school_name'] ? "โรงเรียน{$reg['reg_school_name']}" : '';
-                if (!empty($reg['reg_school_province']) && $reg['reg_school_province'] !== '-') {
-                    $schoolName .= " จังหวัด{$reg['reg_school_province']}";
-                }
-
-                $levelName = $reg['reg_level'] ?? '';
-                $compName = $reg['reg_competition_type'];
-                
-                if ($type === 'trainer') {
-                    if (!empty($reg['reg_rank'])) {
-                        $rankName = "ผู้ควบคุมทีม ที่ได้รับ" . $reg['reg_rank'];
-                    } else {
-                        $rankName = "ผู้ควบคุมทีม ที่เข้าร่วมการแข่งขัน";
+                    $schoolName = $reg['reg_school_name'] ? "โรงเรียน{$reg['reg_school_name']}" : '';
+                    if (!empty($reg['reg_school_province']) && $reg['reg_school_province'] !== '-') {
+                        $schoolName .= " จังหวัด{$reg['reg_school_province']}";
                     }
-                } else {
-                    if (!empty($reg['reg_rank'])) {
-                        $rankName = "ได้รับ" . $reg['reg_rank'];
+
+                    $levelName = $reg['reg_level'] ?? '';
+                    $compName = $reg['reg_competition_type'];
+                    
+                    if ($type === 'trainer') {
+                        if (!empty($reg['reg_rank'])) {
+                            $rankName = "ผู้ควบคุมทีม ที่ได้รับ" . $reg['reg_rank'];
+                        } else {
+                            $rankName = "ผู้ควบคุมทีม ที่เข้าร่วมการแข่งขัน";
+                        }
                     } else {
-                        $rankName = "ได้เข้าร่วมการประกวดและแข่งขัน";
+                        if (!empty($reg['reg_rank'])) {
+                            $rankName = "ได้รับ" . $reg['reg_rank'];
+                        } else {
+                            $rankName = "ได้เข้าร่วมการประกวดและแข่งขัน";
+                        }
                     }
                 }
             }
@@ -2405,7 +2484,7 @@ class ScienceWeek extends BaseController
         } elseif (strpos($mime, 'jpeg') !== false || strpos($mime, 'jpg') !== false) {
             $image = imagecreatefromjpeg($filePath);
         } else {
-            return $this->response->setBody('รองรับเฉพาะไฟล์รูปภาพ PNG หรือ JPEG เท่านั้น')->setStatusCode(400);
+            $image = null;
         }
 
         if (!$image) {
@@ -2429,7 +2508,7 @@ class ScienceWeek extends BaseController
         }
 
         // Draw Text Elements
-        if ($type === 'competition' || $type === 'trainer') {
+        if ($type === 'competition' || $type === 'trainer' || $type === 'student_staff') {
             $drawFields = [
                 'name' => $recipientName,
                 'school' => $schoolName,
@@ -2728,9 +2807,11 @@ class ScienceWeek extends BaseController
             'title' => 'แบบประเมินความพึงพอใจ',
             'subtitle' => 'ร่วมประเมินการจัดกิจกรรมสัปดาห์วิทยาศาสตร์เพื่อรับเกียรติบัตรเข้าร่วมกิจกรรม',
             'fields' => [
-                ['key' => 'phone', 'label' => 'เบอร์โทรศัพท์ติดต่อ', 'placeholder' => '08XXXXXXXX', 'required' => true, 'type' => 'tel'],
-                ['key' => 'school', 'label' => 'สถานศึกษา / สังกัด', 'placeholder' => 'โรงเรียนสวนกุหลาบวิทยาลัย (จิรประวัติ) นครสวรรค์', 'required' => false, 'type' => 'text'],
-                ['key' => 'province', 'label' => 'จังหวัด', 'placeholder' => 'นครสวรรค์', 'required' => false, 'type' => 'text']
+                ['key' => 'gender', 'label' => 'เพศ', 'placeholder' => 'ชาย / หญิง', 'required' => true, 'type' => 'text'],
+                ['key' => 'age', 'label' => 'อายุ', 'placeholder' => 'เช่น 16 - 25 ปี', 'required' => true, 'type' => 'text'],
+                ['key' => 'occupation', 'label' => 'อาชีพ', 'placeholder' => 'เช่น ครู บุคลากรทางการศึกษา', 'required' => true, 'type' => 'text'],
+                ['key' => 'education_level', 'label' => 'ระดับการศึกษา', 'placeholder' => 'เช่น ปริญญาตรี', 'required' => true, 'type' => 'text'],
+                ['key' => 'province', 'label' => 'จังหวัด', 'placeholder' => 'นครสวรรค์', 'required' => true, 'type' => 'text']
             ],
             'questions' => [
                 ['key' => 'q1', 'label' => 'ด้านการประชาสัมพันธ์ข้อมูลกิจกรรมและการรับสมัครแข่งขัน'],
@@ -2748,6 +2829,13 @@ class ScienceWeek extends BaseController
      */
     public function publicEvaluation()
     {
+        $settingsModel = new \App\Models\SettingsModel();
+        $evaluationOpen = $settingsModel->getVal('science_week_evaluation_open') !== '0';
+        if (!$evaluationOpen) {
+            $data['title'] = 'ระบบแบบประเมินปิดชั่วคราว | งานสัปดาห์วิทยาศาสตร์';
+            return view('science_week/evaluation_closed', $data);
+        }
+
         $data['title'] = 'แบบประเมินความพึงพอใจ | งานสัปดาห์วิทยาศาสตร์';
         $data['form_config'] = $this->getEvaluationConfig();
         return view('science_week/evaluation_form', $data);
@@ -2758,22 +2846,25 @@ class ScienceWeek extends BaseController
      */
     public function storeEvaluation()
     {
+        $settingsModel = new \App\Models\SettingsModel();
+        $evaluationOpen = $settingsModel->getVal('science_week_evaluation_open') !== '0';
+        if (!$evaluationOpen) {
+            return $this->response->setJSON([
+                'status' => 'error',
+                'message' => 'ระบบประเมินความพึงพอใจปิดให้บริการชั่วคราว'
+            ]);
+        }
+
         $config = $this->getEvaluationConfig();
 
-        // สร้างกฎการตรวจสอบความถูกต้องแบบไดนามิก
+        // กฎการตรวจสอบข้อมูลทั่วไป (ส่วนที่ 1)
         $rules = [
-            'student_names' => 'required',
+            'gender'          => 'required',
+            'age'             => 'required',
+            'occupation'      => 'required',
+            'education_level' => 'required',
+            'province'        => 'required'
         ];
-
-        foreach ($config['fields'] as $field) {
-            $ruleStr = $field['required'] ? 'required' : 'permit_empty';
-            if ($field['type'] === 'tel') {
-                $ruleStr .= '|min_length[9]|max_length[20]';
-            } else {
-                $ruleStr .= '|max_length[255]';
-            }
-            $rules["fields.{$field['key']}"] = $ruleStr;
-        }
 
         foreach ($config['questions'] as $q) {
             $rules["ratings.{$q['key']}"] = 'required|integer|greater_than_equal_to[1]|less_than_equal_to[5]';
@@ -2786,30 +2877,17 @@ class ScienceWeek extends BaseController
             ]);
         }
 
-        $studentNamesRaw = $this->request->getPost('student_names') ?: [];
-        $studentNames = [];
-        foreach ($studentNamesRaw as $sName) {
-            $trimmed = trim($sName);
-            if ($trimmed !== '') {
-                $studentNames[] = $trimmed;
+        $gender = $this->request->getPost('gender');
+        $age = $this->request->getPost('age');
+        $occupation = $this->request->getPost('occupation');
+        if ($occupation === 'อื่นๆ' || $occupation === 'อื่น ๆ') {
+            $occupationOther = $this->request->getPost('occupation_other');
+            if (!empty($occupationOther)) {
+                $occupation = 'อื่นๆ (' . trim($occupationOther) . ')';
             }
         }
-
-        if (empty($studentNames)) {
-            return $this->response->setJSON([
-                'status' => 'error',
-                'message' => 'กรุณากรอกรายชื่อผู้รับเกียรติบัตรอย่างน้อย 1 คน'
-            ]);
-        }
-
-        $fullname = $studentNames[0];
-        
-        // ดึงข้อมูลฟิลด์ไดนามิก
-        $fieldsPost = $this->request->getPost('fields') ?: [];
-        $extractedFields = [];
-        foreach ($config['fields'] as $field) {
-            $extractedFields[$field['key']] = trim($fieldsPost[$field['key']] ?? '');
-        }
+        $educationLevel = $this->request->getPost('education_level');
+        $provinceVal = trim($this->request->getPost('province'));
 
         // ดึงคะแนนการประเมิน
         $ratingsPost = $this->request->getPost('ratings') ?: [];
@@ -2820,62 +2898,129 @@ class ScienceWeek extends BaseController
 
         $comments = trim($this->request->getPost('comments')) ?: '';
 
-        // ค้นหาฟิลด์โทรศัพท์ โรงเรียน และจังหวัดเพื่อเก็บลงคอลัมน์หลักสำหรับค้นหาหลังบ้าน
-        $phoneVal = $extractedFields['phone'] ?? $extractedFields['eval_phone'] ?? $extractedFields['tel'] ?? '-';
-        if (empty($phoneVal) || $phoneVal === '-') {
-            foreach ($extractedFields as $k => $v) {
-                if (strpos($k, 'phone') !== false || strpos($k, 'tel') !== false) {
-                    $phoneVal = $v;
-                    break;
-                }
-            }
-        }
-
-        $schoolVal = $extractedFields['school'] ?? $extractedFields['eval_school'] ?? '-';
-        if (empty($schoolVal) || $schoolVal === '-') {
-            foreach ($extractedFields as $k => $v) {
-                if (strpos($k, 'school') !== false || strpos($k, 'academy') !== false) {
-                    $schoolVal = $v;
-                    break;
-                }
-            }
-        }
-
-        $provinceVal = $extractedFields['province'] ?? $extractedFields['eval_province'] ?? '-';
-        if (empty($provinceVal) || $provinceVal === '-') {
-            foreach ($extractedFields as $k => $v) {
-                if (strpos($k, 'province') !== false || strpos($k, 'city') !== false) {
-                    $provinceVal = $v;
-                    break;
-                }
-            }
-        }
-
         $feedbackData = [
             'ratings' => $extractedRatings,
             'comments' => $comments,
-            'custom_fields' => $extractedFields
+            'custom_fields' => [
+                'gender' => $gender,
+                'age' => $age,
+                'occupation' => $occupation,
+                'education_level' => $educationLevel,
+                'province' => $provinceVal
+            ]
         ];
 
         $activeYear = $this->getActiveYear();
         $evalCode = $this->evalModel->generateEvaluationCode();
 
         $dataInsert = [
-            'eval_year'       => $activeYear,
-            'eval_name'       => $fullname,
-            'eval_students'   => json_encode($studentNames, JSON_UNESCAPED_UNICODE),
-            'eval_school'     => $schoolVal,
-            'eval_province'   => $provinceVal,
-            'eval_phone'      => $phoneVal,
-            'eval_feedback'   => json_encode($feedbackData, JSON_UNESCAPED_UNICODE),
-            'eval_code'       => $evalCode,
-            'eval_created_at' => date('Y-m-d H:i:s')
+            'eval_year'            => $activeYear,
+            'eval_name'            => 'ผู้ประเมินทั่วไป',
+            'eval_students'        => null,
+            'eval_gender'          => $gender,
+            'eval_age'             => $age,
+            'eval_occupation'      => $occupation,
+            'eval_education_level' => $educationLevel,
+            'eval_school'          => null,
+            'eval_province'        => $provinceVal,
+            'eval_phone'           => null,
+            'eval_feedback'        => json_encode($feedbackData, JSON_UNESCAPED_UNICODE),
+            'eval_code'            => $evalCode,
+            'eval_created_at'      => date('Y-m-d H:i:s')
         ];
 
         if ($this->evalModel->insert($dataInsert)) {
             return $this->response->setJSON([
                 'status' => 'success',
                 'message' => 'บันทึกข้อมูลแบบประเมินเรียบร้อยแล้ว',
+                'eval_code' => $evalCode
+            ]);
+        } else {
+            return $this->response->setJSON([
+                'status' => 'error',
+                'message' => 'ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่อีกครั้ง'
+            ]);
+        }
+    }
+
+    /**
+     * หน้ากรอกชื่อผู้ลงชื่อเข้างาน / ผู้รับเกียรติบัตร (ขั้นตอนที่ 2)
+     */
+    public function claimCertificateForm($evalCode)
+    {
+        $eval = $this->evalModel->where('eval_code', $evalCode)->first();
+        if (!$eval) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('ไม่พบข้อมูลแบบประเมินนี้');
+        }
+
+        $settingsModel = new \App\Models\SettingsModel();
+        $claimLimit = (int)($settingsModel->getVal('science_week_evaluation_claim_limit') ?: 20);
+
+        $data['title'] = 'ข้อมูลผู้ลงชื่อเข้างาน / ผู้รับเกียรติบัตร | งานสัปดาห์วิทยาศาสตร์';
+        $data['eval'] = $eval;
+        $data['claim_limit'] = $claimLimit;
+        return view('science_week/claim_certificate_form', $data);
+    }
+
+    /**
+     * บันทึกชื่อผู้ลงชื่อเข้างาน / ผู้รับเกียรติบัตร (AJAX)
+     */
+    public function storeClaimCertificate($evalCode)
+    {
+        $eval = $this->evalModel->where('eval_code', $evalCode)->first();
+        if (!$eval) {
+            return $this->response->setJSON([
+                'status' => 'error',
+                'message' => 'ไม่พบข้อมูลแบบประเมินนี้'
+            ]);
+        }
+
+        $rules = [
+            'eval_name' => 'required',
+        ];
+
+        if (!$this->validate($rules)) {
+            return $this->response->setJSON([
+                'status' => 'error',
+                'message' => 'กรุณากรอกชื่อ-นามสกุลผู้เข้างานหลัก'
+            ]);
+        }
+
+        $primaryName = trim($this->request->getPost('eval_name'));
+        $phone = trim($this->request->getPost('eval_phone') ?: '');
+        $school = trim($this->request->getPost('eval_school') ?: '');
+
+        $studentNamesRaw = $this->request->getPost('student_names') ?: [];
+        $studentNames = [];
+        $studentNames[] = $primaryName; // The main visitor also gets a certificate
+
+        foreach ($studentNamesRaw as $sName) {
+            $trimmed = trim($sName);
+            if ($trimmed !== '') {
+                $studentNames[] = $trimmed;
+            }
+        }
+
+        $settingsModel = new \App\Models\SettingsModel();
+        $claimLimit = (int)($settingsModel->getVal('science_week_evaluation_claim_limit') ?: 20);
+        if (count($studentNames) > $claimLimit) {
+            return $this->response->setJSON([
+                'status' => 'error',
+                'message' => 'สามารถเคลมเกียรติบัตรได้สูงสุด ' . $claimLimit . ' คน (รวมผู้เข้างานหลัก)'
+            ]);
+        }
+
+        $dataUpdate = [
+            'eval_name'     => $primaryName,
+            'eval_phone'    => !empty($phone) ? $phone : null,
+            'eval_school'   => !empty($school) ? $school : null,
+            'eval_students' => json_encode($studentNames, JSON_UNESCAPED_UNICODE)
+        ];
+
+        if ($this->evalModel->update($eval['eval_id'], $dataUpdate)) {
+            return $this->response->setJSON([
+                'status' => 'success',
+                'message' => 'บันทึกรายชื่อผู้รับเกียรติบัตรสำเร็จ!',
                 'eval_code' => $evalCode
             ]);
         } else {
@@ -2903,10 +3048,15 @@ class ScienceWeek extends BaseController
         if (!empty($searchTerm)) {
             $query = $query->groupStart()
                 ->like('eval_name', $searchTerm)
+                ->orLike('eval_students', $searchTerm)
                 ->orLike('eval_school', $searchTerm)
                 ->orLike('eval_province', $searchTerm)
                 ->orLike('eval_phone', $searchTerm)
                 ->orLike('eval_code', $searchTerm)
+                ->orLike('eval_gender', $searchTerm)
+                ->orLike('eval_age', $searchTerm)
+                ->orLike('eval_occupation', $searchTerm)
+                ->orLike('eval_education_level', $searchTerm)
                 ->groupEnd();
         }
 
@@ -3005,7 +3155,7 @@ class ScienceWeek extends BaseController
             $settingsModel->insert($dataSave);
         }
 
-        return redirect()->to(base_url('staff/science-week/evaluations'))->with('success', 'บันทึกการตั้งค่าโครงสร้างฟอร์มประเมินเรียบร้อยแล้ว');
+        return redirect()->to(base_url('science-week/staff/evaluations'))->with('success', 'บันทึกการตั้งค่าโครงสร้างฟอร์มประเมินเรียบร้อยแล้ว');
     }
 
     /**
@@ -3019,7 +3169,7 @@ class ScienceWeek extends BaseController
 
         $eval = $this->evalModel->find($id);
         if (!$eval) {
-            return redirect()->to(base_url('staff/science-week/evaluations'))->with('error', 'ไม่พบข้อมูลแบบประเมิน');
+            return redirect()->to(base_url('science-week/staff/evaluations'))->with('error', 'ไม่พบข้อมูลแบบประเมิน');
         }
 
         // แกะข้อมูล JSON ของประเด็นตอบกลับ
@@ -3047,7 +3197,7 @@ class ScienceWeek extends BaseController
 
         $eval = $this->evalModel->find($id);
         if (!$eval) {
-            return redirect()->to(base_url('staff/science-week/evaluations'))->with('error', 'ไม่พบข้อมูลแบบประเมิน');
+            return redirect()->to(base_url('science-week/staff/evaluations'))->with('error', 'ไม่พบข้อมูลแบบประเมิน');
         }
 
         $config = $this->getEvaluationConfig();
@@ -3140,17 +3290,26 @@ class ScienceWeek extends BaseController
             'custom_fields' => $extractedFields
         ];
 
+        $gender = $extractedFields['gender'] ?? null;
+        $age = $extractedFields['age'] ?? null;
+        $occupation = $extractedFields['occupation'] ?? null;
+        $educationLevel = $extractedFields['education_level'] ?? null;
+
         $dataUpdate = [
-            'eval_name'     => $fullname,
-            'eval_students' => json_encode($studentNames, JSON_UNESCAPED_UNICODE),
-            'eval_school'   => $schoolVal,
-            'eval_province' => $provinceVal,
-            'eval_phone'    => $phoneVal,
-            'eval_feedback' => json_encode($feedbackData, JSON_UNESCAPED_UNICODE)
+            'eval_name'            => $fullname,
+            'eval_students'        => json_encode($studentNames, JSON_UNESCAPED_UNICODE),
+            'eval_gender'          => $gender,
+            'eval_age'             => $age,
+            'eval_occupation'      => $occupation,
+            'eval_education_level' => $educationLevel,
+            'eval_school'          => $schoolVal,
+            'eval_province'        => $provinceVal,
+            'eval_phone'           => $phoneVal,
+            'eval_feedback'        => json_encode($feedbackData, JSON_UNESCAPED_UNICODE)
         ];
 
         if ($this->evalModel->update($id, $dataUpdate)) {
-            return redirect()->to(base_url('staff/science-week/evaluations'))->with('success', 'อัปเดตข้อมูลผู้ประเมินเรียบร้อยแล้ว');
+            return redirect()->to(base_url('science-week/staff/evaluations'))->with('success', 'อัปเดตข้อมูลผู้ประเมินเรียบร้อยแล้ว');
         } else {
             return redirect()->back()->withInput()->with('error', 'ไม่สามารถอัปเดตข้อมูลได้ กรุณาลองใหม่อีกครั้ง');
         }
@@ -3465,5 +3624,242 @@ class ScienceWeek extends BaseController
         imagedestroy($dst);
         return true;
     }
+
+    /**
+     * ระบบจัดการนักเรียนช่วยงาน (Student Staff)
+     */
+    public function studentStaffIndex()
+    {
+        $access = $this->checkAccess();
+        if ($access !== true)
+            return $access;
+
+        $selectedYear = $this->getSelectedYear();
+        $searchTerm = $this->request->getGet('search');
+        $compType = $this->request->getGet('competition_type');
+
+        $staffModel = new ScienceWeekStudentStaffModel();
+        $query = $staffModel->where('staff_year', $selectedYear);
+
+        // Filter based on allowed competitions
+        $allowedComps = $this->getAllowedCompetitions();
+        if ($allowedComps !== null && !empty($allowedComps)) {
+            $generalRoles = [
+                'ฝ่ายงานทั่วไป / ส่วนกลาง',
+                'ฝ่ายลงทะเบียนและประเมินผล',
+                'ฝ่ายสถานที่และโสตทัศนูปกรณ์',
+                'ฝ่ายอาหารและเครื่องดื่ม',
+                'ฝ่ายประชาสัมพันธ์และต้อนรับ',
+                'ฝ่ายจัดนิทรรศการและกิจกรรมพิเศษ'
+            ];
+            $viewableRoles = array_merge($allowedComps, $generalRoles);
+            $query = $query->whereIn('staff_competition_type', $viewableRoles);
+        }
+
+        if (!empty($searchTerm)) {
+            $query = $query->groupStart()
+                ->like('staff_firstname', $searchTerm)
+                ->orLike('staff_lastname', $searchTerm)
+                ->orLike('staff_class', $searchTerm)
+                ->groupEnd();
+        }
+
+        if (!empty($compType)) {
+            $query = $query->where('staff_competition_type', $compType);
+        }
+
+        // Fetch competitions for dropdown selector
+        $allComps = $this->compModel->where('comp_year', $selectedYear)->orderBy('comp_id', 'ASC')->findAll();
+        if ($allowedComps !== null && !empty($allowedComps)) {
+            $allComps = array_values(array_filter($allComps, fn($c) => in_array($c['comp_name'], $allowedComps)));
+        }
+
+        $data['title'] = "จัดการรายชื่อนักเรียนช่วยงาน | อบจ.นครสวรรค์";
+        $data['student_staff'] = $query->orderBy('staff_created_at', 'DESC')->findAll();
+        $data['search'] = $searchTerm;
+        $data['compType_active'] = $compType;
+        $data['competitions'] = $allComps;
+        $data['selected_year'] = $selectedYear;
+        $data['fullname'] = session()->get('u_fullname');
+
+        return view('science_week/student_staff_index', $data);
+    }
+
+    public function studentStaffStore()
+    {
+        $access = $this->checkAccess();
+        if ($access !== true)
+            return $this->response->setStatusCode(403)->setJSON(['status' => 'error', 'message' => 'Unauthorized']);
+
+        $compType = $this->request->getPost('staff_competition_type');
+        if (empty($compType)) {
+            return $this->response->setJSON(['status' => 'error', 'message' => 'กรุณาเลือกรายการแข่งขัน']);
+        }
+
+        // Check if user has permission to manage student staff for this competition
+        if (!$this->canAccessCompetition($compType)) {
+            return $this->response->setStatusCode(403)->setJSON(['status' => 'error', 'message' => 'คุณไม่มีสิทธิ์จัดการข้อมูลรายการแข่งขันนี้']);
+        }
+
+        $staffList = $this->request->getPost('staff');
+        if (empty($staffList) || !is_array($staffList)) {
+            return $this->response->setJSON(['status' => 'error', 'message' => 'กรุณากรอกข้อมูลนักเรียนช่วยงานอย่างน้อย 1 คน']);
+        }
+
+        $staffModel = new ScienceWeekStudentStaffModel();
+        $selectedYear = $this->getSelectedYear();
+        $userId = session()->get('u_id');
+
+        $insertedCount = 0;
+        foreach ($staffList as $row) {
+            $prefix    = trim($row['prefix'] ?? '');
+            $firstname = trim($row['firstname'] ?? '');
+            $lastname  = trim($row['lastname'] ?? '');
+            $class     = trim($row['class'] ?? '');
+
+            if ($prefix === '' || $firstname === '' || $lastname === '' || $class === '') {
+                continue; // skip incomplete rows
+            }
+
+            $dataInsert = [
+                'staff_year'             => $selectedYear,
+                'staff_competition_type' => $compType,
+                'staff_prefix'           => $prefix,
+                'staff_firstname'        => $firstname,
+                'staff_lastname'         => $lastname,
+                'staff_class'            => $class,
+                'staff_created_by'       => $userId
+            ];
+            $staffModel->insert($dataInsert);
+            $insertedCount++;
+        }
+
+        if ($insertedCount > 0) {
+            return $this->response->setJSON(['status' => 'success', 'message' => "เพิ่มข้อมูลนักเรียนช่วยงานสำเร็จ {$insertedCount} คน"]);
+        }
+
+        return $this->response->setJSON(['status' => 'error', 'message' => 'ไม่พบข้อมูลที่สมบูรณ์เพื่อบันทึก']);
+    }
+
+    public function studentStaffUpdate($id)
+    {
+        $access = $this->checkAccess();
+        if ($access !== true)
+            return $this->response->setStatusCode(403)->setJSON(['status' => 'error', 'message' => 'Unauthorized']);
+
+        $staffModel = new ScienceWeekStudentStaffModel();
+        $staff = $staffModel->find($id);
+        if (!$staff) {
+            return $this->response->setJSON(['status' => 'error', 'message' => 'ไม่พบข้อมูลที่ต้องการแก้ไข']);
+        }
+
+        // Check original competition access
+        if (!$this->canAccessCompetition($staff['staff_competition_type'])) {
+            return $this->response->setStatusCode(403)->setJSON(['status' => 'error', 'message' => 'คุณไม่มีสิทธิ์จัดการข้อมูลรายการแข่งขันนี้']);
+        }
+
+        $newCompType = $this->request->getPost('staff_competition_type');
+        if (empty($newCompType)) {
+            return $this->response->setJSON(['status' => 'error', 'message' => 'กรุณาเลือกรายการแข่งขัน']);
+        }
+
+        // Check new competition access
+        if (!$this->canAccessCompetition($newCompType)) {
+            return $this->response->setStatusCode(403)->setJSON(['status' => 'error', 'message' => 'คุณไม่มีสิทธิ์จัดการข้อมูลรายการแข่งขันใหม่นี้']);
+        }
+
+        $staffList = $this->request->getPost('staff');
+        $row = is_array($staffList) ? reset($staffList) : null;
+
+        if (!$row || empty($row['firstname']) || empty($row['lastname']) || empty($row['prefix']) || empty($row['class'])) {
+            return $this->response->setJSON(['status' => 'error', 'message' => 'กรุณากรอกข้อมูลให้ครบถ้วน']);
+        }
+
+        $dataUpdate = [
+            'staff_competition_type' => $newCompType,
+            'staff_prefix'           => trim($row['prefix']),
+            'staff_firstname'        => trim($row['firstname']),
+            'staff_lastname'         => trim($row['lastname']),
+            'staff_class'            => trim($row['class'])
+        ];
+
+        if ($staffModel->update($id, $dataUpdate)) {
+            return $this->response->setJSON(['status' => 'success', 'message' => 'อัปเดตข้อมูลนักเรียนช่วยงานสำเร็จแล้ว']);
+        }
+
+        return $this->response->setJSON(['status' => 'error', 'message' => 'เกิดข้อผิดพลาดในการบันทึกข้อมูล']);
+    }
+
+    public function studentStaffDelete($id)
+    {
+        $access = $this->checkAccess();
+        if ($access !== true)
+            return $this->response->setStatusCode(403)->setJSON(['status' => 'error', 'message' => 'Unauthorized']);
+
+        $staffModel = new ScienceWeekStudentStaffModel();
+        $staff = $staffModel->find($id);
+        if (!$staff) {
+            return $this->response->setJSON(['status' => 'error', 'message' => 'ไม่พบข้อมูลที่ต้องการลบ']);
+        }
+
+        // Check competition access
+        if (!$this->canAccessCompetition($staff['staff_competition_type'])) {
+            return $this->response->setStatusCode(403)->setJSON(['status' => 'error', 'message' => 'คุณไม่มีสิทธิ์จัดการข้อมูลรายการแข่งขันนี้']);
+        }
+
+        if ($staffModel->delete($id)) {
+            return $this->response->setJSON(['status' => 'success', 'message' => 'ลบข้อมูลนักเรียนช่วยงานสำเร็จแล้ว']);
+        }
+
+        return $this->response->setJSON(['status' => 'error', 'message' => 'เกิดข้อผิดพลาดในการลบข้อมูล']);
+    }
+
+    public function searchStudentStaff()
+    {
+        $name = trim($this->request->getVar('name') ?? '');
+        if (empty($name)) {
+            return $this->response->setJSON(['status' => 'error', 'message' => 'กรุณากรอกชื่อหรือนามสกุลเพื่อค้นหา']);
+        }
+
+        $parts = preg_split('/\s+/', $name);
+        $staffModel = new ScienceWeekStudentStaffModel();
+        $query = $staffModel->where('staff_year', $this->getSelectedYear());
+
+        if (count($parts) >= 2) {
+            $firstname = $parts[0];
+            $lastname = $parts[1];
+            $query = $query->groupStart()
+                ->like('staff_firstname', $firstname)
+                ->like('staff_lastname', $lastname)
+                ->groupEnd();
+        } else {
+            $query = $query->groupStart()
+                ->like('staff_firstname', $name)
+                ->orLike('staff_lastname', $name)
+                ->groupEnd();
+        }
+
+        $results = $query->findAll();
+        
+        if (empty($results)) {
+            return $this->response->setJSON(['status' => 'empty', 'message' => 'ไม่พบรายชื่อนักเรียนช่วยงานในระบบ']);
+        }
+
+        $data = [];
+        foreach ($results as $r) {
+            $data[] = [
+                'id' => $r['staff_id'],
+                'prefix' => $r['staff_prefix'],
+                'firstname' => $r['staff_firstname'],
+                'lastname' => $r['staff_lastname'],
+                'class' => $r['staff_class'],
+                'comp' => $r['staff_competition_type'],
+                'download_url' => base_url("science-week/certificate/download/student_staff/{$r['staff_id']}")
+            ];
+        }
+
+        return $this->response->setJSON(['status' => 'success', 'data' => $data]);
+    }
 }
+
 

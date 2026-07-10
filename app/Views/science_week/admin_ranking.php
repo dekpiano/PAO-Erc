@@ -24,7 +24,7 @@
 
 <!-- Filters Card -->
 <div class="glass-card p-4 sm:p-6 rounded-3xl mb-6 bg-slate-900/40 dark:bg-slate-900/60">
-    <form method="GET" action="<?= base_url('staff/science-week/ranking') ?>" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+    <form method="GET" action="<?= base_url('science-week/staff/ranking') ?>" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
         <!-- Search input -->
         <div class="relative lg:col-span-2">
             <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400"><i data-lucide="search" class="w-4 h-4"></i></span>
@@ -49,7 +49,7 @@
                 <i data-lucide="filter" class="w-4 h-4"></i> กรองรายการ
             </button>
             <?php if(!empty($search) || !empty($compType_active)): ?>
-                <a href="<?= base_url('staff/science-week/ranking') ?>" class="p-3 bg-rose-50 hover:bg-rose-100 border border-rose-100 text-rose-600 rounded-2xl transition-all flex items-center justify-center" title="ล้างฟิลเตอร์">
+                <a href="<?= base_url('science-week/staff/ranking') ?>" class="p-3 bg-rose-50 hover:bg-rose-100 border border-rose-100 text-rose-600 rounded-2xl transition-all flex items-center justify-center" title="ล้างฟิลเตอร์">
                     <i data-lucide="refresh-cw" class="w-4 h-4"></i>
                 </a>
             <?php endif; ?>
@@ -261,7 +261,7 @@ if (!empty($registrations)) {
                 Swal.showLoading();
                 const { score, rank } = result.value;
 
-                fetch(`<?= base_url('staff/science-week/update-rank') ?>/${id}`, {
+                fetch(`<?= base_url('science-week/staff/update-rank') ?>/${id}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded',
@@ -324,7 +324,7 @@ if (!empty($registrations)) {
         }).then((result) => {
             if (result.isConfirmed) {
                 Swal.showLoading();
-                fetch(`<?= base_url('staff/science-week/toggle-publish-results') ?>`, {
+                fetch(`<?= base_url('science-week/staff/toggle-publish-results') ?>`, {
                     method: 'POST',
                     headers: {
                         'X-Requested-With': 'XMLHttpRequest'

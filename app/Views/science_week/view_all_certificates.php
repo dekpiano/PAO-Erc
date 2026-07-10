@@ -19,26 +19,69 @@
             color: #cbd5e1;
         }
         @media print {
+            @page {
+                size: A4 landscape;
+                margin: 0;
+            }
             body {
-                background-color: white;
-                color: black;
+                background: white !important;
+                color: black !important;
+                margin: 0 !important;
+                padding: 0 !important;
             }
             .no-print {
                 display: none !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                height: 0 !important;
+                overflow: hidden !important;
+            }
+            /* Reset all wrapping layouts */
+            .max-w-4xl, .space-y-12, .space-y-8, [class*="mt-"], [class*="py-"], [class*="px-"] {
+                margin: 0 !important;
+                padding: 0 !important;
+                max-width: none !important;
+                width: 100% !important;
+            }
+            .space-y-12 > :not([hidden]) ~ :not([hidden]),
+            .space-y-8 > :not([hidden]) ~ :not([hidden]) {
+                margin-top: 0 !important;
+                margin-bottom: 0 !important;
             }
             .print-page-break {
                 page-break-after: always;
+                page-break-inside: avoid;
                 margin: 0 !important;
                 padding: 0 !important;
                 border: none !important;
                 box-shadow: none !important;
                 background: transparent !important;
+                width: 100vw;
+                height: 100vh;
+                display: flex !important;
+                align-items: center;
+                justify-content: center;
+                box-sizing: border-box;
+            }
+            .print-page-break > div {
+                border: none !important;
+                border-radius: 0 !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                background: transparent !important;
+                box-shadow: none !important;
+                width: 100% !important;
+                height: 100% !important;
             }
             .print-img {
                 border-radius: 0 !important;
                 box-shadow: none !important;
-                width: 100% !important;
-                height: auto !important;
+                width: 100vw !important;
+                height: 100vh !important;
+                object-fit: contain !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                display: block !important;
             }
         }
     </style>

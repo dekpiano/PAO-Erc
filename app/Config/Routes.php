@@ -130,11 +130,15 @@ $routes->get('science-week/check-status', 'ScienceWeek::publicCheckStatus');
 $routes->get('science-week/results', 'ScienceWeek::publicResults');
 $routes->get('science-week/evaluation', 'ScienceWeek::publicEvaluation');
 $routes->post('science-week/evaluation/store', 'ScienceWeek::storeEvaluation');
+$routes->get('science-week/evaluation/claim/(:segment)', 'ScienceWeek::claimCertificateForm/$1');
+$routes->post('science-week/evaluation/claim/store/(:segment)', 'ScienceWeek::storeClaimCertificate/$1');
 $routes->get('science-week/certificate/download/(:segment)/(:segment)', 'ScienceWeek::downloadCertificate/$1/$2');
 $routes->get('science-week/certificate/view-all/(:segment)/(:segment)', 'ScienceWeek::viewAllCertificates/$1/$2');
+$routes->get('science-week/certificate/search-staff', 'ScienceWeek::searchStudentStaff');
+
 
 // Staff/Admin routes
-$routes->group('staff/science-week', ['filter' => 'auth'], function($routes) {
+$routes->group('science-week/staff', ['filter' => 'auth'], function($routes) {
     $routes->get('/', 'ScienceWeek::adminIndex');
     $routes->get('ranking', 'ScienceWeek::adminRanking');
     $routes->get('edit/(:num)', 'ScienceWeek::adminEdit/$1');
@@ -182,5 +186,11 @@ $routes->group('staff/science-week', ['filter' => 'auth'], function($routes) {
     $routes->get('evaluations/edit/(:num)', 'ScienceWeek::evalEdit/$1');
     $routes->post('evaluations/update/(:num)', 'ScienceWeek::evalUpdate/$1');
     $routes->get('evaluations/delete/(:num)', 'ScienceWeek::evalDelete/$1');
+
+    // Student Staff CRUD
+    $routes->get('student-staff', 'ScienceWeek::studentStaffIndex');
+    $routes->post('student-staff/store', 'ScienceWeek::studentStaffStore');
+    $routes->post('student-staff/update/(:num)', 'ScienceWeek::studentStaffUpdate/$1');
+    $routes->get('student-staff/delete/(:num)', 'ScienceWeek::studentStaffDelete/$1');
 });
 

@@ -105,7 +105,7 @@ if ($comp && !empty($comp['comp_member_custom_fields'])) {
     </div>
     
     <div class="flex flex-wrap gap-3 w-full md:w-auto">
-        <a href="<?= base_url('staff/science-week') ?>" class="w-full md:w-auto justify-center px-4 py-3 rounded-2xl bg-slate-900 border-2 border-slate-700 text-slate-200 hover:text-white font-extrabold text-xs sm:text-sm hover:bg-slate-800 transition-colors flex items-center gap-2 shadow-sm">
+        <a href="<?= base_url('science-week/staff') ?>" class="w-full md:w-auto justify-center px-4 py-3 rounded-2xl bg-slate-900 border-2 border-slate-700 text-slate-200 hover:text-white font-extrabold text-xs sm:text-sm hover:bg-slate-800 transition-colors flex items-center gap-2 shadow-sm">
             <i data-lucide="arrow-left" class="w-4 h-4 text-slate-300"></i> ย้อนกลับไปหน้าจัดการ
         </a>
     </div>
@@ -131,7 +131,7 @@ if ($comp && !empty($comp['comp_member_custom_fields'])) {
                 </div>
             <?php endif; ?>
 
-            <form id="editRegForm" action="<?= base_url('staff/science-week/update/' . $reg['reg_id']) ?>" method="POST" enctype="multipart/form-data" class="space-y-6">
+            <form id="editRegForm" action="<?= base_url('science-week/staff/update/' . $reg['reg_id']) ?>" method="POST" enctype="multipart/form-data" class="space-y-6">
                 <?= csrf_field() ?>
 
                 <!-- Competition display -->
@@ -429,7 +429,7 @@ if ($comp && !empty($comp['comp_member_custom_fields'])) {
                 </div>
 
                 <div class="flex gap-4 pt-4">
-                    <a href="<?= base_url('staff/science-week') ?>" class="flex-1 py-3.5 border-2 border-slate-700 text-slate-300 font-extrabold text-sm hover:bg-slate-800 rounded-2xl transition-colors flex items-center justify-center gap-1">
+                    <a href="<?= base_url('science-week/staff') ?>" class="flex-1 py-3.5 border-2 border-slate-700 text-slate-300 font-extrabold text-sm hover:bg-slate-800 rounded-2xl transition-colors flex items-center justify-center gap-1">
                         ยกเลิก
                     </a>
                     <button type="submit" class="flex-1 py-3.5 bg-blue-600 hover:bg-blue-750 text-white font-extrabold text-sm rounded-2xl shadow-lg shadow-blue-500/10 transition-colors flex items-center justify-center gap-1">

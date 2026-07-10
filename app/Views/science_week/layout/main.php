@@ -504,7 +504,10 @@
                 </div>
             </div>
             <div class="flex flex-col sm:flex-row items-center gap-4">
-                <a href="<?= base_url('staff/science-week') ?>" class="px-4 py-2 rounded-full text-[11px] font-bold text-white sci-glow-btn flex items-center gap-1 transition-all">
+                <button onclick="openStaffCertModal()" class="px-4 py-2 rounded-full text-[11px] font-bold text-slate-350 bg-slate-800 hover:bg-slate-700 hover:text-white border border-slate-750 flex items-center gap-1 transition-all">
+                    <i data-lucide="award" class="w-3.5 h-3.5 text-emerald-450"></i> เกียรติบัตรนักเรียนช่วยงาน (Staff)
+                </button>
+                <a href="<?= base_url('science-week/staff') ?>" class="px-4 py-2 rounded-full text-[11px] font-bold text-white sci-glow-btn flex items-center gap-1 transition-all">
                     <i data-lucide="shield-check" class="w-3.5 h-3.5"></i> ระบบเจ้าหน้าที่
                 </a>
                 <div class="flex items-center gap-1.5 font-mono text-[10px] text-indigo-400/60">
@@ -595,6 +598,111 @@
                 navbar.classList.remove('nav-hidden');
             }
         }
+
+        function openStaffCertModal() {
+            document.getElementById('staffCertModal').classList.remove('hidden');
+            document.getElementById('staff-search-input').value = '';
+            document.getElementById('staff-search-results').innerHTML = '';
+            setTimeout(() => {
+                document.getElementById('staff-search-input').focus();
+            }, 100);
+        }
+
+        function closeStaffCertModal() {
+            document.getElementById('staffCertModal').classList.add('hidden');
+        }
+
+        function performStaffSearch() {
+            const input = document.getElementById('staff-search-input').value.trim();
+            const resultsContainer = document.getElementById('staff-search-results');
+            
+            if (!input) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'กรุณากรอกคำค้นหา',
+                    text: 'กรุณากรอกชื่อหรือนามสกุลของนักเรียนช่วยงาน',
+                    background: getSwalColors().bg,
+                    color: getSwalColors().text,
+                    confirmButtonColor: '#4f46e5'
+                });
+                return;
+            }
+
+            resultsContainer.innerHTML = '<div class="text-center py-4 text-xs text-slate-400">กำลังค้นหาข้อมูล...</div>';
+
+            fetch(`<?= base_url('science-week/certificate/search-staff') ?>?name=${encodeURIComponent(input)}`)
+                .then(res => res.json())
+                .then(res => {
+                    resultsContainer.innerHTML = '';
+                    if (res.status === 'success') {
+                        res.data.forEach(item => {
+                            const html = `
+                                <div class="p-3.5 bg-slate-900/60 border border-slate-800/80 rounded-xl flex justify-between items-center gap-3">
+                                    <div class="min-w-0">
+                                        <div class="text-xs font-bold text-slate-200">${item.prefix}${item.firstname} ${item.lastname} (ชั้น ${item.class})</div>
+                                        <div class="text-[10px] text-slate-400 truncate mt-0.5">${item.comp}</div>
+                                    </div>
+                                    <a href="${item.download_url}" target="_blank" class="shrink-0 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold rounded-lg transition-colors flex items-center gap-1 shadow-sm">
+                                        <i data-lucide="download" class="w-3 h-3"></i> โหลดเกียรติบัตร
+                                    </a>
+                                </div>
+                            `;
+                            resultsContainer.insertAdjacentHTML('beforeend', html);
+                        });
+                        lucide.createIcons();
+                    } else {
+                        resultsContainer.innerHTML = `
+                            <div class="text-center py-6 text-xs text-rose-405 bg-rose-950/10 border border-rose-950/20 rounded-xl">
+                                ไม่พบรายชื่อนักเรียนช่วยงานตามคำค้นหานี้ กรุณาตรวจสอบการสะกดชื่อ-นามสกุล หรือติดต่ออาจารย์ผู้รับผิดชอบ
+                            </div>
+                        `;
+                    }
+                })
+                .catch(() => {
+                    resultsContainer.innerHTML = '<div class="text-center py-4 text-xs text-rose-500">เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์</div>';
+                });
+        }
+
+        // Add Enter key listener for search input
+        document.addEventListener('DOMContentLoaded', () => {
+            const searchInput = document.getElementById('staff-search-input');
+            if (searchInput) {
+                searchInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        performStaffSearch();
+                    }
+                });
+            }
+        });
     </script>
+
+    <!-- Student Staff Search Modal -->
+    <div id="staffCertModal" class="fixed inset-0 z-[100] flex items-center justify-center hidden">
+        <div class="absolute inset-0 bg-slate-950/60 backdrop-blur-sm" onclick="closeStaffCertModal()"></div>
+        <div class="glass-sci-card rounded-2xl p-6 sm:p-8 w-full max-w-lg z-10 relative mx-4">
+            <h3 class="text-lg font-black text-indigo-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+                <i data-lucide="award" class="w-6 h-6 text-emerald-450"></i> <span>ค้นหาเกียรติบัตรนักเรียนช่วยงาน</span>
+            </h3>
+            <p class="text-xs text-slate-450 mb-4 leading-relaxed">กรอกชื่อหรือนามสกุลของนักเรียนช่วยงาน (ไม่ต้องระบุคำนำหน้าชื่อ) เพื่อค้นหาและดาวน์โหลดเกียรติบัตรเข้าร่วม</p>
+            
+            <div class="space-y-4">
+                <div>
+                    <input type="text" id="staff-search-input" placeholder="กรอกชื่อจริง หรือนามสกุล..." class="w-full px-4 py-3 rounded-xl outline-none text-sm transition-all">
+                </div>
+                <button onclick="performStaffSearch()" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs transition-all flex items-center justify-center gap-1.5 shadow-md shadow-indigo-950/20">
+                    <i data-lucide="search" class="w-4 h-4"></i> ค้นหารายชื่อ
+                </button>
+                
+                <!-- Search Results Container -->
+                <div id="staff-search-results" class="max-h-[250px] overflow-y-auto space-y-3 pt-2 custom-scrollbar">
+                    <!-- Results injected here by JS -->
+                </div>
+            </div>
+            
+            <div class="pt-4 flex justify-end">
+                <button onclick="closeStaffCertModal()" class="px-5 py-2 bg-slate-800 hover:bg-slate-750 text-slate-350 font-bold text-xs rounded-xl transition-colors">ปิด</button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

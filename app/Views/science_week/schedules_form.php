@@ -22,7 +22,7 @@
 
 <!-- Header Section -->
 <div class="mb-6">
-    <a href="<?= base_url('staff/science-week/schedules') ?>" class="inline-flex items-center gap-2 text-indigo-400 hover:text-indigo-300 font-semibold transition-colors text-sm mb-3">
+    <a href="<?= base_url('science-week/staff/schedules') ?>" class="inline-flex items-center gap-2 text-indigo-400 hover:text-indigo-300 font-semibold transition-colors text-sm mb-3">
         <i data-lucide="arrow-left" class="w-4 h-4"></i> กลับไปหน้ารายการ
     </a>
     <h2 class="text-lg sm:text-2xl md:text-3xl font-extrabold text-slate-800 dark:text-white tracking-tight tech-glow">
@@ -35,7 +35,7 @@
 
 <!-- Form Card -->
 <div class="glass-card rounded-3xl p-6 sm:p-8 bg-white dark:bg-slate-900/60 max-w-2xl border border-slate-200 dark:border-slate-800">
-    <form action="<?= !empty($sch) ? base_url('staff/science-week/schedules/update/' . $sch['sch_id']) : base_url('staff/science-week/schedules/store') ?>" method="POST" class="space-y-6">
+    <form action="<?= !empty($sch) ? base_url('science-week/staff/schedules/update/' . $sch['sch_id']) : base_url('science-week/staff/schedules/store') ?>" method="POST" class="space-y-6">
         <?= csrf_field() ?>
 
         <!-- Date Range Text -->

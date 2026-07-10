@@ -288,8 +288,8 @@
 
         // Determine URL
         const url = isEditMode 
-            ? `<?= base_url('staff/science-week/users/update') ?>/${userId}`
-            : '<?= base_url('staff/science-week/users/store') ?>';
+            ? `<?= base_url('science-week/staff/users/update') ?>/${userId}`
+            : '<?= base_url('science-week/staff/users/store') ?>';
 
         fetch(url, {
             method: 'POST',
@@ -352,7 +352,7 @@
             customClass: { popup: 'glass-card rounded-[2rem]' }
         }).then((result) => {
             if (result.isConfirmed) {
-                fetch(`<?= base_url('staff/science-week/users/delete') ?>/${userId}`, {
+                fetch(`<?= base_url('science-week/staff/users/delete') ?>/${userId}`, {
                     headers: { 'X-Requested-With': 'XMLHttpRequest' }
                 })
                 .then(res => res.json())
