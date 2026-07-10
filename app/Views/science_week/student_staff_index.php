@@ -98,7 +98,7 @@
         </div>
 
         <div>
-            <label for="competition_type" class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">กรองตามรายการแข่งขัน</label>
+            <label for="competition_type" class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">กรองตามรายการแข่งขัน / ฝ่ายงาน</label>
             <select name="competition_type" id="competition_type" class="w-full px-4 py-2.5 bg-slate-950/60 border border-slate-850 hover:border-slate-700 focus:border-indigo-500 text-slate-200 text-xs rounded-xl outline-none transition-all cursor-pointer">
                 <option value="">-- ทั้งหมดทุกรายการ --</option>
                 <optgroup label="รายการแข่งขัน">
@@ -120,6 +120,20 @@
                         <option value="<?= $gr ?>" <?= $compType_active == $gr ? 'selected' : '' ?>><?= $gr ?></option>
                     <?php endforeach; ?>
                 </optgroup>
+                <?php
+                // Filter custom roles currently assigned in the database
+                $compNames = array_column($competitions, 'comp_name');
+                $customDbRoles = array_filter($assigned_roles ?? [], function($role) use ($compNames, $genRoles) {
+                    return !in_array($role, $compNames) && !in_array($role, $genRoles) && !empty($role);
+                });
+                if (!empty($customDbRoles)):
+                ?>
+                <optgroup label="ฝ่ายงานเพิ่มเติม (พิมพ์ระบุเองในระบบ)">
+                    <?php foreach ($customDbRoles as $cdr): ?>
+                        <option value="<?= esc($cdr) ?>" <?= $compType_active == $cdr ? 'selected' : '' ?>><?= esc($cdr) ?></option>
+                    <?php endforeach; ?>
+                </optgroup>
+                <?php endif; ?>
             </select>
         </div>
 
@@ -225,7 +239,15 @@
                         <option value="ฝ่ายประชาสัมพันธ์และต้อนรับ">ฝ่ายประชาสัมพันธ์และต้อนรับ</option>
                         <option value="ฝ่ายจัดนิทรรศการและกิจกรรมพิเศษ">ฝ่ายจัดนิทรรศการและกิจกรรมพิเศษ</option>
                     </optgroup>
+                    <optgroup label="กำหนดเอง">
+                        <option value="custom_role">-- ระบุฝ่ายงาน/รายการแข่งขันอื่นๆ (พิมพ์ระบุเอง) --</option>
+                    </optgroup>
                 </select>
+            </div>
+
+            <div class="space-y-1.5 mb-4 shrink-0 hidden" id="custom_competition_container">
+                <label for="form_custom_competition" class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest">ระบุฝ่ายงาน/รายการแข่งขันเพิ่มเติม *</label>
+                <input type="text" id="form_custom_competition" placeholder="ระบุฝ่ายงาน เช่น ฝ่ายงานอาคารสถานที่, ประธานนักเรียน..." class="w-full px-4 py-3 bg-slate-950/80 border border-slate-800 focus:border-indigo-500 text-slate-200 text-xs sm:text-sm rounded-xl outline-none transition-all">
             </div>
 
             <!-- Scrollable container for rows -->
@@ -249,6 +271,28 @@
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
     let rowIndex = 0;
+
+    $(document).ready(function() {
+        $('#form_competition').on('change', function() {
+            const val = $(this).val();
+            const customContainer = $('#custom_competition_container');
+            const customInput = $('#form_custom_competition');
+            const selectEl = $('#form_competition');
+
+            if (val === 'custom_role') {
+                customContainer.removeClass('hidden');
+                customInput.attr('required', true);
+                selectEl.removeAttr('name');
+                customInput.attr('name', 'staff_competition_type');
+            } else {
+                customContainer.addClass('hidden');
+                customInput.removeAttr('required');
+                customInput.val('');
+                selectEl.attr('name', 'staff_competition_type');
+                customInput.removeAttr('name');
+            }
+        });
+    });
 
     function addEmptyRow(prefix = 'นาย', firstname = '', lastname = '', classVal = '', hideRemove = false, hideAdd = false) {
         const container = document.getElementById('rows-container');
@@ -319,7 +363,7 @@
         document.getElementById('modalTitleText').innerText = 'เพิ่มรายชื่อนักเรียนช่วยงาน';
         document.getElementById('modalIcon').innerHTML = '<i data-lucide="user-plus" class="w-5 h-5"></i>';
         document.getElementById('staff_id').value = '';
-        document.getElementById('form_competition').value = '';
+        $('#form_competition').val('').trigger('change');
         document.getElementById('rows-container').innerHTML = '';
         
         rowIndex = 0;
@@ -333,7 +377,24 @@
         document.getElementById('modalTitleText').innerText = 'แก้ไขรายชื่อนักเรียนช่วยงาน';
         document.getElementById('modalIcon').innerHTML = '<i data-lucide="user-cog" class="w-5 h-5"></i>';
         document.getElementById('staff_id').value = st.staff_id;
-        document.getElementById('form_competition').value = st.staff_competition_type;
+        
+        // Check if the competition type exists in the dropdown list
+        const compSelect = document.getElementById('form_competition');
+        let exists = false;
+        for (let i = 0; i < compSelect.options.length; i++) {
+            if (compSelect.options[i].value === st.staff_competition_type) {
+                exists = true;
+                break;
+            }
+        }
+
+        if (exists) {
+            $('#form_competition').val(st.staff_competition_type).trigger('change');
+        } else {
+            $('#form_competition').val('custom_role').trigger('change');
+            $('#form_custom_competition').val(st.staff_competition_type);
+        }
+
         document.getElementById('rows-container').innerHTML = '';
         
         rowIndex = 0;

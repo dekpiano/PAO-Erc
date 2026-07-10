@@ -605,6 +605,16 @@ class ScienceWeek extends BaseController
             return true;
         }
 
+        // If the role is a custom manually typed helper role (not in official competitions table), allow it
+        $db = \Config\Database::connect();
+        $isExistingComp = $db->table('Tb_ScienceWeek_Competitions')
+            ->where('comp_name', $compName)
+            ->countAllResults() > 0;
+            
+        if (!$isExistingComp) {
+            return true;
+        }
+
         $allowed = $this->getAllowedCompetitions();
         if ($allowed === null) {
             return true; // admin เข้าถึงได้ทั้งหมด
@@ -3674,11 +3684,23 @@ class ScienceWeek extends BaseController
             $allComps = array_values(array_filter($allComps, fn($c) => in_array($c['comp_name'], $allowedComps)));
         }
 
+        // Query all unique roles actually stored in the DB for filtering
+        $db = \Config\Database::connect();
+        $uniqueRolesQuery = $db->table('Tb_ScienceWeek_StudentStaff')
+            ->select('staff_competition_type')
+            ->where('staff_year', $selectedYear)
+            ->distinct()
+            ->get()
+            ->getResultArray();
+        
+        $assignedRoles = array_column($uniqueRolesQuery, 'staff_competition_type');
+
         $data['title'] = "จัดการรายชื่อนักเรียนช่วยงาน | อบจ.นครสวรรค์";
         $data['student_staff'] = $query->orderBy('staff_created_at', 'DESC')->findAll();
         $data['search'] = $searchTerm;
         $data['compType_active'] = $compType;
         $data['competitions'] = $allComps;
+        $data['assigned_roles'] = $assignedRoles; // Pass to view
         $data['selected_year'] = $selectedYear;
         $data['fullname'] = session()->get('u_fullname');
 
