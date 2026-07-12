@@ -109,6 +109,23 @@
                 </div>
             </div>
 
+            <!-- Approved List Toggle -->
+            <div class="space-y-2">
+                <label class="block text-xs font-bold text-slate-400 flex items-center gap-2">
+                    <i data-lucide="users" class="w-3.5 h-3.5 text-cyan-400"></i> สถานะประกาศรายชื่อมีสิทธิ์เข้าแข่ง
+                </label>
+                <div class="flex items-center gap-4 py-2 bg-slate-900/40 rounded-xl px-4 border border-slate-800/60 h-[38px]">
+                    <label class="flex items-center gap-2 cursor-pointer text-[11px] font-semibold text-slate-300">
+                        <input type="radio" name="approved_list_open" value="1" <?= $approved_list_open ? 'checked' : '' ?> class="accent-cyan-500 w-3.5 h-3.5">
+                        <span class="<?= $approved_list_open ? 'text-cyan-400 font-bold' : '' ?>">เปิด</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer text-[11px] font-semibold text-slate-300">
+                        <input type="radio" name="approved_list_open" value="0" <?= !$approved_list_open ? 'checked' : '' ?> class="accent-rose-500 w-3.5 h-3.5">
+                        <span class="<?= !$approved_list_open ? 'text-rose-400 font-bold' : '' ?>">ปิด</span>
+                    </label>
+                </div>
+            </div>
+
             <!-- Evaluation Toggle -->
             <div class="space-y-2">
                 <label class="block text-xs font-bold text-slate-400 flex items-center gap-2">
@@ -168,6 +185,12 @@
                         <span class="text-slate-400">สถานะเปิดรับสมัคร:</span>
                         <span class="font-bold <?= $registration_open ? 'text-emerald-400' : 'text-rose-400' ?>">
                             <?= $registration_open ? 'เปิดระบบรับสมัคร' : 'ปิดระบบรับสมัคร' ?>
+                        </span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-400">สถานะประกาศรายชื่อ:</span>
+                        <span class="font-bold <?= $approved_list_open ? 'text-cyan-400' : 'text-rose-400' ?>">
+                            <?= $approved_list_open ? 'เปิดประกาศรายชื่อ' : 'ปิดประกาศรายชื่อ' ?>
                         </span>
                     </div>
                 </div>

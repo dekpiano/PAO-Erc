@@ -99,6 +99,7 @@
             <div class="rainbow-divider max-w-20 mx-auto"></div>
         </div>
 
+        <?php if ($approved_list_open): ?>
         <!-- Explanation Info Box for Reserve Teams -->
         <div class="glass-sci-card rounded-3xl p-5 mb-8 border border-blue-500/20 bg-blue-500/5 text-xs text-slate-350 flex items-start gap-3 shadow-md">
             <i data-lucide="info" class="w-5 h-5 text-blue-400 shrink-0 mt-0.5 animate-pulse"></i>
@@ -360,6 +361,31 @@
             endif;
             ?>
         </div>
+        <?php else: ?>
+            <!-- Sci-Fi Locked Screen View -->
+            <div class="glass-sci-card rounded-3xl p-12 text-center border border-indigo-500/30 max-w-2xl mx-auto my-12 relative overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-br from-indigo-950/20 via-transparent to-purple-950/20 pointer-events-none"></div>
+                <div class="relative z-10 space-y-6 py-6">
+                    <!-- Animated Lock Icon with Ping -->
+                    <div class="relative w-24 h-24 mx-auto flex items-center justify-center rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-400">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-500/10 opacity-75"></span>
+                        <i data-lucide="lock" class="w-12 h-12 text-indigo-400 animate-pulse"></i>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <h2 class="text-xl sm:text-2xl font-black text-white tracking-wider">ระบบประกาศรายชื่อผู้มีสิทธิ์เข้าร่วมแข่งขันยังไม่เปิดให้บริการ</h2>
+                        <p class="text-slate-400 text-xs sm:text-sm max-w-md mx-auto leading-relaxed">
+                            เจ้าหน้าที่กำลังดำเนินการตรวจสอบเอกสารและข้อมูลการสมัครแข่งขัน เมื่อการตรวจสอบเสร็จสิ้นระบบจะทำการเปิดเผยรายชื่อผู้มีสิทธิ์เข้าร่วมแข่งขันอย่างเป็นทางการให้ทราบโดยทั่วกัน
+                        </p>
+                    </div>
+                    
+                    <div class="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-indigo-950/40 border border-indigo-500/20 text-xs font-bold text-indigo-300">
+                        <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                        <span>กำลังตรวจสอบข้อมูลและเอกสารการสมัครแข่งขัน</span>
+                    </div>
+                </div>
+            </div>
+        <?php endif; ?>
 
     </div>
 </div>

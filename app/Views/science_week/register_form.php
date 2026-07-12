@@ -40,8 +40,10 @@ if (!empty($comp['comp_member_custom_fields'])) {
 
     #particles-canvas {
         position: absolute;
-        top: 0; left: 0;
-        width: 100%; height: 100%;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
         pointer-events: none;
         z-index: 0;
     }
@@ -66,16 +68,41 @@ if (!empty($comp['comp_member_custom_fields'])) {
         pointer-events: none;
         opacity: 0.8;
     }
-    .tech-corner-tl { top: 12px; left: 12px; border-width: 3px 0 0 3px; border-top-left-radius: 4px; }
-    .tech-corner-tr { top: 12px; right: 12px; border-width: 3px 3px 0 0; border-top-right-radius: 4px; }
-    .tech-corner-bl { bottom: 12px; left: 12px; border-width: 0 0 3px 3px; border-bottom-left-radius: 4px; }
-    .tech-corner-br { bottom: 12px; right: 12px; border-width: 0 3px 3px 0; border-bottom-right-radius: 4px; }
+
+    .tech-corner-tl {
+        top: 12px;
+        left: 12px;
+        border-width: 3px 0 0 3px;
+        border-top-left-radius: 4px;
+    }
+
+    .tech-corner-tr {
+        top: 12px;
+        right: 12px;
+        border-width: 3px 3px 0 0;
+        border-top-right-radius: 4px;
+    }
+
+    .tech-corner-bl {
+        bottom: 12px;
+        left: 12px;
+        border-width: 0 0 3px 3px;
+        border-bottom-left-radius: 4px;
+    }
+
+    .tech-corner-br {
+        bottom: 12px;
+        right: 12px;
+        border-width: 0 3px 3px 0;
+        border-bottom-right-radius: 4px;
+    }
 
     /* High-tech Sci-Fi Inputs */
     .neon-input-wrapper {
         position: relative;
         transition: all 0.3s ease;
     }
+
     .neon-input {
         background: rgba(8, 12, 24, 0.7) !important;
         border: 1px solid rgba(99, 102, 241, 0.3) !important;
@@ -84,6 +111,7 @@ if (!empty($comp['comp_member_custom_fields'])) {
         padding-left: 3rem !important;
         font-size: 16px !important;
     }
+
     .neon-input:focus {
         background: rgba(15, 23, 42, 0.9) !important;
         border-color: var(--comp-primary) !important;
@@ -91,8 +119,12 @@ if (!empty($comp['comp_member_custom_fields'])) {
         outline: none;
         transform: translateY(-1px);
     }
-    .neon-input::placeholder { color: #64748b !important; font-weight: 400; }
-    
+
+    .neon-input::placeholder {
+        color: #64748b !important;
+        font-weight: 400;
+    }
+
     .input-icon-left {
         position: absolute;
         left: 1.1rem;
@@ -102,7 +134,8 @@ if (!empty($comp['comp_member_custom_fields'])) {
         transition: color 0.3s ease;
         pointer-events: none;
     }
-    .neon-input:focus + .input-icon-left {
+
+    .neon-input:focus+.input-icon-left {
         color: var(--comp-primary);
     }
 
@@ -114,26 +147,39 @@ if (!empty($comp['comp_member_custom_fields'])) {
         position: relative;
         overflow: hidden;
     }
+
     .neon-btn-submit::after {
         content: '';
         position: absolute;
         inset: 0;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
         transform: translateX(-100%);
         transition: transform 0.6s ease;
     }
+
     .neon-btn-submit:hover:not(:disabled) {
         box-shadow: 0 12px 35px var(--comp-primary-glow);
         transform: translateY(-3px) scale(1.01);
     }
+
     .neon-btn-submit:hover:not(:disabled)::after {
         transform: translateX(100%);
     }
 
-    .list-item-enter { animation: slideIn 0.4s cubic-bezier(0.16,1,0.3,1) forwards; }
+    .list-item-enter {
+        animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
     @keyframes slideIn {
-        from { opacity: 0; transform: translateY(-15px) scale(0.97); }
-        to { opacity: 1; transform: translateY(0) scale(1); }
+        from {
+            opacity: 0;
+            transform: translateY(-15px) scale(0.97);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
     }
 
     .rainbow-divider {
@@ -143,23 +189,56 @@ if (!empty($comp['comp_member_custom_fields'])) {
         border-radius: 4px;
         animation: rainbowSlide 4s linear infinite;
     }
+
     @keyframes rainbowSlide {
-        0% { background-position: 0% center; }
-        100% { background-position: 200% center; }
+        0% {
+            background-position: 0% center;
+        }
+
+        100% {
+            background-position: 200% center;
+        }
     }
 
     /* Entrance animations */
-    .page-enter-back { animation: fadeInDown 0.6s cubic-bezier(0.16,1,0.3,1) 0.1s both; }
-    .page-enter-title { animation: fadeInDown 0.7s cubic-bezier(0.16,1,0.3,1) 0.2s both; }
-    .page-enter-subtitle { animation: fadeInDown 0.7s cubic-bezier(0.16,1,0.3,1) 0.3s both; }
-    .page-enter-card { animation: fadeInUp 0.9s cubic-bezier(0.16,1,0.3,1) 0.35s both; }
-    @keyframes fadeInDown {
-        from { opacity: 0; transform: translateY(-30px); }
-        to { opacity: 1; transform: translateY(0); }
+    .page-enter-back {
+        animation: fadeInDown 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
     }
+
+    .page-enter-title {
+        animation: fadeInDown 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
+    }
+
+    .page-enter-subtitle {
+        animation: fadeInDown 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both;
+    }
+
+    .page-enter-card {
+        animation: fadeInUp 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.35s both;
+    }
+
+    @keyframes fadeInDown {
+        from {
+            opacity: 0;
+            transform: translateY(-30px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
     @keyframes fadeInUp {
-        from { opacity: 0; transform: translateY(40px); }
-        to { opacity: 1; transform: translateY(0); }
+        from {
+            opacity: 0;
+            transform: translateY(40px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 
     .gradient-text {
@@ -170,10 +249,20 @@ if (!empty($comp['comp_member_custom_fields'])) {
     }
 
     /* Form field stagger animation */
-    .form-field { animation: fieldFadeIn 0.5s cubic-bezier(0.16,1,0.3,1) both; }
+    .form-field {
+        animation: fieldFadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
     @keyframes fieldFadeIn {
-        from { opacity: 0; transform: translateX(-20px); }
-        to { opacity: 1; transform: translateX(0); }
+        from {
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
     }
 
     /* Add member button */
@@ -183,6 +272,7 @@ if (!empty($comp['comp_member_custom_fields'])) {
         color: #a5b4fc !important;
         background: rgba(30, 41, 59, 0.6) !important;
     }
+
     .add-btn:hover {
         transform: scale(1.05);
         background: rgba(99, 102, 241, 0.15) !important;
@@ -198,6 +288,7 @@ if (!empty($comp['comp_member_custom_fields'])) {
         color: #f43f5e !important;
         transition: all 0.3s ease;
     }
+
     .remove-btn:hover {
         background: rgba(244, 63, 94, 0.25) !important;
         border-color: #f43f5e !important;
@@ -205,14 +296,19 @@ if (!empty($comp['comp_member_custom_fields'])) {
         transform: scale(1.05);
     }
 
-    .glass-sci-card input, .glass-sci-card select, .glass-sci-card textarea {
+    .glass-sci-card input,
+    .glass-sci-card select,
+    .glass-sci-card textarea {
         background: rgba(8, 12, 24, 0.6) !important;
         border: 1px solid rgba(99, 102, 241, 0.3) !important;
         color: #ffffff !important;
-        font-size: 16px !important; /* Prevent mobile zoom-in on focus */
+        font-size: 16px !important;
+        /* Prevent mobile zoom-in on focus */
     }
 
-    .glass-sci-card input:focus, .glass-sci-card select:focus, .glass-sci-card textarea:focus {
+    .glass-sci-card input:focus,
+    .glass-sci-card select:focus,
+    .glass-sci-card textarea:focus {
         border-color: var(--comp-primary) !important;
         box-shadow: 0 0 8px var(--comp-primary-glow) !important;
     }
@@ -224,6 +320,7 @@ if (!empty($comp['comp_member_custom_fields'])) {
         border-left: 4px solid var(--comp-primary) !important;
         transition: all 0.3s ease;
     }
+
     .dossier-card:hover {
         background: rgba(15, 23, 42, 0.85) !important;
         border-color: var(--comp-primary) !important;
@@ -240,6 +337,7 @@ if (!empty($comp['comp_member_custom_fields'])) {
         appearance: none !important;
         -webkit-appearance: none !important;
     }
+
     .prefix-select {
         padding-left: 1rem !important;
         padding-right: 2.2rem !important;
@@ -250,6 +348,7 @@ if (!empty($comp['comp_member_custom_fields'])) {
     .select2-container {
         width: 100% !important;
     }
+
     .select2-container--default .select2-selection--single {
         background: rgba(8, 12, 24, 0.6) !important;
         border: 1px solid rgba(99, 102, 241, 0.3) !important;
@@ -260,30 +359,37 @@ if (!empty($comp['comp_member_custom_fields'])) {
         align-items: center !important;
         transition: all 0.4s ease !important;
     }
-    .prefix-select + .select2-container .select2-selection--single {
+
+    .prefix-select+.select2-container .select2-selection--single {
         padding-left: 1rem !important;
     }
+
     .select2-container--default .select2-selection--single .select2-selection__rendered {
         color: #ffffff !important;
         font-weight: 500 !important;
         font-size: 16px !important;
         padding-left: 0px !important;
     }
-    .select2-container--default .select2-selection--single .select2-selection__placeholder {
+
+    .select2-container--default .select2-selection--single .select2-selection__rendered .select2-selection__placeholder {
         color: #64748b !important;
     }
+
     .select2-container--default .select2-selection--single .select2-selection__arrow {
         height: 56px !important;
         right: 15px !important;
     }
+
     .select2-container--default .select2-selection--single .select2-selection__arrow b {
         border-color: #818cf8 transparent transparent transparent !important;
         border-width: 6px 6px 0 6px !important;
     }
+
     .select2-container--default.select2-container--open .select2-selection--single .select2-selection__arrow b {
         border-color: transparent transparent #818cf8 transparent !important;
         border-width: 0 6px 6px 6px !important;
     }
+
     .select2-container--default.select2-container--open .select2-selection--single {
         border-color: var(--comp-primary) !important;
         box-shadow: 0 0 8px var(--comp-primary-glow) !important;
@@ -299,6 +405,7 @@ if (!empty($comp['comp_member_custom_fields'])) {
         overflow: hidden !important;
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5) !important;
     }
+
     .select2-container--default .select2-search--dropdown .select2-search__field {
         background: rgba(8, 12, 24, 0.9) !important;
         border: 1px solid rgba(99, 102, 241, 0.3) !important;
@@ -307,25 +414,41 @@ if (!empty($comp['comp_member_custom_fields'])) {
         padding: 8px 12px !important;
         outline: none !important;
     }
+
     .select2-container--default .select2-search--dropdown .select2-search__field:focus {
         border-color: var(--comp-primary) !important;
     }
+
     .select2-container--default .select2-results__option--highlighted[aria-selected] {
         background: linear-gradient(135deg, var(--comp-primary) 0%, #4f46e5 100%) !important;
         color: white !important;
     }
+
     .select2-container--default .select2-results__option[aria-selected=true] {
         background-color: rgba(99, 102, 241, 0.2) !important;
         color: #a5b4fc !important;
     }
+
     .select2-results__option {
+        background-color: transparent !important;
         padding: 10px 16px !important;
         font-size: 14px !important;
         color: #cbd5e1 !important;
     }
 
+    .select2-results {
+        background-color: transparent !important;
+    }
+
+    .select2-search--dropdown {
+        background-color: transparent !important;
+    }
+
     @media (prefers-reduced-motion: reduce) {
-        *, *::before, *::after {
+
+        *,
+        *::before,
+        *::after {
             animation-duration: 0.01ms !important;
             transition-duration: 0.01ms !important;
         }
@@ -335,11 +458,12 @@ if (!empty($comp['comp_member_custom_fields'])) {
 <div class="page-container pt-8 pb-20 relative">
     <canvas id="particles-canvas"></canvas>
 
-    <div class="max-w-3xl lg:max-w-5xl mx-auto px-4 sm:px-6 relative z-10">
-        
+    <div class="w-full max-w-[96%] lg:max-w-[94%] xl:max-w-[1600px] 2xl:max-w-[1750px] mx-auto px-4 sm:px-6 relative z-10">
+
         <!-- Header -->
         <div class="text-center py-8 space-y-4">
-            <a href="<?= base_url('science-week/register') ?>" class="page-enter-back inline-flex items-center gap-2 text-indigo-400 hover:text-indigo-300 font-bold transition-colors text-sm">
+            <a href="<?= base_url('science-week/register') ?>"
+                class="page-enter-back inline-flex items-center gap-2 text-indigo-400 hover:text-indigo-300 font-bold transition-colors text-sm">
                 <i data-lucide="arrow-left" class="w-4 h-4"></i> เปลี่ยนประเภทการแข่งขัน
             </a>
             <h1 class="page-enter-title text-3xl sm:text-4xl font-black tracking-tight">
@@ -347,43 +471,51 @@ if (!empty($comp['comp_member_custom_fields'])) {
                     กรอกใบสมัครเข้าร่วมแข่งขัน
                 </span>
             </h1>
-            <p class="page-enter-subtitle text-slate-400 text-sm font-semibold">ระบุข้อมูลสมาชิกและทีมเพื่อยื่นคำขอสมัครเข้าร่วมแข่งขันระบบดิจิทัล</p>
+            <p class="page-enter-subtitle text-slate-400 text-sm font-semibold">
+                ระบุข้อมูลสมาชิกและทีมเพื่อยื่นคำขอสมัครเข้าร่วมแข่งขันระบบดิจิทัล</p>
             <div class="rainbow-divider max-w-20 mx-auto"></div>
         </div>
 
         <!-- Form Card -->
-        <div class="glass-sci-card rounded-3xl p-6 sm:p-10 shadow-lg relative overflow-hidden page-enter-card">
+        <div class="glass-sci-card rounded-3xl p-4 sm:p-6 md:p-10 shadow-lg relative overflow-hidden page-enter-card">
             <!-- Deco lines and corners -->
             <div class="tech-corner tech-corner-tl"></div>
             <div class="tech-corner tech-corner-tr"></div>
             <div class="tech-corner tech-corner-bl"></div>
             <div class="tech-corner tech-corner-br"></div>
-            
+
             <div class="rainbow-divider absolute top-0 left-0 right-0"></div>
-            
+
             <!-- Tech specs indicator -->
-            <div class="flex justify-between items-center text-[9px] font-mono text-slate-400 mb-6 uppercase tracking-wider">
+            <div
+                class="flex justify-between items-center text-[9px] font-mono text-slate-400 mb-6 uppercase tracking-wider">
                 <span>[ SYSTEM: ONLINE ]</span>
                 <span>[ FORM_ID: STEAM-0<?= rand(10, 99) ?> ]</span>
-                <span class="text-emerald-400 font-bold flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span> SECURE CONNECTION</span>
+                <span class="text-emerald-400 font-bold flex items-center gap-1"><span
+                        class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span> SECURE CONNECTION</span>
             </div>
-            
+
             <?php if (session()->getFlashdata('error')): ?>
-                <div class="mb-6 p-4 rounded-xl bg-rose-950/40 border border-rose-500/30 text-rose-200 text-sm font-semibold">
+                <div
+                    class="mb-6 p-4 rounded-xl bg-rose-950/40 border border-rose-500/30 text-rose-200 text-sm font-semibold">
                     <?= session()->getFlashdata('error') ?>
                 </div>
             <?php endif; ?>
 
-            <form id="regForm" action="<?= base_url('science-week/register/store') ?>" method="POST" class="space-y-6 pt-2" enctype="multipart/form-data">
+            <form id="regForm" action="<?= base_url('science-week/register/store') ?>" method="POST"
+                class="space-y-6 pt-2" enctype="multipart/form-data">
                 <?= csrf_field() ?>
 
                 <!-- Selected Competition -->
-                <div class="form-field p-5 rounded-2xl border-2 border-dashed space-y-2 bg-gradient-to-r from-slate-950/60 to-indigo-950/30 border-slate-700/60" style="animation-delay: 0.4s">
-                    <span class="text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5" style="color: var(--comp-primary);">
+                <div class="form-field p-5 rounded-2xl border-2 border-dashed space-y-2 bg-gradient-to-r from-slate-950/60 to-indigo-950/30 border-slate-700/60"
+                    style="animation-delay: 0.4s">
+                    <span class="text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5"
+                        style="color: var(--comp-primary);">
                         <i data-lucide="award" class="w-3.5 h-3.5 animate-pulse"></i> ประเภทการแข่งขันที่เลือก
                     </span>
                     <h3 class="text-lg font-black text-white flex items-center gap-2">
-                        <span class="inline-block w-2.5 h-2.5 rounded-full" style="background-color: var(--comp-primary);"></span>
+                        <span class="inline-block w-2.5 h-2.5 rounded-full"
+                            style="background-color: var(--comp-primary);"></span>
                         <?= esc($competition_type) ?>
                     </h3>
                     <input type="hidden" name="competition_type" value="<?= esc($competition_type) ?>">
@@ -396,22 +528,23 @@ if (!empty($comp['comp_member_custom_fields'])) {
                     $levelLimits = json_decode($comp['comp_level_limits'], true) ?: [];
                 }
                 if (!empty($levelLimits)):
-                ?>
+                    ?>
                     <div class="form-field space-y-2" style="animation-delay: 0.45s">
                         <label for="reg_level" class="block text-sm font-bold text-slate-200 flex items-center gap-2">
                             <span>เลือกระดับชั้นที่จะสมัครแข่งขัน</span> <span class="text-rose-450">*</span>
                         </label>
                         <div class="neon-input-wrapper">
-                            <select name="reg_level" id="reg_level" required class="neon-input w-full p-4 rounded-2xl font-medium shadow-inner cursor-pointer appearance-none">
+                            <select name="reg_level" id="reg_level" required
+                                class="neon-input w-full p-4 rounded-2xl font-medium shadow-inner cursor-pointer appearance-none">
                                 <option value="" disabled selected>-- เลือกระดับชั้น --</option>
-                                <?php foreach ($levelLimits as $lvl): 
+                                <?php foreach ($levelLimits as $lvl):
                                     $db = \Config\Database::connect();
                                     $activeRegForLevel = $db->table('Tb_ScienceWeek_Registrations')
                                         ->where('reg_competition_type', $comp['comp_name'])
                                         ->where('reg_level', $lvl['level'])
                                         ->where('reg_status !=', 'rejected')
                                         ->countAllResults();
-                                    
+
                                     $isFull = false;
                                     $quotaText = '';
                                     if ($lvl['limit'] > 0) {
@@ -423,9 +556,9 @@ if (!empty($comp['comp_member_custom_fields'])) {
                                     } else {
                                         $quotaText = " (ไม่จำกัดจำนวน)";
                                     }
-                                ?>
+                                    ?>
                                     <option value="<?= esc($lvl['level']) ?>" <?= $isFull ? 'disabled' : '' ?>>
-                                        <?= esc($lvl['level']) ?><?= $quotaText ?>
+                                        <?= esc($lvl['level']) ?>        <?= $quotaText ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>
@@ -441,31 +574,106 @@ if (!empty($comp['comp_member_custom_fields'])) {
                             <span>ชื่อโรงเรียน / สถาบันการศึกษา</span> <span class="text-rose-450">*</span>
                         </label>
                         <div class="neon-input-wrapper">
-                            <input type="text" name="school_name" id="school_name" required placeholder="ระบุชื่อเต็ม (เช่น โรงเรียนสวนกุหลาบวิทยาลัย)" class="neon-input w-full p-4 rounded-2xl font-medium shadow-inner">
+                            <input type="text" name="school_name" id="school_name" required
+                                placeholder="ระบุชื่อเต็ม (เช่น โรงเรียนสวนกุหลาบวิทยาลัย)"
+                                class="neon-input w-full p-4 rounded-2xl font-medium shadow-inner">
                             <i data-lucide="school" class="input-icon-left w-5 h-5"></i>
                         </div>
                     </div>
                     <div class="space-y-2">
-                        <label for="school_province" class="block text-sm font-bold text-slate-200 flex items-center gap-2">
+                        <label for="school_province"
+                            class="block text-sm font-bold text-slate-200 flex items-center gap-2">
                             <span>จังหวัดของโรงเรียน</span> <span class="text-rose-450">*</span>
                         </label>
                         <div class="neon-input-wrapper">
-                            <select name="school_province" id="school_province" required class="neon-input w-full p-4 rounded-2xl font-medium shadow-inner cursor-pointer appearance-none">
+                            <select name="school_province" id="school_province" required
+                                class="neon-input w-full p-4 rounded-2xl font-medium shadow-inner cursor-pointer appearance-none">
                                 <option value="" disabled selected>-- เลือกจังหวัด --</option>
                                 <?php
                                 $provinces = [
-                                    "กรุงเทพมหานคร", "กระบี่", "กาญจนบุรี", "กาฬสินธุ์", "กำแพงเพชร", "ขอนแก่น", "จันทบุรี", "ฉะเชิงเทรา", "ชลบุรี", "ชัยนาท", 
-                                    "ชัยภูมิ", "ชุมพร", "เชียงราย", "เชียงใหม่", "ตรัง", "ตราด", "ตาก", "นครนายก", "นครปฐม", "นครพนม", 
-                                    "นครราชสีมา", "นครศรีธรรมราช", "นครสวรรค์", "นนทบุรี", "นราธิวาส", "น่าน", "บึงกาฬ", "บุรีรัมย์", "ปทุมธานี", "ประจวบคีรีขันธ์", 
-                                    "ปราจีนบุรี", "ปัตตานี", "พระนครศรีอยุธยา", "พะเยา", "พังงา", "พัทลุง", "พิจิตร", "พิษณุโลก", "เพชรบุรี", "เพชรบูรณ์", 
-                                    "แพร่", "พะเยา", "ภูเก็ต", "มหาสารคาม", "มุกดาหาร", "แม่ฮ่องสอน", "ยะลา", "ยโสธร", "ร้อยเอ็ด", "ระนอง", 
-                                    "ระยอง", "ราชบุรี", "ลพบุรี", "ลำปาง", "ลำพูน", "เลย", "ศรีสะเกษ", "สกลนคร", "สงขลา", "สตูล", 
-                                    "สมุทรปราการ", "สมุทรสงคราม", "สมุทรสาคร", "สระแก้ว", "สระบุรี", "สิงห์บุรี", "สุโขทัย", "สุพรรณบุรี", "สุราษฎร์ธานี", "สุรินทร์", 
-                                    "หนองคาย", "หนองบัวลำภู", "อ่างทอง", "อุดรธานี", "อุทัยธานี", "อุตรดิตถ์", "อุบลราชธานี", "อำนาจเจริญ"
+                                    "กรุงเทพมหานคร",
+                                    "กระบี่",
+                                    "กาญจนบุรี",
+                                    "กาฬสินธุ์",
+                                    "กำแพงเพชร",
+                                    "ขอนแก่น",
+                                    "จันทบุรี",
+                                    "ฉะเชิงเทรา",
+                                    "ชลบุรี",
+                                    "ชัยนาท",
+                                    "ชัยภูมิ",
+                                    "ชุมพร",
+                                    "เชียงราย",
+                                    "เชียงใหม่",
+                                    "ตรัง",
+                                    "ตราด",
+                                    "ตาก",
+                                    "นครนายก",
+                                    "นครปฐม",
+                                    "นครพนม",
+                                    "นครราชสีมา",
+                                    "นครศรีธรรมราช",
+                                    "นครสวรรค์",
+                                    "นนทบุรี",
+                                    "นราธิวาส",
+                                    "น่าน",
+                                    "บึงกาฬ",
+                                    "บุรีรัมย์",
+                                    "ปทุมธานี",
+                                    "ประจวบคีรีขันธ์",
+                                    "ปราจีนบุรี",
+                                    "ปัตตานี",
+                                    "พระนครศรีอยุธยา",
+                                    "พะเยา",
+                                    "พังงา",
+                                    "พัทลุง",
+                                    "พิจิตร",
+                                    "พิษณุโลก",
+                                    "เพชรบุรี",
+                                    "เพชรบูรณ์",
+                                    "แพร่",
+                                    "พะเยา",
+                                    "ภูเก็ต",
+                                    "มหาสารคาม",
+                                    "มุกดาหาร",
+                                    "แม่ฮ่องสอน",
+                                    "ยะลา",
+                                    "ยโสธร",
+                                    "ร้อยเอ็ด",
+                                    "ระนอง",
+                                    "ระยอง",
+                                    "ราชบุรี",
+                                    "ลพบุรี",
+                                    "ลำปาง",
+                                    "ลำพูน",
+                                    "เลย",
+                                    "ศรีสะเกษ",
+                                    "สกลนคร",
+                                    "สงขลา",
+                                    "สตูล",
+                                    "สมุทรปราการ",
+                                    "สมุทรสงคราม",
+                                    "สมุทรสาคร",
+                                    "สระแก้ว",
+                                    "สระบุรี",
+                                    "สิงห์บุรี",
+                                    "สุโขทัย",
+                                    "สุพรรณบุรี",
+                                    "สุราษฎร์ธานี",
+                                    "สุรินทร์",
+                                    "หนองคาย",
+                                    "หนองบัวลำภู",
+                                    "อ่างทอง",
+                                    "อุดรธานี",
+                                    "อุทัยธานี",
+                                    "อุตรดิตถ์",
+                                    "อุบลราชธานี",
+                                    "อำนาจเจริญ"
                                 ];
                                 foreach ($provinces as $p):
-                                ?>
-                                    <option value="<?= esc($p) ?>" <?= esc($p) === 'นครสวรรค์' ? 'selected' : '' ?>><?= esc($p) ?></option>
+                                    ?>
+                                    <option value="<?= esc($p) ?>" <?= esc($p) === 'นครสวรรค์' ? 'selected' : '' ?>>
+                                        <?= esc($p) ?></option>
                                 <?php endforeach; ?>
                             </select>
                             <i data-lucide="map-pin" class="input-icon-left w-5 h-5"></i>
@@ -476,10 +684,14 @@ if (!empty($comp['comp_member_custom_fields'])) {
                 <!-- Team Name -->
                 <div class="form-field space-y-2" style="animation-delay: 0.55s">
                     <label for="team_name" class="block text-sm font-bold text-slate-200 flex items-center gap-2">
-                        <span>ชื่อทีมที่เข้าแข่งขัน</span> <span class="text-slate-400 text-xs font-normal">(ระบุเฉพาะประเภทที่มีผู้สมัครมากกว่า 1 คน หรือมีชื่อทีมเฉพาะ)</span>
+                        <span>ชื่อทีมที่เข้าแข่งขัน</span> <span
+                            class="text-slate-400 text-xs font-normal">(ระบุเฉพาะประเภทที่มีผู้สมัครมากกว่า 1 คน
+                            หรือมีชื่อทีมเฉพาะ)</span>
                     </label>
                     <div class="neon-input-wrapper">
-                        <input type="text" name="team_name" id="team_name" placeholder="ระบุชื่อทีมของท่าน (เช่น ทีมไซไฟจูเนียร์)..." class="neon-input w-full p-4 rounded-2xl font-medium shadow-inner">
+                        <input type="text" name="team_name" id="team_name"
+                            placeholder="ระบุชื่อทีมของท่าน (เช่น ทีมไซไฟจูเนียร์)..."
+                            class="neon-input w-full p-4 rounded-2xl font-medium shadow-inner">
                         <i data-lucide="users" class="input-icon-left w-5 h-5"></i>
                     </div>
                 </div>
@@ -492,22 +704,28 @@ if (!empty($comp['comp_member_custom_fields'])) {
                         <label class="block text-sm font-bold text-slate-200 flex items-center gap-2 flex-wrap">
                             <span>รายชื่อผู้เข้าแข่งขัน / สมาชิกทีม</span>
                             <?php if (!empty($comp['comp_member_limit']) && $comp['comp_member_limit'] > 0): ?>
-                                <span class="text-xs text-cyan-400 font-bold">(สูงสุด <?= esc($comp['comp_member_limit']) ?> คน)</span>
+                                <span class="text-xs text-cyan-400 font-bold">(สูงสุด <?= esc($comp['comp_member_limit']) ?>
+                                    คน)</span>
                             <?php endif; ?>
                             <span class="text-rose-450">*</span>
                         </label>
-                        <button type="button" id="add-member-btn" class="add-btn px-4 py-2 border rounded-xl text-xs font-black flex items-center gap-1.5 shadow-sm">
+                        <button type="button" id="add-member-btn"
+                            class="add-btn px-4 py-2 border rounded-xl text-xs font-black flex items-center gap-1.5 shadow-sm">
                             <i data-lucide="plus" class="w-4 h-4"></i> เพิ่มรายชื่อสมาชิก
                         </button>
                     </div>
                     <div id="members-wrapper" class="space-y-3">
                         <div class="list-item-enter dossier-card p-3.5 rounded-2xl">
                             <div class="flex flex-col lg:flex-row gap-3 items-stretch lg:items-end w-full">
-                                <span class="text-xs font-mono font-bold text-indigo-300 px-2 select-none lg:mb-4 lg:py-0 py-1 shrink-0">[MEMBER 01]</span>
-                                
+                                <span
+                                    class="text-xs font-mono font-bold text-indigo-300 px-2 select-none lg:mb-4 lg:py-0 py-1 shrink-0">[MEMBER
+                                    01]</span>
+
                                 <div class="w-full lg:w-36 shrink-0 flex flex-col gap-1">
-                                    <label class="block text-[10px] font-bold text-indigo-300/80 lg:block hidden">คำนำหน้า</label>
-                                    <select name="member_prefixes[0]" required class="neon-input prefix-select w-full p-3.5 rounded-xl font-medium shadow-inner text-base cursor-pointer">
+                                    <label
+                                        class="block text-[10px] font-bold text-indigo-300/80 lg:block hidden">คำนำหน้า</label>
+                                    <select name="member_prefixes[0]" required
+                                        class="neon-input prefix-select w-full p-3.5 rounded-xl font-medium shadow-inner text-base cursor-pointer">
                                         <option value="" disabled selected>คำนำหน้า</option>
                                         <option value="เด็กชาย">เด็กชาย</option>
                                         <option value="เด็กหญิง">เด็กหญิง</option>
@@ -518,26 +736,33 @@ if (!empty($comp['comp_member_custom_fields'])) {
                                     </select>
                                 </div>
                                 <div class="flex-1 min-w-0 flex flex-col gap-1">
-                                    <label class="block text-[10px] font-bold text-indigo-300/80 lg:block hidden">ชื่อ-นามสกุล</label>
+                                    <label
+                                        class="block text-[10px] font-bold text-indigo-300/80 lg:block hidden">ชื่อ-นามสกุล</label>
                                     <div class="neon-input-wrapper">
-                                        <input type="text" name="member_names[0]" required placeholder="ชื่อ-นามสกุลจริง (เช่น สมชาย ดีใจ)" class="neon-input w-full p-3.5 rounded-xl font-medium shadow-inner text-base">
+                                        <input type="text" name="member_names[0]" required
+                                            placeholder="ชื่อ-นามสกุลจริง (เช่น สมชาย ดีใจ)"
+                                            class="neon-input w-full p-3.5 rounded-xl font-medium shadow-inner text-base">
                                         <i data-lucide="user" class="input-icon-left w-5 h-5"></i>
                                     </div>
                                 </div>
-                                
+
                                 <?php if (!empty($memberCustomFieldsConfig)): ?>
-                                    <?php foreach ($memberCustomFieldsConfig as $f): 
+                                    <?php foreach ($memberCustomFieldsConfig as $f):
                                         $fName = esc($f['label']);
                                         $isRequired = !empty($f['required']) ? 'required' : '';
                                         $requiredStar = !empty($f['required']) ? '<span class="text-rose-450">*</span>' : '';
-                                    ?>
+                                        ?>
                                         <div class="w-full lg:w-44 shrink-0 flex flex-col gap-1">
-                                            <label class="block text-[10px] font-bold text-indigo-300/80 truncate" title="<?= esc($f['label']) ?>"><?= esc($f['label']) ?> <?= $requiredStar ?></label>
+                                            <label class="block text-[10px] font-bold text-indigo-300/80 truncate"
+                                                title="<?= esc($f['label']) ?>"><?= esc($f['label']) ?>
+                                                <?= $requiredStar ?></label>
                                             <div class="neon-input-wrapper">
-                                                <?php if ($f['type'] === 'select'): 
+                                                <?php if ($f['type'] === 'select'):
                                                     $opts = array_filter(array_map('trim', explode(',', $f['options'] ?? '')));
-                                                ?>
-                                                    <select name="member_custom_fields[0][<?= $fName ?>]" <?= $isRequired ?> class="member-custom-input neon-input w-full p-3.5 rounded-xl font-medium shadow-inner text-base cursor-pointer appearance-none" data-label="<?= $fName ?>">
+                                                    ?>
+                                                    <select name="member_custom_fields[0][<?= $fName ?>]" <?= $isRequired ?>
+                                                        class="member-custom-input neon-input w-full p-3.5 rounded-xl font-medium shadow-inner text-base cursor-pointer appearance-none"
+                                                        data-label="<?= $fName ?>">
                                                         <option value="" disabled selected>-- เลือก --</option>
                                                         <?php foreach ($opts as $o): ?>
                                                             <option value="<?= esc($o) ?>"><?= esc($o) ?></option>
@@ -545,22 +770,31 @@ if (!empty($comp['comp_member_custom_fields'])) {
                                                     </select>
                                                     <i data-lucide="chevron-down" class="input-icon-left w-5 h-5"></i>
                                                 <?php elseif ($f['type'] === 'textarea'): ?>
-                                                    <textarea name="member_custom_fields[0][<?= $fName ?>]" <?= $isRequired ?> rows="1" class="member-custom-input neon-input w-full p-3.5 rounded-xl font-medium shadow-inner text-base pl-12 pt-2.5 resize-none h-[54px]" data-label="<?= $fName ?>"></textarea>
-                                                    <i data-lucide="align-left" class="input-icon-left w-5 h-5" style="top: 27px; transform: none;"></i>
+                                                    <textarea name="member_custom_fields[0][<?= $fName ?>]" <?= $isRequired ?>
+                                                        rows="1"
+                                                        class="member-custom-input neon-input w-full p-3.5 rounded-xl font-medium shadow-inner text-base pl-12 pt-2.5 resize-none h-[54px]"
+                                                        data-label="<?= $fName ?>"></textarea>
+                                                    <i data-lucide="align-left" class="input-icon-left w-5 h-5"
+                                                        style="top: 27px; transform: none;"></i>
                                                 <?php elseif ($f['type'] === 'url'): ?>
-                                                    <input type="url" name="member_custom_fields[0][<?= $fName ?>]" <?= $isRequired ?> class="member-custom-input neon-input w-full p-3.5 rounded-xl font-medium shadow-inner text-base" placeholder="https://..." data-label="<?= $fName ?>">
+                                                    <input type="url" name="member_custom_fields[0][<?= $fName ?>]" <?= $isRequired ?>
+                                                        class="member-custom-input neon-input w-full p-3.5 rounded-xl font-medium shadow-inner text-base"
+                                                        placeholder="https://..." data-label="<?= $fName ?>">
                                                     <i data-lucide="link" class="input-icon-left w-5 h-5"></i>
                                                 <?php else: ?>
-                                                    <input type="text" name="member_custom_fields[0][<?= $fName ?>]" <?= $isRequired ?> class="member-custom-input neon-input w-full p-3.5 rounded-xl font-medium shadow-inner text-base" placeholder="ระบุข้อมูล..." data-label="<?= $fName ?>">
+                                                    <input type="text" name="member_custom_fields[0][<?= $fName ?>]" <?= $isRequired ?>
+                                                        class="member-custom-input neon-input w-full p-3.5 rounded-xl font-medium shadow-inner text-base"
+                                                        placeholder="ระบุข้อมูล..." data-label="<?= $fName ?>">
                                                     <i data-lucide="edit-3" class="input-icon-left w-5 h-5"></i>
                                                 <?php endif; ?>
                                             </div>
                                         </div>
                                     <?php endforeach; ?>
                                 <?php endif; ?>
-                                
+
                                 <div class="lg:mb-0 shrink-0">
-                                    <button type="button" class="remove-btn p-3.5 rounded-xl opacity-0 pointer-events-none">
+                                    <button type="button"
+                                        class="remove-btn p-3.5 rounded-xl opacity-0 pointer-events-none">
                                         <i data-lucide="trash-2" class="w-5 h-5"></i>
                                     </button>
                                 </div>
@@ -577,16 +811,21 @@ if (!empty($comp['comp_member_custom_fields'])) {
                         <label class="block text-sm font-bold text-slate-200 flex items-center gap-2">
                             <span>รายชื่ออาจารย์ที่ปรึกษา / ครูควบคุมทีม</span> <span class="text-rose-450">*</span>
                         </label>
-                        <button type="button" id="add-advisor-btn" class="add-btn px-4 py-2 border rounded-xl text-xs font-black flex items-center gap-1.5 shadow-sm">
+                        <button type="button" id="add-advisor-btn"
+                            class="add-btn px-4 py-2 border rounded-xl text-xs font-black flex items-center gap-1.5 shadow-sm">
                             <i data-lucide="plus" class="w-4 h-4"></i> เพิ่มคุณครูผู้ควบคุม
                         </button>
                     </div>
                     <div id="advisors-wrapper" class="space-y-3">
-                        <div class="flex flex-col sm:flex-row gap-2 sm:items-center list-item-enter dossier-card p-3 rounded-2xl">
-                            <span class="text-xs font-mono font-bold text-indigo-300 px-2 select-none sm:py-0 py-1">[ADVISOR 01]</span>
+                        <div
+                            class="flex flex-col sm:flex-row gap-2 sm:items-center list-item-enter dossier-card p-3 rounded-2xl">
+                            <span
+                                class="text-xs font-mono font-bold text-indigo-300 px-2 select-none sm:py-0 py-1">[ADVISOR
+                                01]</span>
                             <div class="flex flex-1 gap-2 items-center flex-wrap sm:flex-nowrap w-full">
                                 <div class="w-full sm:w-36 shrink-0">
-                                    <select name="advisor_prefixes[]" required class="neon-input prefix-select w-full p-3.5 rounded-xl font-medium shadow-inner text-base cursor-pointer">
+                                    <select name="advisor_prefixes[]" required
+                                        class="neon-input prefix-select w-full p-3.5 rounded-xl font-medium shadow-inner text-base cursor-pointer">
                                         <option value="" disabled selected>คำนำหน้า</option>
                                         <option value="นาย">นาย</option>
                                         <option value="นางสาว">นางสาว</option>
@@ -596,7 +835,9 @@ if (!empty($comp['comp_member_custom_fields'])) {
                                     </select>
                                 </div>
                                 <div class="neon-input-wrapper flex-1 w-full">
-                                    <input type="text" name="advisor_names[]" required placeholder="ชื่อ-นามสกุลจริง (เช่น สมบัติ ดีพร้อม)" class="neon-input w-full p-3.5 rounded-xl font-medium shadow-inner text-base">
+                                    <input type="text" name="advisor_names[]" required
+                                        placeholder="ชื่อ-นามสกุลจริง (เช่น สมบัติ ดีพร้อม)"
+                                        class="neon-input w-full p-3.5 rounded-xl font-medium shadow-inner text-base">
                                     <i data-lucide="user-check" class="input-icon-left w-5 h-5"></i>
                                 </div>
                                 <button type="button" class="remove-btn p-3.5 rounded-xl opacity-0 pointer-events-none">
@@ -616,7 +857,9 @@ if (!empty($comp['comp_member_custom_fields'])) {
                             เบอร์โทรศัพท์มือถือที่ติดต่อได้ <span class="text-rose-450">*</span>
                         </label>
                         <div class="neon-input-wrapper">
-                            <input type="tel" name="contact_phone" id="contact_phone" required placeholder="เช่น 0891234567" class="neon-input w-full p-4 rounded-2xl font-medium shadow-inner">
+                            <input type="tel" name="contact_phone" id="contact_phone" required
+                                placeholder="เช่น 0891234567"
+                                class="neon-input w-full p-4 rounded-2xl font-medium shadow-inner">
                             <i data-lucide="phone" class="input-icon-left w-5 h-5"></i>
                         </div>
                     </div>
@@ -625,7 +868,9 @@ if (!empty($comp['comp_member_custom_fields'])) {
                             อีเมลติดต่อผู้ควบคุม
                         </label>
                         <div class="neon-input-wrapper">
-                            <input type="email" name="contact_email" id="contact_email" placeholder="เช่น school@email.com" class="neon-input w-full p-4 rounded-2xl font-medium shadow-inner">
+                            <input type="email" name="contact_email" id="contact_email"
+                                placeholder="เช่น school@email.com"
+                                class="neon-input w-full p-4 rounded-2xl font-medium shadow-inner">
                             <i data-lucide="mail" class="input-icon-left w-5 h-5"></i>
                         </div>
                     </div>
@@ -638,43 +883,52 @@ if (!empty($comp['comp_member_custom_fields'])) {
                     $customFieldsConfig = json_decode($comp['comp_custom_fields'], true) ?: [];
                 }
                 if (!empty($customFieldsConfig)):
-                ?>
+                    ?>
                     <div class="border-t border-slate-800/80 my-6"></div>
                     <div class="space-y-4">
                         <h4 class="text-sm font-bold text-slate-200 flex items-center gap-2 mb-2">
-                            <i data-lucide="list-plus" class="w-4 h-4 text-indigo-400"></i> ข้อมูลเพิ่มเติมสำหรับการสมัครการแข่งขัน
+                            <i data-lucide="list-plus" class="w-4 h-4 text-indigo-400"></i>
+                            ข้อมูลเพิ่มเติมสำหรับการสมัครการแข่งขัน
                         </h4>
                         <div class="grid grid-cols-1 gap-4">
-                            <?php foreach ($customFieldsConfig as $idx => $field): 
+                            <?php foreach ($customFieldsConfig as $idx => $field):
                                 $fieldName = esc($field['label']);
                                 $isRequired = !empty($field['required']) ? 'required' : '';
                                 $requiredStar = !empty($field['required']) ? '<span class="text-rose-450">*</span>' : '';
-                            ?>
+                                ?>
                                 <div class="form-field space-y-2">
                                     <label class="block text-sm font-bold text-slate-200">
-                                        <?= esc($field['label']) ?> <?= $requiredStar ?>
+                                        <?= esc($field['label']) ?>         <?= $requiredStar ?>
                                     </label>
-                                    
+
                                     <?php if ($field['type'] === 'text'): ?>
                                         <div class="neon-input-wrapper">
-                                            <input type="text" name="custom_fields[<?= $fieldName ?>]" <?= $isRequired ?> placeholder="ระบุข้อมูล..." class="neon-input w-full p-4 rounded-2xl font-medium shadow-inner">
+                                            <input type="text" name="custom_fields[<?= $fieldName ?>]" <?= $isRequired ?>
+                                                placeholder="ระบุข้อมูล..."
+                                                class="neon-input w-full p-4 rounded-2xl font-medium shadow-inner">
                                             <i data-lucide="edit-3" class="input-icon-left w-5 h-5"></i>
                                         </div>
                                     <?php elseif ($field['type'] === 'textarea'): ?>
                                         <div class="neon-input-wrapper">
-                                            <textarea name="custom_fields[<?= $fieldName ?>]" <?= $isRequired ?> rows="3" placeholder="ระบุรายละเอียดเพิ่มเติม..." class="neon-input w-full p-4 rounded-2xl font-medium shadow-inner pl-12 pt-3.5 resize-none"></textarea>
-                                            <i data-lucide="align-left" class="input-icon-left w-5 h-5" style="top: 24px; transform: none;"></i>
+                                            <textarea name="custom_fields[<?= $fieldName ?>]" <?= $isRequired ?> rows="3"
+                                                placeholder="ระบุรายละเอียดเพิ่มเติม..."
+                                                class="neon-input w-full p-4 rounded-2xl font-medium shadow-inner pl-12 pt-3.5 resize-none"></textarea>
+                                            <i data-lucide="align-left" class="input-icon-left w-5 h-5"
+                                                style="top: 24px; transform: none;"></i>
                                         </div>
                                     <?php elseif ($field['type'] === 'url'): ?>
                                         <div class="neon-input-wrapper">
-                                            <input type="url" name="custom_fields[<?= $fieldName ?>]" <?= $isRequired ?> placeholder="https://..." class="neon-input w-full p-4 rounded-2xl font-medium shadow-inner">
+                                            <input type="url" name="custom_fields[<?= $fieldName ?>]" <?= $isRequired ?>
+                                                placeholder="https://..."
+                                                class="neon-input w-full p-4 rounded-2xl font-medium shadow-inner">
                                             <i data-lucide="link" class="input-icon-left w-5 h-5"></i>
                                         </div>
-                                    <?php elseif ($field['type'] === 'select'): 
+                                    <?php elseif ($field['type'] === 'select'):
                                         $options = array_filter(array_map('trim', explode(',', $field['options'] ?? '')));
-                                    ?>
+                                        ?>
                                         <div class="neon-input-wrapper">
-                                            <select name="custom_fields[<?= $fieldName ?>]" <?= $isRequired ?> class="neon-input w-full p-4 rounded-2xl font-medium shadow-inner cursor-pointer appearance-none">
+                                            <select name="custom_fields[<?= $fieldName ?>]" <?= $isRequired ?>
+                                                class="neon-input w-full p-4 rounded-2xl font-medium shadow-inner cursor-pointer appearance-none">
                                                 <option value="" disabled selected>-- เลือกตัวเลือก --</option>
                                                 <?php foreach ($options as $opt): ?>
                                                     <option value="<?= esc($opt) ?>"><?= esc($opt) ?></option>
@@ -684,7 +938,8 @@ if (!empty($comp['comp_member_custom_fields'])) {
                                         </div>
                                     <?php elseif ($field['type'] === 'file'): ?>
                                         <div class="neon-input-wrapper">
-                                            <input type="file" name="custom_fields_files[<?= $fieldName ?>]" <?= $isRequired ?> class="neon-input w-full p-3 rounded-2xl font-medium shadow-inner file:mr-4 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-500/10 file:text-indigo-400 hover:file:bg-indigo-500/20">
+                                            <input type="file" name="custom_fields_files[<?= $fieldName ?>]" <?= $isRequired ?>
+                                                class="neon-input w-full p-3 rounded-2xl font-medium shadow-inner file:mr-4 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-500/10 file:text-indigo-400 hover:file:bg-indigo-500/20">
                                             <i data-lucide="upload-cloud" class="input-icon-left w-5 h-5"></i>
                                         </div>
                                     <?php endif; ?>
@@ -694,14 +949,15 @@ if (!empty($comp['comp_member_custom_fields'])) {
                     </div>
                 <?php endif; ?>
 
-                <button type="submit" id="submitBtn" class="w-full py-4 text-white font-black rounded-2xl neon-btn-submit flex items-center justify-center gap-2 mt-8 text-base shadow-lg">
+                <button type="submit" id="submitBtn"
+                    class="w-full py-4 text-white font-black rounded-2xl neon-btn-submit flex items-center justify-center gap-2 mt-8 text-base shadow-lg">
                     <i data-lucide="send" class="w-5 h-5"></i> บันทึกข้อมูลและส่งใบสมัคร
                 </button>
             </form>
         </div>
     </div>
 </div>
-    </div>
+</div>
 </div>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -738,7 +994,7 @@ if (!empty($comp['comp_member_custom_fields'])) {
         animate();
     }
 
-    const compLimit = <?= isset($comp['comp_member_limit']) ? (int)$comp['comp_member_limit'] : 0 ?>;
+    const compLimit = <?= isset($comp['comp_member_limit']) ? (int) $comp['comp_member_limit'] : 0 ?>;
 
     const memberCustomFieldsConfig = <?= json_encode($memberCustomFieldsConfig) ?>;
 
@@ -766,15 +1022,15 @@ if (!empty($comp['comp_member_custom_fields'])) {
             items.forEach((item, idx) => {
                 const count = idx + 1;
                 const formattedCount = String(count).padStart(2, '0');
-                
+
                 // Reindex label
                 const span = item.querySelector('span');
                 if (span) span.textContent = `[${prefixLabel} ${formattedCount}]`;
-                
+
                 // Reindex prefix select
                 const prefixSelect = item.querySelector('select.prefix-select') || item.querySelector('input[placeholder="ระบุคำนำหน้า"]');
                 if (prefixSelect) prefixSelect.name = isMember ? `member_prefixes[${idx}]` : `advisor_prefixes[${idx}]`;
-                
+
                 // Reindex name input
                 const nameInput = item.querySelector('input.neon-input[type="text"]:not([placeholder="ระบุคำนำหน้า"]):not(.member-custom-input)');
                 if (nameInput) {
@@ -800,8 +1056,8 @@ if (!empty($comp['comp_member_custom_fields'])) {
                     icon: 'warning',
                     title: 'จำกัดจำนวนผู้เข้าแข่งขัน',
                     text: `การแข่งขันนี้จำกัดจำนวนผู้เข้าแข่งขันได้สูงสุดไม่เกิน ${maxLimit} คนต่อทีม`,
-                    background: '#ffffff',
-                    color: '#1e293b',
+                    background: '#0b0f19',
+                    color: '#f1f5f9',
                     confirmButtonColor: '#6366f1'
                 });
                 return;
@@ -812,8 +1068,8 @@ if (!empty($comp['comp_member_custom_fields'])) {
             const formattedCount = String(count).padStart(2, '0');
             const item = document.createElement('div');
             item.className = 'list-item-enter dossier-card p-3.5 rounded-2xl';
-            
-            const prefixOptions = isMember 
+
+            const prefixOptions = isMember
                 ? `
                     <option value="" disabled selected>คำนำหน้า</option>
                     <option value="เด็กชาย">เด็กชาย</option>
@@ -838,13 +1094,13 @@ if (!empty($comp['comp_member_custom_fields'])) {
                     const fName = escapeHtml(f.label);
                     const isRequired = f.required ? 'required' : '';
                     const requiredStar = f.required ? '<span class="text-rose-450">*</span>' : '';
-                    
+
                     customFieldsHtml += `
                         <div class="w-full lg:w-44 shrink-0 flex flex-col gap-1">
                             <label class="block text-[10px] font-bold text-indigo-300/80 truncate" title="${escapeHtml(f.label)}">${escapeHtml(f.label)} ${requiredStar}</label>
                             <div class="neon-input-wrapper">
                     `;
-                    
+
                     if (f.type === 'select') {
                         const opts = (f.options || '').split(',').map(o => o.trim()).filter(o => o !== '');
                         customFieldsHtml += `
@@ -874,7 +1130,7 @@ if (!empty($comp['comp_member_custom_fields'])) {
                             <i data-lucide="edit-3" class="input-icon-left w-5 h-5"></i>
                         `;
                     }
-                    
+
                     customFieldsHtml += `
                             </div>
                         </div>
@@ -915,11 +1171,10 @@ if (!empty($comp['comp_member_custom_fields'])) {
             `;
             wrapper.appendChild(item);
             lucide.createIcons();
-            
-            $(item).find('select').each(function() {
+
+            $(item).find('select').each(function () {
                 $(this).select2({
                     placeholder: $(this).hasClass('prefix-select') ? "คำนำหน้า" : "-- เลือก --",
-                    dropdownParent: $('.glass-sci-card'),
                     minimumResultsForSearch: $(this).hasClass('prefix-select') ? -1 : 10
                 });
             });
@@ -932,26 +1187,26 @@ if (!empty($comp['comp_member_custom_fields'])) {
         checkRemoveButtons();
         reindexItems();
     }
-    
+
     function escapeHtml(text) {
         if (!text) return '';
         return text.toString().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
     }
-    
+
     setupDynamicList('members-wrapper', 'add-member-btn', 'ระบุชื่อ-นามสกุล สมาชิกคนที่ 1', 'member_prefixes[0]', 'member_names[0]', compLimit);
     setupDynamicList('advisors-wrapper', 'add-advisor-btn', 'ระบุชื่อ-นามสกุล อาจารย์ที่ปรึกษาคนที่ 1', 'advisor_prefixes[0]', 'advisor_names[0]');
 
     // Custom Prefix handling for "other" using jQuery to support Select2 integration
-    $(document).on('change', '.prefix-select', function(e) {
+    $(document).on('change', '.prefix-select', function (e) {
         if ($(this).val() === 'other') {
             const select = $(this);
             const parent = select.parent();
-            
+
             // Destroy Select2 if initialized
             if (select.hasClass("select2-hidden-accessible")) {
                 select.select2('destroy');
             }
-            
+
             // Create a custom text input to replace the select
             const input = document.createElement('input');
             input.type = 'text';
@@ -960,7 +1215,7 @@ if (!empty($comp['comp_member_custom_fields'])) {
             input.placeholder = 'ระบุคำนำหน้า';
             input.className = 'neon-input w-full p-3.5 rounded-xl font-medium shadow-inner text-base';
             input.style.setProperty('padding-left', '1rem', 'important'); // Left padding override
-            
+
             // Clear wrapper and append input
             parent.empty();
             parent.append(input);
@@ -972,7 +1227,7 @@ if (!empty($comp['comp_member_custom_fields'])) {
     const form = document.getElementById('regForm');
     const submitBtn = document.getElementById('submitBtn');
 
-    form.addEventListener('submit', function(e) {
+    form.addEventListener('submit', function (e) {
         e.preventDefault();
         if (!form.checkValidity()) { form.reportValidity(); return; }
 
@@ -988,61 +1243,84 @@ if (!empty($comp['comp_member_custom_fields'])) {
 
         const formData = new FormData(form);
         fetch(form.action, { method: 'POST', body: formData, headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-        .then(res => res.json())
-        .then(data => {
-            if (data.status === 'success') {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'ลงทะเบียนสำเร็จ!',
-                    text: 'ข้อมูลการสมัครของคุณได้รับเรียบร้อยแล้ว',
-                    background: '#ffffff',
-                    color: '#1e293b',
-                    confirmButtonColor: '#6366f1'
-                }).then(() => { window.location.href = data.redirect; });
-            } else {
-                Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: data.message || 'ข้อมูลไม่ถูกต้อง', background: '#ffffff', color: '#1e293b', confirmButtonColor: '#ef4444' });
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'ลงทะเบียนสำเร็จ!',
+                        text: 'ข้อมูลการสมัครของคุณได้รับเรียบร้อยแล้ว',
+                        background: '#0b0f19',
+                        color: '#f1f5f9',
+                        confirmButtonColor: '#6366f1'
+                    }).then(() => { window.location.href = data.redirect; });
+                } else {
+                    Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: data.message || 'ข้อมูลไม่ถูกต้อง', background: '#0b0f19', color: '#f1f5f9', confirmButtonColor: '#ef4444' });
+                    submitBtn.disabled = false;
+                    submitBtn.classList.remove('opacity-80', 'cursor-not-allowed');
+                    submitBtn.innerHTML = `<i data-lucide="send" class="w-5 h-5"></i> ส่งข้อมูลการสมัครลงทะเบียน`;
+                    lucide.createIcons();
+                }
+            })
+            .catch(() => {
+                Swal.fire({ icon: 'error', title: 'ขออภัย', text: 'ไม่สามารถติดต่อเซิร์ฟเวอร์ได้ในขณะนี้', background: '#0b0f19', color: '#f1f5f9', confirmButtonColor: '#ef4444' });
                 submitBtn.disabled = false;
                 submitBtn.classList.remove('opacity-80', 'cursor-not-allowed');
                 submitBtn.innerHTML = `<i data-lucide="send" class="w-5 h-5"></i> ส่งข้อมูลการสมัครลงทะเบียน`;
                 lucide.createIcons();
-            }
-        })
-        .catch(() => {
-            Swal.fire({ icon: 'error', title: 'ขออภัย', text: 'ไม่สามารถติดต่อเซิร์ฟเวอร์ได้ในขณะนี้', background: '#ffffff', color: '#1e293b', confirmButtonColor: '#ef4444' });
-            submitBtn.disabled = false;
-            submitBtn.classList.remove('opacity-80', 'cursor-not-allowed');
-            submitBtn.innerHTML = `<i data-lucide="send" class="w-5 h-5"></i> ส่งข้อมูลการสมัครลงทะเบียน`;
-            lucide.createIcons();
-        });
+            });
     });
 
-    $(document).ready(function() {
+    $(document).ready(function () {
         $('#school_province').select2({
-            placeholder: "-- เลือกจังหวัด --",
-            dropdownParent: $('.glass-sci-card')
+            placeholder: "-- เลือกจังหวัด --"
         });
         $('#reg_level').select2({
-            placeholder: "-- เลือกระดับชั้น --",
-            dropdownParent: $('.glass-sci-card')
+            placeholder: "-- เลือกระดับชั้น --"
         });
         $('.prefix-select').select2({
             placeholder: "คำนำหน้า",
-            dropdownParent: $('.glass-sci-card'),
             minimumResultsForSearch: -1
         });
 
+        // Handle HTML5 validation with Select2
+        $(document).on('invalid', 'select.select2-hidden-accessible', function (e) {
+            e.preventDefault();
+            const select = $(this);
+            const select2Container = select.next('.select2-container');
+            select2Container.find('.select2-selection').css('border-color', '#f43f5e'); // Red border
+
+            // Open Select2 dropdown and scroll to it
+            if ($('.select2-container-invalid-focus').length === 0) {
+                select2Container.addClass('select2-container-invalid-focus');
+                $('html, body').animate({
+                    scrollTop: select2Container.offset().top - 120
+                }, 300, function () {
+                    select.select2('open');
+                    select2Container.removeClass('select2-container-invalid-focus');
+                });
+            }
+        });
+
+        $(document).on('change', 'select', function () {
+            if ($(this).val()) {
+                const select2Container = $(this).next('.select2-container');
+                select2Container.find('.select2-selection').css('border-color', '');
+            }
+        });
+
         // Smart phone number formatter (0XX-XXX-XXXX)
-        $('#contact_phone').on('input', function() {
+        $('#contact_phone').on('input', function () {
             let number = $(this).val().replace(/\D/g, '');
             number = number.substring(0, 10);
-            
+
             let formatted = '';
             if (number.length > 0) {
                 if (number.startsWith('02')) {
                     formatted = number.substring(0, 2);
                     if (number.length > 2) formatted += '-' + number.substring(2, 5);
                     if (number.length > 5) formatted += '-' + number.substring(5, 9);
-                } else if (number.startsWith('0') && ['03','04','05','07'].some(prefix => number.startsWith(prefix))) {
+                } else if (number.startsWith('0') && ['03', '04', '05', '07'].some(prefix => number.startsWith(prefix))) {
                     formatted = number.substring(0, 3);
                     if (number.length > 3) formatted += '-' + number.substring(3, 5);
                     if (number.length > 5) formatted += '-' + number.substring(5, 9);

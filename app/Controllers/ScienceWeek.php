@@ -1722,6 +1722,7 @@ class ScienceWeek extends BaseController
         $data['year_stats'] = $yearStats;
         $data['evaluation_claim_limit'] = (int)($settingsModel->getVal('science_week_evaluation_claim_limit') ?: 20);
         $data['evaluation_open'] = $settingsModel->getVal('science_week_evaluation_open') !== '0';
+        $data['approved_list_open'] = $settingsModel->getVal('science_week_approved_list_open') !== '0';
         $data['fullname'] = session()->get('u_fullname');
 
         // Settings Hub specific variables
@@ -1821,6 +1822,20 @@ class ScienceWeek extends BaseController
             $settingsModel->update($existingEvalOpen['s_id'], $dataEvalOpen);
         } else {
             $settingsModel->insert($dataEvalOpen);
+        }
+
+        // 6. Save approved list open status
+        $approvedListOpenVal = $this->request->getPost('approved_list_open') === '1' ? '1' : '0';
+        $existingApprovedListOpen = $settingsModel->where('s_key', 'science_week_approved_list_open')->first();
+        $dataApprovedListOpen = [
+            's_key' => 'science_week_approved_list_open',
+            's_value' => $approvedListOpenVal,
+            's_description' => 'สถานะการเปิดประกาศรายชื่อผู้มีสิทธิ์เข้าแข่ง (1 = เปิด, 0 = ปิด)'
+        ];
+        if ($existingApprovedListOpen) {
+            $settingsModel->update($existingApprovedListOpen['s_id'], $dataApprovedListOpen);
+        } else {
+            $settingsModel->insert($dataApprovedListOpen);
         }
 
         return redirect()->to(base_url('science-week/staff/settings'))->with('success', 'บันทึกข้อมูลการตั้งค่าระบบเรียบร้อยแล้ว');
@@ -2075,12 +2090,16 @@ class ScienceWeek extends BaseController
                                    ->findAll();
         }
 
+        $settingsModel = new \App\Models\SettingsModel();
+        $approvedListOpen = $settingsModel->getVal('science_week_approved_list_open') !== '0';
+
         $data['title'] = 'ประกาศรายชื่อผู้มีสิทธิ์เข้าร่วมแข่งขัน | งานสัปดาห์วิทยาศาสตร์';
         $data['registrations'] = $registrations;
         $data['search'] = null;
         $data['compType_active'] = $compType;
         $data['competitions'] = $this->compModel->where('comp_year', $activeYear)->orderBy('comp_id', 'ASC')->findAll();
         $data['has_searched'] = $hasSearched;
+        $data['approved_list_open'] = $approvedListOpen;
 
         return view('science_week/approved_list', $data);
     }
