@@ -123,6 +123,16 @@ class ScienceWeek extends BaseController
                 $db->query("ALTER TABLE Tb_ScienceWeek_Evaluations ADD COLUMN eval_education_level VARCHAR(255) NULL DEFAULT NULL AFTER eval_occupation");
             }
         }
+        
+        if (!$db->tableExists('Tb_ScienceWeek_Announcements')) {
+            $db->query("CREATE TABLE Tb_ScienceWeek_Announcements (
+                ann_id INT AUTO_INCREMENT PRIMARY KEY,
+                ann_year INT NULL DEFAULT 2569,
+                ann_title VARCHAR(255) NOT NULL,
+                ann_file VARCHAR(255) NOT NULL,
+                ann_created_at DATETIME NOT NULL
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+        }
     }
 
     /**
@@ -198,9 +208,16 @@ class ScienceWeek extends BaseController
             LIMIT 4
         ", [$activeYear])->getResultArray();
 
+        $announcements = $db->table('Tb_ScienceWeek_Announcements')
+                            ->where('ann_year', $activeYear)
+                            ->orderBy('ann_created_at', 'DESC')
+                            ->get()
+                            ->getResultArray();
+
         $data['title'] = 'งานสัปดาห์วิทยาศาสตร์ 2026 - กองการศึกษา อบจ.นครสวรรค์ & โรงเรียนสวนกุหลาบวิทยาลัย (จิรประวัติ) นครสวรรค์ ';
         $data['countdown_date'] = $targetDate;
         $data['schedules'] = $this->schModel->where('sch_year', $activeYear)->orderBy('sch_id', 'ASC')->findAll();
+        $data['announcements'] = $announcements;
 
         $data['stat_steam'] = $steamCount;
         $data['stat_comp'] = $compCount;
@@ -628,6 +645,92 @@ class ScienceWeek extends BaseController
     /**
      * ระบบจัดการรายชื่อผู้สมัคร (Staff/Admin)
      */
+    public function adminAnnouncements()
+    {
+        $access = $this->checkAccess();
+        if ($access !== true) return $access;
+        if (!$this->isFullAdmin()) {
+            return redirect()->to(base_url('science-week/staff'))->with('error', 'เฉพาะผู้ดูแลระบบ (Admin) เท่านั้นที่สามารถจัดการไฟล์ประกาศได้');
+        }
+
+        $selectedYear = $this->getSelectedYear();
+        $db = \Config\Database::connect();
+        
+        $announcements = $db->table('Tb_ScienceWeek_Announcements')
+                            ->where('ann_year', $selectedYear)
+                            ->orderBy('ann_created_at', 'DESC')
+                            ->get()
+                            ->getResultArray();
+
+        $data = [
+            'title' => "จัดการไฟล์ประกาศ | งานสัปดาห์วิทยาศาสตร์",
+            'announcements' => $announcements,
+            'fullname' => session()->get('u_fullname'),
+            'selected_year' => $selectedYear
+        ];
+
+        return view('science_week/admin_announcements', $data);
+    }
+
+    public function adminAnnouncementStore()
+    {
+        $access = $this->checkAccess();
+        if ($access !== true) return $this->response->setJSON(['status' => 'error', 'message' => 'Unauthorized']);
+        if (!$this->isFullAdmin()) return $this->response->setJSON(['status' => 'error', 'message' => 'ไม่มีสิทธิ์เข้าถึง']);
+
+        $rules = [
+            'ann_title' => 'required',
+            'ann_file' => 'uploaded[ann_file]|max_size[ann_file,10240]|ext_in[ann_file,pdf,jpg,jpeg,png]'
+        ];
+
+        if (!$this->validate($rules)) {
+            return $this->response->setJSON(['status' => 'error', 'message' => 'ข้อมูลไม่ถูกต้อง หรือไฟล์อาจมีขนาดเกิน 10MB (รองรับ PDF, JPG, PNG)']);
+        }
+
+        $title = $this->request->getPost('ann_title');
+        $file = $this->request->getFile('ann_file');
+        
+        if ($file && $file->isValid() && !$file->hasMoved()) {
+            if (!is_dir(FCPATH . 'uploads/science_week/announcements')) {
+                mkdir(FCPATH . 'uploads/science_week/announcements', 0777, true);
+            }
+            $newName = $file->getRandomName();
+            $file->move(FCPATH . 'uploads/science_week/announcements', $newName);
+            
+            $db = \Config\Database::connect();
+            $db->table('Tb_ScienceWeek_Announcements')->insert([
+                'ann_year' => $this->getSelectedYear(),
+                'ann_title' => $title,
+                'ann_file' => 'uploads/science_week/announcements/' . $newName,
+                'ann_created_at' => date('Y-m-d H:i:s')
+            ]);
+            
+            return $this->response->setJSON(['status' => 'success', 'message' => 'อัปโหลดไฟล์ประกาศสำเร็จ']);
+        }
+
+        return $this->response->setJSON(['status' => 'error', 'message' => 'เกิดข้อผิดพลาดในการอัปโหลดไฟล์']);
+    }
+
+    public function adminAnnouncementDelete($id)
+    {
+        $access = $this->checkAccess();
+        if ($access !== true) return $this->response->setJSON(['status' => 'error', 'message' => 'Unauthorized']);
+        if (!$this->isFullAdmin()) return $this->response->setJSON(['status' => 'error', 'message' => 'ไม่มีสิทธิ์เข้าถึง']);
+
+        $db = \Config\Database::connect();
+        $ann = $db->table('Tb_ScienceWeek_Announcements')->where('ann_id', $id)->get()->getRowArray();
+        
+        if ($ann) {
+            if (file_exists(FCPATH . $ann['ann_file'])) {
+                unlink(FCPATH . $ann['ann_file']);
+            }
+            $db->table('Tb_ScienceWeek_Announcements')->where('ann_id', $id)->delete();
+            return $this->response->setJSON(['status' => 'success', 'message' => 'ลบไฟล์ประกาศสำเร็จ']);
+        }
+        
+        return $this->response->setJSON(['status' => 'error', 'message' => 'ไม่พบไฟล์ประกาศ']);
+    }
+
     public function adminIndex()
     {
         $access = $this->checkAccess();
@@ -3724,6 +3827,206 @@ class ScienceWeek extends BaseController
         $data['fullname'] = session()->get('u_fullname');
 
         return view('science_week/student_staff_index', $data);
+    }
+
+    public function studentStaffPrint()
+    {
+        $access = $this->checkAccess();
+        if ($access !== true)
+            return $access;
+
+        $selectedYear = $this->getSelectedYear();
+        $searchTerm = $this->request->getGet('search');
+        $compType = $this->request->getGet('competition_type');
+
+        $staffModel = new ScienceWeekStudentStaffModel();
+        $query = $staffModel->where('staff_year', $selectedYear);
+
+        $allowedComps = $this->getAllowedCompetitions();
+        if ($allowedComps !== null && !empty($allowedComps)) {
+            $generalRoles = [
+                'ฝ่ายงานทั่วไป / ส่วนกลาง',
+                'ฝ่ายลงทะเบียนและประเมินผล',
+                'ฝ่ายสถานที่และโสตทัศนูปกรณ์',
+                'ฝ่ายอาหารและเครื่องดื่ม',
+                'ฝ่ายประชาสัมพันธ์และต้อนรับ',
+                'ฝ่ายจัดนิทรรศการและกิจกรรมพิเศษ'
+            ];
+            $viewableRoles = array_merge($allowedComps, $generalRoles);
+            $query = $query->whereIn('staff_competition_type', $viewableRoles);
+        }
+
+        if (!empty($searchTerm)) {
+            $query = $query->groupStart()
+                ->like('staff_firstname', $searchTerm)
+                ->orLike('staff_lastname', $searchTerm)
+                ->orLike('staff_class', $searchTerm)
+                ->groupEnd();
+        }
+
+        if (!empty($compType)) {
+            $query = $query->where('staff_competition_type', $compType);
+        }
+
+        $data['title'] = "พิมพ์ใบลงชื่อผู้ช่วยงาน | งานสัปดาห์วิทยาศาสตร์";
+        // เรียงตามรายการแข่งขัน แล้วค่อยตามชื่อ
+        $data['student_staff'] = $query->orderBy('staff_competition_type', 'ASC')->orderBy('staff_firstname', 'ASC')->findAll();
+        $data['compType_active'] = $compType;
+        $data['selected_year'] = $selectedYear;
+
+        return view('science_week/student_staff_print', $data);
+    }
+
+    public function studentStaffExport()
+    {
+        $access = $this->checkAccess();
+        if ($access !== true)
+            return $access;
+
+        $selectedYear = $this->getSelectedYear();
+        $searchTerm = $this->request->getGet('search');
+        $compType = $this->request->getGet('competition_type');
+
+        $staffModel = new ScienceWeekStudentStaffModel();
+        $query = $staffModel->where('staff_year', $selectedYear);
+
+        $allowedComps = $this->getAllowedCompetitions();
+        if ($allowedComps !== null && !empty($allowedComps)) {
+            $generalRoles = [
+                'ฝ่ายงานทั่วไป / ส่วนกลาง',
+                'ฝ่ายลงทะเบียนและประเมินผล',
+                'ฝ่ายสถานที่และโสตทัศนูปกรณ์',
+                'ฝ่ายอาหารและเครื่องดื่ม',
+                'ฝ่ายประชาสัมพันธ์และต้อนรับ',
+                'ฝ่ายจัดนิทรรศการและกิจกรรมพิเศษ'
+            ];
+            $viewableRoles = array_merge($allowedComps, $generalRoles);
+            $query = $query->whereIn('staff_competition_type', $viewableRoles);
+        }
+
+        if (!empty($searchTerm)) {
+            $query = $query->groupStart()
+                ->like('staff_firstname', $searchTerm)
+                ->orLike('staff_lastname', $searchTerm)
+                ->orLike('staff_class', $searchTerm)
+                ->groupEnd();
+        }
+
+        if (!empty($compType)) {
+            $query = $query->where('staff_competition_type', $compType);
+        }
+
+        $student_staff = $query->orderBy('staff_competition_type', 'ASC')->orderBy('staff_firstname', 'ASC')->findAll();
+
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        // Set Page Setup to A4 Portrait and Fit to Page Width
+        $sheet->getPageSetup()->setPaperSize(\PhpOffice\PhpSpreadsheet\Worksheet\PageSetup::PAPERSIZE_A4);
+        $sheet->getPageSetup()->setOrientation(\PhpOffice\PhpSpreadsheet\Worksheet\PageSetup::ORIENTATION_PORTRAIT);
+        $sheet->getPageSetup()->setFitToWidth(1);
+        $sheet->getPageSetup()->setFitToHeight(0);
+        $sheet->getPageMargins()->setTop(0.75);
+        $sheet->getPageMargins()->setRight(0.7);
+        $sheet->getPageMargins()->setLeft(0.7);
+        $sheet->getPageMargins()->setBottom(0.75);
+
+        // Default style for the whole sheet
+        $spreadsheet->getDefaultStyle()->getFont()->setName('TH SarabunPSK')->setSize(16);
+
+        // Titles
+        $sheet->mergeCells('A1:E1');
+        $sheet->setCellValue('A1', 'รายชื่อนักเรียนและบุคคลทั่วไปช่วยปฏิบัติงาน');
+        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(18);
+        $sheet->getStyle('A1')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+
+        $sheet->mergeCells('A2:E2');
+        $sheet->setCellValue('A2', 'งานสัปดาห์วิทยาศาสตร์ ประจำปี ' . $selectedYear);
+        $sheet->getStyle('A2')->getFont()->setBold(true)->setSize(18);
+        $sheet->getStyle('A2')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+
+        $sheet->mergeCells('A3:E3');
+        $compText = !empty($compType) ? $compType : '.........................................................';
+        $sheet->setCellValue('A3', 'รายการแข่งขัน / ฝ่ายงาน : ' . $compText);
+        $sheet->getStyle('A3')->getFont()->setBold(true)->setSize(16);
+        $sheet->getStyle('A3')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+        
+        $startRow = 5;
+
+        // Headers
+        $headers = ['ลำดับที่', 'ชื่อ - นามสกุล', 'ระดับชั้น / สถานะ', 'ฝ่ายงาน / รายการ', 'หมายเหตุ (ลายมือชื่อ)'];
+        $col = 'A';
+        foreach ($headers as $header) {
+            $sheet->setCellValue($col . $startRow, $header);
+            $col++;
+        }
+
+        // Header styles
+        $headerRange = 'A' . $startRow . ':E' . $startRow;
+        $sheet->getStyle($headerRange)->getFont()->setBold(true);
+        $sheet->getStyle($headerRange)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+
+        // Data
+        $rowNum = $startRow + 1;
+        $i = 1;
+        if (empty($student_staff)) {
+            $sheet->mergeCells('A' . $rowNum . ':E' . $rowNum);
+            $sheet->setCellValue('A' . $rowNum, '- ไม่มีข้อมูลผู้ช่วยงาน -');
+            $sheet->getStyle('A' . $rowNum)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+            $rowNum++;
+        } else {
+            foreach ($student_staff as $st) {
+                $sheet->setCellValue('A' . $rowNum, $i++);
+                $sheet->setCellValue('B' . $rowNum, $st['staff_prefix'] . $st['staff_firstname'] . ' ' . $st['staff_lastname']);
+                $sheet->setCellValue('C' . $rowNum, $st['staff_class']);
+                $sheet->setCellValue('D' . $rowNum, $st['staff_competition_type']);
+                $sheet->setCellValue('E' . $rowNum, '');
+                
+                $sheet->getStyle('A' . $rowNum)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+                $sheet->getStyle('C' . $rowNum)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+                $sheet->getStyle('E' . $rowNum)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+                
+                $rowNum++;
+            }
+        }
+
+        // Borders for all cells in the table
+        $styleArray = [
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                ],
+            ],
+            'alignment' => [
+                'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+            ],
+        ];
+        $sheet->getStyle('A' . $startRow . ':E' . ($rowNum - 1))->applyFromArray($styleArray);
+
+        // Set row heights for signatures
+        for ($r = $startRow + 1; $r < $rowNum; $r++) {
+            $sheet->getRowDimension($r)->setRowHeight(30);
+        }
+
+        // Column widths
+        $sheet->getColumnDimension('A')->setWidth(10);
+        $sheet->getColumnDimension('B')->setWidth(35);
+        $sheet->getColumnDimension('C')->setWidth(20);
+        $sheet->getColumnDimension('D')->setWidth(35);
+        $sheet->getColumnDimension('E')->setWidth(25);
+
+        $filename = "student_staff_" . date('Ymd_His') . ".xlsx";
+        
+        ob_end_clean(); // Clear any previous output buffers to avoid corrupt excel file
+        
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="' . $filename . '"');
+        header('Cache-Control: max-age=0');
+        
+        $writer->save('php://output');
+        exit;
     }
 
     public function studentStaffStore()

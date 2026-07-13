@@ -78,9 +78,106 @@
     </div>
     
     <div class="flex flex-wrap gap-3 w-full md:w-auto">
+        <a href="<?= base_url('science-week/staff/student-staff/export') ?>?search=<?= urlencode($search ?? '') ?>&competition_type=<?= urlencode($compType_active ?? '') ?>&t=<?= time() ?>" class="w-full md:w-auto justify-center px-5 py-3 rounded-2xl bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-900/30 dark:hover:bg-emerald-800/40 text-emerald-700 dark:text-emerald-400 font-bold text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 border border-emerald-200 dark:border-emerald-800 shadow-sm">
+            <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> ส่งออก Excel
+        </a>
+        <a href="<?= base_url('science-week/staff/student-staff/print') ?>?search=<?= urlencode($search ?? '') ?>&competition_type=<?= urlencode($compType_active ?? '') ?>&t=<?= time() ?>" target="_blank" class="w-full md:w-auto justify-center px-5 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 border border-slate-200 dark:border-slate-700 shadow-sm">
+            <i data-lucide="printer" class="w-4 h-4"></i> พิมพ์ใบลงชื่อ
+        </a>
         <button onclick="openAddModal()" class="w-full md:w-auto justify-center px-5 py-3 rounded-2xl bg-gradient-to-r from-violet-500 to-indigo-500 hover:from-violet-600 hover:to-indigo-600 text-white font-bold text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 shadow-lg shadow-indigo-950/20">
-            <i data-lucide="plus-circle" class="w-4 h-4"></i> เพิ่มรายชื่อนักเรียนช่วยงาน
+            <i data-lucide="plus-circle" class="w-4 h-4"></i> เพิ่มรายชื่อ
         </button>
+    </div>
+</div>
+
+<!-- Dashboard Section -->
+<?php 
+$total_staff = count($student_staff);
+$roles_count = count(array_unique(array_column($student_staff, 'staff_competition_type')));
+
+$m_ton = 0; // ม.ต้น
+$m_plai = 0; // ม.ปลาย
+$general = 0; // บุคคลทั่วไป
+
+foreach($student_staff as $st) {
+    if (preg_match('/ม\.[1-3]/', $st['staff_class'])) {
+        $m_ton++;
+    } elseif (preg_match('/ม\.[4-6]/', $st['staff_class'])) {
+        $m_plai++;
+    } elseif (strpos($st['staff_class'], 'บุคคลทั่วไป') !== false) {
+        $general++;
+    }
+}
+?>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+    <!-- Card 1: Total Staff -->
+    <div class="glass-card rounded-3xl p-5 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 relative overflow-hidden group">
+        <div class="absolute -right-4 -top-4 w-24 h-24 bg-indigo-500/20 rounded-full blur-2xl group-hover:bg-indigo-500/30 transition-all"></div>
+        <div class="flex items-center justify-between relative z-10">
+            <div>
+                <p class="text-[10px] font-bold text-indigo-400 uppercase tracking-widest mb-1">นักเรียน/ผู้ช่วยงานทั้งหมด</p>
+                <h3 class="text-3xl font-black text-slate-800 dark:text-white"><?= number_format($total_staff) ?> <span class="text-sm font-semibold text-slate-500 dark:text-slate-400">คน</span></h3>
+            </div>
+            <div class="w-12 h-12 rounded-2xl bg-indigo-500/20 flex items-center justify-center text-indigo-500 border border-indigo-500/30">
+                <i data-lucide="users" class="w-6 h-6"></i>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Card 2: Total Roles/Competitions -->
+    <div class="glass-card rounded-3xl p-5 bg-gradient-to-br from-emerald-500/10 to-teal-500/10 border border-emerald-500/20 relative overflow-hidden group">
+        <div class="absolute -right-4 -top-4 w-24 h-24 bg-emerald-500/20 rounded-full blur-2xl group-hover:bg-emerald-500/30 transition-all"></div>
+        <div class="flex items-center justify-between relative z-10">
+            <div>
+                <p class="text-[10px] font-bold text-emerald-400 uppercase tracking-widest mb-1">จำนวนฝ่ายงาน / รายการ</p>
+                <h3 class="text-3xl font-black text-slate-800 dark:text-white"><?= number_format($roles_count) ?> <span class="text-sm font-semibold text-slate-500 dark:text-slate-400">ฝ่ายงาน</span></h3>
+            </div>
+            <div class="w-12 h-12 rounded-2xl bg-emerald-500/20 flex items-center justify-center text-emerald-500 border border-emerald-500/30">
+                <i data-lucide="briefcase" class="w-6 h-6"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card 3: Junior High -->
+    <div class="glass-card rounded-3xl p-5 bg-gradient-to-br from-amber-500/10 to-orange-500/10 border border-amber-500/20 relative overflow-hidden group">
+        <div class="absolute -right-4 -top-4 w-24 h-24 bg-amber-500/20 rounded-full blur-2xl group-hover:bg-amber-500/30 transition-all"></div>
+        <div class="flex items-center justify-between relative z-10">
+            <div>
+                <p class="text-[10px] font-bold text-amber-400 uppercase tracking-widest mb-1">ระดับชั้นม.ต้น (1-3)</p>
+                <h3 class="text-3xl font-black text-slate-800 dark:text-white"><?= number_format($m_ton) ?> <span class="text-sm font-semibold text-slate-500 dark:text-slate-400">คน</span></h3>
+            </div>
+            <div class="w-12 h-12 rounded-2xl bg-amber-500/20 flex items-center justify-center text-amber-500 border border-amber-500/30">
+                <i data-lucide="graduation-cap" class="w-6 h-6"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card 4: Senior High -->
+    <div class="glass-card rounded-3xl p-5 bg-gradient-to-br from-rose-500/10 to-pink-500/10 border border-rose-500/20 relative overflow-hidden group">
+        <div class="absolute -right-4 -top-4 w-24 h-24 bg-rose-500/20 rounded-full blur-2xl group-hover:bg-rose-500/30 transition-all"></div>
+        <div class="flex items-center justify-between relative z-10">
+            <div>
+                <p class="text-[10px] font-bold text-rose-400 uppercase tracking-widest mb-1">ระดับชั้นม.ปลาย (4-6)</p>
+                <h3 class="text-3xl font-black text-slate-800 dark:text-white"><?= number_format($m_plai) ?> <span class="text-sm font-semibold text-slate-500 dark:text-slate-400">คน</span></h3>
+            </div>
+            <div class="w-12 h-12 rounded-2xl bg-rose-500/20 flex items-center justify-center text-rose-500 border border-rose-500/30">
+                <i data-lucide="book-open" class="w-6 h-6"></i>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Card 5: General Public -->
+    <div class="glass-card rounded-3xl p-5 bg-gradient-to-br from-sky-500/10 to-cyan-500/10 border border-sky-500/20 relative overflow-hidden group">
+        <div class="absolute -right-4 -top-4 w-24 h-24 bg-sky-500/20 rounded-full blur-2xl group-hover:bg-sky-500/30 transition-all"></div>
+        <div class="flex items-center justify-between relative z-10">
+            <div>
+                <p class="text-[10px] font-bold text-sky-400 uppercase tracking-widest mb-1">บุคคลทั่วไป</p>
+                <h3 class="text-3xl font-black text-slate-800 dark:text-white"><?= number_format($general) ?> <span class="text-sm font-semibold text-slate-500 dark:text-slate-400">คน</span></h3>
+            </div>
+            <div class="w-12 h-12 rounded-2xl bg-sky-500/20 flex items-center justify-center text-sky-500 border border-sky-500/30">
+                <i data-lucide="user-check" class="w-6 h-6"></i>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -299,7 +396,8 @@
         const index = rowIndex++;
 
         // Generate class options
-        let classOptionsHTML = `<option value="" disabled ${classVal === '' ? 'selected' : ''}>-- เลือกชั้นเรียน --</option>`;
+        let classOptionsHTML = `<option value="" disabled ${classVal === '' ? 'selected' : ''}>-- เลือกชั้นเรียน / สถานะ --</option>`;
+        classOptionsHTML += `<option value="บุคคลทั่วไป" ${classVal === 'บุคคลทั่วไป' ? 'selected' : ''}>บุคคลทั่วไป</option>`;
         for (let g = 1; g <= 6; g++) {
             for (let r = 1; r <= 6; r++) {
                 const cName = `ม.${g}/${r}`;
@@ -313,6 +411,7 @@
                     <label class="block text-[9px] font-bold text-slate-400 uppercase tracking-widest">คำนำหน้า *</label>
                     <select name="staff[${index}][prefix]" required class="w-full px-2 py-2.5 bg-slate-950/80 border border-slate-800 focus:border-indigo-500 text-slate-200 text-xs rounded-xl outline-none cursor-pointer">
                         <option value="นาย" ${prefix === 'นาย' ? 'selected' : ''}>นาย</option>
+                        <option value="นาง" ${prefix === 'นาง' ? 'selected' : ''}>นาง</option>
                         <option value="นางสาว" ${prefix === 'นางสาว' ? 'selected' : ''}>นางสาว</option>
                         <option value="เด็กชาย" ${prefix === 'เด็กชาย' ? 'selected' : ''}>เด็กชาย</option>
                         <option value="เด็กหญิง" ${prefix === 'เด็กหญิง' ? 'selected' : ''}>เด็กหญิง</option>
@@ -327,7 +426,7 @@
                     <input type="text" name="staff[${index}][lastname]" value="${lastname}" required class="w-full px-3 py-2.5 bg-slate-950/80 border border-slate-800 focus:border-indigo-500 text-slate-200 text-xs rounded-xl outline-none">
                 </div>
                 <div class="col-span-2 space-y-1.5">
-                    <label class="block text-[9px] font-bold text-slate-400 uppercase tracking-widest">ชั้นเรียน *</label>
+                    <label class="block text-[9px] font-bold text-slate-400 uppercase tracking-widest">ชั้นเรียน / สถานะ *</label>
                     <select name="staff[${index}][class]" id="class_select_${index}" required class="w-full">
                         ${classOptionsHTML}
                     </select>

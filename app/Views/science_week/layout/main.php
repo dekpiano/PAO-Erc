@@ -444,8 +444,36 @@
                     </div>
                 </a>
                 <!-- Desktop Menu -->
+                <?php
+                    $db = \Config\Database::connect();
+                    $settingsModel = new \App\Models\SettingsModel();
+                    $activeYear = (int)($settingsModel->getVal('science_week_active_year') ?: 2569);
+                    $menuAnnouncements = $db->table('Tb_ScienceWeek_Announcements')
+                                            ->where('ann_year', $activeYear)
+                                            ->orderBy('ann_created_at', 'DESC')
+                                            ->get()
+                                            ->getResultArray();
+                ?>
                 <div class="hidden md:flex items-center gap-8">
-                    <a href="<?= base_url('science-week') ?>" class="sci-nav-link text-xs font-black uppercase tracking-wider text-slate-600 hover:text-slate-900 <?= uri_string() == 'science-week' ? 'active text-indigo-650' : '' ?>">หน้าแรกกิจกรรม</a>
+                    <div class="relative group py-2">
+                        <a href="javascript:void(0)" class="sci-nav-link text-xs font-black uppercase tracking-wider text-slate-600 hover:text-slate-900 <?= uri_string() == 'science-week' ? 'active text-indigo-650' : '' ?> flex items-center gap-1 cursor-pointer">
+                            เอกสาร <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                        </a>
+                        <!-- Dropdown -->
+                        <div class="absolute top-full left-0 mt-0 pt-2 w-64 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
+                            <div class="bg-white/95 backdrop-blur-xl border border-slate-200/60 shadow-xl shadow-slate-200/50 rounded-2xl p-2 transform origin-top-left scale-95 group-hover:scale-100 transition-transform duration-300">
+                                <?php if(empty($menuAnnouncements)): ?>
+                                    <div class="px-4 py-3 text-xs text-slate-500 font-medium">ยังไม่มีเอกสาร</div>
+                                <?php else: ?>
+                                    <?php foreach($menuAnnouncements as $ann): ?>
+                                        <a href="<?= base_url($ann['ann_file']) ?>" target="_blank" class="block px-4 py-2.5 rounded-xl text-xs font-bold text-slate-700 hover:text-indigo-600 hover:bg-indigo-50/50 transition-colors truncate">
+                                            <?= esc($ann['ann_title']) ?>
+                                        </a>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    </div>
                     <a href="<?= base_url('science-week/register') ?>" class="sci-nav-link text-xs font-black uppercase tracking-wider text-slate-600 hover:text-slate-900 <?= uri_string() == 'science-week/register' ? 'active text-indigo-650' : '' ?>">สมัครแข่งขัน</a>
                     <a href="<?= base_url('science-week/check-status') ?>" class="sci-nav-link text-xs font-black uppercase tracking-wider text-slate-600 hover:text-slate-900 <?= strpos(uri_string(), 'science-week/check-status') === 0 ? 'active text-indigo-650' : '' ?>">ตรวจสอบสถานะการสมัคร</a>
                     <a href="<?= base_url('science-week/approved-list') ?>" class="sci-nav-link text-xs font-black uppercase tracking-wider text-slate-600 hover:text-slate-900 <?= strpos(uri_string(), 'science-week/approved-list') === 0 ? 'active text-indigo-650' : '' ?>">รายชื่อผู้มีสิทธิ์แข่ง</a>
@@ -466,9 +494,22 @@
     <!-- Mobile Menu Drawer -->
     <div id="mobile-menu" class="hidden fixed inset-0 z-[60] bg-[#060913]/95 backdrop-blur-lg pt-24 px-6 overflow-y-auto">
         <div class="flex flex-col gap-6 animate-[fadeIn_0.3s_ease-out]">
-            <a href="<?= base_url('science-week') ?>" class="text-xl font-bold text-slate-200 border-b border-slate-800/80 pb-4 flex items-center justify-between hover:text-white transition-colors">
-                หน้าแรกกิจกรรม <i data-lucide="chevron-right" class="w-5 h-5 text-slate-400"></i>
-            </a>
+            <div class="border-b border-slate-800/80 pb-4">
+                <a href="javascript:void(0)" onclick="document.getElementById('mobile-docs-menu').classList.toggle('hidden')" class="w-full text-xl font-bold text-slate-200 flex items-center justify-between hover:text-white transition-colors cursor-pointer">
+                    เอกสาร <i data-lucide="chevron-down" class="w-5 h-5 text-slate-400"></i>
+                </a>
+                <div id="mobile-docs-menu" class="hidden mt-4 pl-4 space-y-3">
+                    <?php if(empty($menuAnnouncements)): ?>
+                        <div class="text-sm text-slate-500 font-medium">ยังไม่มีเอกสาร</div>
+                    <?php else: ?>
+                        <?php foreach($menuAnnouncements as $ann): ?>
+                            <a href="<?= base_url($ann['ann_file']) ?>" target="_blank" class="block text-sm font-bold text-slate-400 hover:text-indigo-400 transition-colors truncate">
+                                <?= esc($ann['ann_title']) ?>
+                            </a>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </div>
+            </div>
             <a href="<?= base_url('science-week/register') ?>" class="text-xl font-bold text-slate-200 border-b border-slate-800/80 pb-4 flex items-center justify-between hover:text-white transition-colors">
                 สมัครแข่งขัน <i data-lucide="chevron-right" class="w-5 h-5 text-slate-400"></i>
             </a>

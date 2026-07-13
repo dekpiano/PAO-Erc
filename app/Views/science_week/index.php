@@ -788,6 +788,79 @@
     <div class="parallax-orb parallax-orb-4" data-speed="0.24"></div>
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <!-- ===== ANNOUNCEMENTS BOARD ===== -->
+        <div id="announcements-board" class="mt-8 mb-16 scroll-reveal" data-delay="50">
+            <div class="glass-sci-card rounded-[2rem] p-6 sm:p-10 border-2 border-indigo-500/20 shadow-2xl relative overflow-hidden">
+                <!-- Background decoration -->
+                <div class="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none"></div>
+                <div class="absolute bottom-0 left-0 w-48 h-48 bg-cyan-500/10 rounded-full blur-3xl translate-y-1/4 -translate-x-1/4 pointer-events-none"></div>
+                
+                <div class="relative z-10">
+                    <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8 border-b border-indigo-500/10 pb-6">
+                        <div>
+                            <h2 class="text-2xl sm:text-3xl font-black text-slate-800 dark:text-white flex items-center gap-3">
+                                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-cyan-500 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30">
+                                    <i data-lucide="megaphone" class="w-6 h-6"></i>
+                                </div>
+                                ประกาศ / ข่าวสาร
+                            </h2>
+                            <p class="text-slate-500 dark:text-slate-400 text-sm font-semibold mt-2">เอกสารประกาศและข่าวสารสำคัญงานสัปดาห์วิทยาศาสตร์ ปีการศึกษา <?= $active_year ?></p>
+                        </div>
+                        <span class="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-500/10 border border-indigo-500/20 rounded-full text-indigo-500 dark:text-indigo-400 text-xs font-bold shadow-sm">
+                            ทั้งหมด <?= isset($announcements) ? count($announcements) : 0 ?> รายการ
+                        </span>
+                    </div>
+
+                    <?php if (empty($announcements)): ?>
+                        <div class="py-12 flex flex-col items-center justify-center text-slate-400">
+                            <div class="w-20 h-20 rounded-full bg-slate-100 dark:bg-slate-800/50 flex items-center justify-center mb-4 border border-slate-200 dark:border-slate-700">
+                                <i data-lucide="inbox" class="w-10 h-10 opacity-50"></i>
+                            </div>
+                            <p class="text-base font-bold text-slate-600 dark:text-slate-300">ยังไม่มีประกาศ</p>
+                            <p class="text-sm">ขณะนี้ยังไม่มีไฟล์เอกสารประกาศในระบบ</p>
+                        </div>
+                    <?php else: ?>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <?php foreach ($announcements as $ann): ?>
+                                <?php 
+                                    $ext = pathinfo($ann['ann_file'], PATHINFO_EXTENSION);
+                                    $icon = 'file';
+                                    $colorClass = 'from-slate-400 to-slate-500 shadow-slate-500/30';
+                                    if (in_array(strtolower($ext), ['pdf'])) {
+                                        $icon = 'file-text';
+                                        $colorClass = 'from-rose-400 to-pink-500 shadow-rose-500/30';
+                                    } elseif (in_array(strtolower($ext), ['jpg', 'jpeg', 'png'])) {
+                                        $icon = 'image';
+                                        $colorClass = 'from-blue-400 to-cyan-500 shadow-blue-500/30';
+                                    }
+                                ?>
+                                <a href="<?= base_url($ann['ann_file']) ?>" target="_blank" class="group flex items-start gap-4 p-4 sm:p-5 rounded-2xl bg-white/50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 hover:border-indigo-400 hover:bg-white dark:hover:bg-slate-800 hover:shadow-xl hover:shadow-indigo-500/10 transition-all duration-300">
+                                    <div class="w-12 h-12 shrink-0 rounded-xl bg-gradient-to-br <?= $colorClass ?> text-white flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                                        <i data-lucide="<?= $icon ?>" class="w-5 h-5"></i>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <h4 class="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-200 truncate group-hover:text-indigo-500 transition-colors">
+                                            <?= esc($ann['ann_title']) ?>
+                                        </h4>
+                                        <div class="flex flex-wrap items-center gap-x-4 gap-y-2 mt-2">
+                                            <span class="text-xs font-semibold text-slate-500 flex items-center gap-1">
+                                                <i data-lucide="clock" class="w-3.5 h-3.5"></i> <?= date('d/m/Y', strtotime($ann['ann_created_at'])) ?>
+                                            </span>
+                                            <span class="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 group-hover:bg-indigo-50 dark:group-hover:bg-indigo-900/30 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 group-hover:border-indigo-200 dark:group-hover:border-indigo-700/50 transition-colors">
+                                                <?= $ext ?>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center group-hover:bg-indigo-500 group-hover:text-white transition-colors shrink-0">
+                                        <i data-lucide="download" class="w-4 h-4"></i>
+                                    </div>
+                                </a>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
 
         <!-- ===== SERVICES / ACTION MENU ===== -->
         <div id="action-menu" class="mt-16 mb-12 scroll-reveal" data-delay="100">
