@@ -146,6 +146,10 @@ $routes->group('science-week/staff', ['filter' => 'auth'], function($routes) {
     $routes->post('announcements/store', 'ScienceWeek::adminAnnouncementStore');
     $routes->post('announcements/delete/(:num)', 'ScienceWeek::adminAnnouncementDelete/$1');
 
+    // Check-in System
+    $routes->get('checkin/(:segment)', 'ScienceWeek::checkinView/$1');
+    $routes->post('checkin/process/(:segment)', 'ScienceWeek::checkinProcess/$1');
+
     $routes->get('ranking', 'ScienceWeek::adminRanking');
     $routes->get('edit/(:num)', 'ScienceWeek::adminEdit/$1');
     $routes->post('update/(:num)', 'ScienceWeek::adminUpdate/$1');

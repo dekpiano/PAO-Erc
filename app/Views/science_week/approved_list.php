@@ -421,5 +421,22 @@
         function animate() { ctx.clearRect(0, 0, canvas.width, canvas.height); particles.forEach(p => { p.update(); p.draw(); }); requestAnimationFrame(animate); }
         animate();
     }
+
+    // Show Print Alert Modal on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        // Use sessionStorage so it only shows once per browsing session
+        if (!sessionStorage.getItem('approvedListAlertShown')) {
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    title: 'คำแนะนำการเตรียมบัตรเข้างาน',
+                    html: 'กรณีไม่สะดวกพิมพ์บัตรลงกระดาษ<br>กรุณากดที่ <b>พิมพ์บัตร/ตั๋วทีม</b> แล้ว <b>แคปเจอร์หน้าจอ (Screenshot)</b> บัตรเก็บไว้<br>เพื่อนำ <b>QR Code</b> มาสแกนเช็คอินหน้ากิจกรรม',
+                    icon: 'info',
+                    confirmButtonText: 'รับทราบ',
+                    confirmButtonColor: '#4f46e5',
+                });
+                sessionStorage.setItem('approvedListAlertShown', '1');
+            }
+        }
+    });
 </script>
 <?= $this->endSection() ?>

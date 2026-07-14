@@ -24,63 +24,73 @@
 
 <!-- Competitions List Table -->
 <div class="glass-card rounded-3xl overflow-hidden bg-white dark:bg-slate-900/60 shadow-xl border border-slate-200 dark:border-slate-800">
-    <div class="overflow-x-auto">
+    <div class="w-full">
         <table class="w-full text-left border-collapse">
             <thead>
                 <tr class="bg-slate-50 dark:bg-slate-800/40 border-b border-slate-100 dark:border-slate-800">
-                    <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 w-[80px]">ไอคอน</th>
-                    <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">ชื่อประเภทการแข่งขัน</th>
-                    <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">ระดับชั้น</th>
-                    <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 text-center">สมาชิก/ทีม</th>
-                    <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">ธีมสี</th>
-                    <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 text-center w-[110px]">สถานะรับสมัคร</th>
-                    <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">คำอธิบายย่อ</th>
-                    <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 text-center w-[120px]">จัดการ</th>
+                    <th class="px-4 py-3.5 text-xs font-bold uppercase tracking-wider text-slate-500">ชื่อประเภทการแข่งขัน / รายละเอียด</th>
+                    <th class="px-4 py-3.5 text-xs font-bold uppercase tracking-wider text-slate-500 w-[120px]">ระดับชั้น</th>
+                    <th class="px-4 py-3.5 text-xs font-bold uppercase tracking-wider text-slate-500 text-center w-[90px]">สมาชิก/ทีม</th>
+                    <th class="px-4 py-3.5 text-xs font-bold uppercase tracking-wider text-slate-500 text-center w-[110px]">สถานะรับสมัคร</th>
+                    <th class="px-4 py-3.5 text-xs font-bold uppercase tracking-wider text-slate-500">คำอธิบายย่อ</th>
+                    <th class="px-4 py-3.5 text-xs font-bold uppercase tracking-wider text-slate-500 text-center w-[100px]">จัดการ</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                 <?php if (empty($competitions)): ?>
                     <tr>
-                        <td colspan="8" class="px-6 py-12 text-center text-slate-400 font-medium bg-white dark:bg-transparent">
+                        <td colspan="6" class="px-4 py-12 text-center text-slate-400 font-medium bg-white dark:bg-transparent">
                             ยังไม่มีข้อมูลประเภทการแข่งขันในระบบ คลิกปุ่ม "เพิ่มประเภทการแข่งขัน" เพื่อสร้างรายการใหม่
                         </td>
                     </tr>
                 <?php else: ?>
                     <?php foreach ($competitions as $comp): ?>
                         <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="w-10 h-10 rounded-xl bg-<?= esc($comp['comp_color'] ?: 'cyan') ?>-500/10 border border-<?= esc($comp['comp_color'] ?: 'cyan') ?>-500/30 flex items-center justify-center text-<?= esc($comp['comp_color'] ?: 'cyan') ?>-400">
-                                    <i data-lucide="<?= esc($comp['comp_icon'] ?: 'award') ?>" class="w-5 h-5"></i>
+                            <td class="px-4 py-3.5">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-9 h-9 rounded-xl bg-<?= esc($comp['comp_color'] ?: 'cyan') ?>-500/10 border border-<?= esc($comp['comp_color'] ?: 'cyan') ?>-500/30 flex items-center justify-center text-<?= esc($comp['comp_color'] ?: 'cyan') ?>-400 shrink-0">
+                                        <i data-lucide="<?= esc($comp['comp_icon'] ?: 'award') ?>" class="w-4.5 h-4.5"></i>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <span class="text-xs font-extrabold text-slate-800 dark:text-slate-200 block truncate"><?= esc($comp['comp_name']) ?></span>
+                                        <div class="flex flex-wrap items-center gap-2 mt-1">
+                                            <?php if (!empty($comp['comp_rule_file'])): ?>
+                                                <span class="inline-flex items-center gap-0.5 text-[9px] text-emerald-600 dark:text-emerald-400 font-bold">
+                                                    <i data-lucide="file-check" class="w-3 h-3"></i> กติกา (ไฟล์)
+                                                </span>
+                                            <?php endif; ?>
+                                            <?php if (!empty($comp['comp_rule_link'])): ?>
+                                                <span class="inline-flex items-center gap-0.5 text-[9px] text-sky-600 dark:text-sky-400 font-bold">
+                                                    <i data-lucide="link" class="w-3 h-3"></i> กติกา (ลิงก์)
+                                                </span>
+                                            <?php endif; ?>
+                                            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[8px] font-black bg-<?= esc($comp['comp_color'] ?: 'cyan') ?>-500/10 text-<?= esc($comp['comp_color'] ?: 'cyan') ?>-450 border border-<?= esc($comp['comp_color'] ?: 'cyan') ?>-500/20 uppercase">
+                                                ธีม: <?= esc($comp['comp_color']) ?>
+                                            </span>
+                                        </div>
+                                    </div>
                                 </div>
                             </td>
-                            <td class="px-6 py-4">
-                                <span class="text-xs font-extrabold text-slate-800 dark:text-slate-200 block"><?= esc($comp['comp_name']) ?></span>
-                                <?php if (!empty($comp['comp_rule_file'])): ?>
-                                    <span class="inline-flex items-center gap-1 text-[10px] text-emerald-600 dark:text-emerald-400 font-bold mt-1">
-                                        <i data-lucide="file-check" class="w-3.5 h-3.5"></i> มีไฟล์กติกา
-                                    </span>
-                                <?php endif; ?>
-                                <?php if (!empty($comp['comp_rule_link'])): ?>
-                                    <span class="inline-flex items-center gap-1 text-[10px] text-sky-600 dark:text-sky-400 font-bold mt-1 <?= !empty($comp['comp_rule_file']) ? 'ml-3' : '' ?>">
-                                        <i data-lucide="link" class="w-3.5 h-3.5"></i> มีลิงก์กติกา
-                                    </span>
-                                <?php endif; ?>
+                            <td class="px-4 py-3.5">
+                                <div class="flex flex-col gap-1 items-center">
+                                    <?php 
+                                    $levels = explode(',', $comp['comp_level']);
+                                    foreach ($levels as $lvl): 
+                                        $lvl = trim($lvl);
+                                        if (empty($lvl)) continue;
+                                    ?>
+                                        <span class="text-[10px] font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800/80 px-2 py-0.5 rounded-lg inline-block leading-tight text-center whitespace-nowrap">
+                                            <?= esc($lvl) ?>
+                                        </span>
+                                    <?php endforeach; ?>
+                                </div>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="text-xs font-semibold text-slate-600 dark:text-slate-350"><?= esc($comp['comp_level']) ?></span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-center">
+                            <td class="px-4 py-3.5 whitespace-nowrap text-center">
                                 <span class="text-xs font-bold text-slate-700 dark:text-slate-350">
                                     <?= !empty($comp['comp_member_limit']) ? esc($comp['comp_member_limit']) . ' คน' : 'ไม่จำกัด' ?>
                                 </span>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-<?= esc($comp['comp_color'] ?: 'cyan') ?>-950/40 text-<?= esc($comp['comp_color'] ?: 'cyan') ?>-400 border border-<?= esc($comp['comp_color'] ?: 'cyan') ?>-800/30 text-[10px] font-black uppercase tracking-wider">
-                                    <span class="w-2 h-2 rounded-full bg-<?= esc($comp['comp_color'] ?: 'cyan') ?>-500"></span>
-                                    <?= esc($comp['comp_color']) ?>
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-center">
+                            <td class="px-4 py-3.5 whitespace-nowrap text-center">
                                 <?php 
                                 $now = date('Y-m-d H:i:s');
                                 $isOpen = true;
@@ -95,23 +105,23 @@
                                 }
                                 ?>
                                 <?php if ($isOpen): ?>
-                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-[10px] font-bold">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-[9px] font-bold">
+                                        <span class="w-1 h-1 rounded-full bg-emerald-500 animate-pulse"></span>
                                         เปิดรับสมัคร
                                     </span>
                                 <?php else: ?>
-                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-rose-500/10 text-rose-455 border border-rose-500/20 text-[10px] font-bold">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-455 border border-rose-500/20 text-[9px] font-bold">
+                                        <span class="w-1 h-1 rounded-full bg-rose-500"></span>
                                         ปิดรับสมัคร
                                     </span>
                                 <?php endif; ?>
                             </td>
-                            <td class="px-6 py-4">
-                                <p class="text-xs text-slate-400 line-clamp-2 leading-relaxed max-w-[300px]">
+                            <td class="px-4 py-3.5">
+                                <p class="text-[11px] text-slate-400 line-clamp-1 leading-relaxed max-w-[220px]" title="<?= esc($comp['comp_description']) ?>">
                                     <?= esc($comp['comp_description'] ?: '-') ?>
                                 </p>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-center text-xs">
+                            <td class="px-4 py-3.5 whitespace-nowrap text-center text-xs">
                                 <div class="flex items-center justify-center gap-2">
                                     <a href="<?= base_url('science-week/staff/competitions/edit/' . $comp['comp_id']) ?>" class="p-1.5 bg-blue-50 hover:bg-blue-600 text-blue-600 hover:text-white rounded-lg border border-blue-100 dark:border-slate-800 transition-all" title="แก้ไข">
                                         <i data-lucide="edit" class="w-4 h-4"></i>

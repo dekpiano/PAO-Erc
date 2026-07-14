@@ -95,6 +95,8 @@
                                         echo '<span class="px-2.5 py-1 rounded-xl text-[10px] font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20">ผู้ดูแลระบบสูงสุด (Superadmin)</span>';
                                     } elseif (strpos($roles, 'admin') !== false) {
                                         echo '<span class="px-2.5 py-1 rounded-xl text-[10px] font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20">ผู้ดูแลระบบ (Admin)</span>';
+                                    } elseif (strpos($roles, 'science_week_student_staff') !== false) {
+                                        echo '<span class="px-2.5 py-1 rounded-xl text-[10px] font-bold bg-purple-500/10 text-purple-400 border border-purple-500/20">ผู้ดูแลนักเรียนช่วยงาน (Student Staff)</span>';
                                     } else {
                                         echo '<span class="px-2.5 py-1 rounded-xl text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">เจ้าหน้าที่ระบบ (Staff)</span>';
                                     }
@@ -178,6 +180,7 @@
                     <label for="field_u_role" class="block text-xs sm:text-sm font-black text-slate-200 mb-2">สถานะสิทธิ์การใช้งาน <span class="text-rose-455">*</span></label>
                     <select name="u_role" id="field_u_role" required onchange="toggleCompSelection()" class="w-full px-4 py-3.5 text-sm font-bold rounded-2xl neon-input-sci outline-none">
                         <option value="science_week">เจ้าหน้าที่ระบบ (Staff)</option>
+                        <option value="science_week_student_staff">ผู้ดูแลนักเรียนช่วยงาน (Student Staff)</option>
                         <option value="science_week,admin">ผู้ดูแลระบบ (Admin)</option>
                         <option value="superadmin">ผู้ดูแลระบบสูงสุด (Superadmin)</option>
                     </select>
@@ -252,6 +255,8 @@
                 roleVal = 'superadmin';
             } else if (user.u_role.includes('admin')) {
                 roleVal = 'science_week,admin';
+            } else if (user.u_role.includes('science_week_student_staff')) {
+                roleVal = 'science_week_student_staff';
             }
         }
         document.getElementById('field_u_role').value = roleVal;

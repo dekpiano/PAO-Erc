@@ -1,6 +1,40 @@
 <?= $this->extend('science_week/layout/admin') ?>
 
 <?= $this->section('content') ?>
+<?php
+if (!function_exists('getSortUrl')) {
+    function getSortUrl($field, $currentSortBy, $currentSortOrder) {
+        $params = $_GET;
+        $params['sort_by'] = $field;
+        if ($currentSortBy === $field) {
+            $params['sort_order'] = strtolower($currentSortOrder) === 'asc' ? 'desc' : 'asc';
+        } else {
+            $params['sort_order'] = 'desc';
+        }
+        return base_url('science-week/staff') . '?' . http_build_query($params);
+    }
+}
+
+if (!function_exists('getSortIcon')) {
+    function getSortIcon($field, $currentSortBy, $currentSortOrder) {
+        if ($currentSortBy !== $field) {
+            return '<i data-lucide="chevrons-up-down" class="w-3.5 h-3.5 inline ml-1 text-slate-400"></i>';
+        }
+        return strtolower($currentSortOrder) === 'asc' 
+            ? '<i data-lucide="chevron-up" class="w-3.5 h-3.5 inline ml-1 text-indigo-500"></i>' 
+            : '<i data-lucide="chevron-down" class="w-3.5 h-3.5 inline ml-1 text-indigo-500"></i>';
+    }
+}
+?>
+<style>
+tr:target {
+    animation: highlight-row 2.5s ease-out;
+}
+@keyframes highlight-row {
+    0% { background-color: rgba(99, 102, 241, 0.35); }
+    100% { background-color: transparent; }
+}
+</style>
 <!-- Header Section -->
 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 sm:gap-4 mb-6 w-full">
     <div class="min-w-0 w-full md:w-auto">
@@ -11,52 +45,60 @@
     </div>
     
     <div class="flex flex-wrap gap-3 w-full md:w-auto">
+        <button type="button" onclick="openStatsModal()" class="w-full md:w-auto justify-center px-5 py-3 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:text-slate-900 font-bold text-xs sm:text-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors flex items-center gap-2 shadow-sm">
+            <i data-lucide="bar-chart-3" class="w-4 h-4 text-indigo-500"></i> ดูสถิติการรับสมัคร
+        </button>
+        <button type="button" onclick="openScannerModal()" class="w-full md:w-auto justify-center px-5 py-3 rounded-2xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-black text-xs sm:text-sm transition-all shadow-md hover:shadow-lg flex items-center gap-2 transform hover:-translate-y-0.5">
+            <i data-lucide="scan-line" class="w-4 h-4"></i> สแกน QR เช็คอินหน้างาน
+        </button>
         <a href="<?= base_url('science-week/staff/export?' . http_build_query($_GET)) ?>" class="w-full md:w-auto justify-center px-5 py-3 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:text-slate-900 font-bold text-xs sm:text-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors flex items-center gap-2 shadow-sm">
             <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-600"></i> ส่งออกรายงาน Excel
         </a>
     </div>
 </div>
 
-<!-- Dashboard Statistics Grid -->
+<!-- Dashboard Statistics Grid (Hidden under Template, Shown via Modal) -->
 <?php if (!empty($competition_stats)): ?>
-<div class="space-y-6 mb-6">
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <?php foreach ($competition_stats as $stat): ?>
-            <div class="glass-card p-5 rounded-3xl border border-slate-800 bg-slate-900/30 flex flex-col justify-between hover:border-slate-750 transition-all duration-300">
-                <!-- Comp Title -->
-                <div class="flex items-center gap-2 mb-3">
-                    <span class="w-3 h-3 rounded-full shrink-0" style="background-color: <?= esc($stat['comp_color']) ?>; box-shadow: 0 0 10px <?= esc($stat['comp_color']) ?>80"></span>
-                    <h3 class="text-xs font-black text-white truncate" title="<?= esc($stat['comp_name']) ?>"><?= esc($stat['comp_name']) ?></h3>
-                </div>
+<template id="stats-modal-template">
+    <div class="space-y-4 text-left p-1 max-h-[70vh] overflow-y-auto">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <?php foreach ($competition_stats as $stat): ?>
+                <div class="glass-card p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 flex flex-col justify-between hover:border-indigo-500/30 transition-all duration-300">
+                    <!-- Comp Title -->
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: <?= esc($stat['comp_color']) ?>; box-shadow: 0 0 10px <?= esc($stat['comp_color']) ?>80"></span>
+                        <h3 class="text-xs font-black text-slate-800 dark:text-white truncate" title="<?= esc($stat['comp_name']) ?>"><?= esc($stat['comp_name']) ?></h3>
+                    </div>
 
-                <!-- Levels breakdown -->
-                <div class="space-y-2">
-                    <?php foreach ($stat['levels'] as $lvl): ?>
-                        <div class="p-2.5 rounded-2xl bg-slate-950/80 border border-slate-800/80 flex items-center justify-between text-xs gap-3">
-                            <span class="font-bold text-slate-350 truncate max-w-[150px]" title="<?= esc($lvl['level_name']) ?>">
-                                🎓 <?= esc($lvl['level_name']) ?>
-                            </span>
-                            <div class="flex items-center gap-4 shrink-0 font-mono">
-                                <div class="text-[10px] text-slate-400">
-                                    สมัคร: <span class="text-slate-100 font-extrabold"><?= esc($lvl['total']) ?></span>
-                                </div>
-                                <div class="text-[10px] text-emerald-450 border-l border-slate-800/80 pl-4">
-                                    อนุมัติ: <span class="font-extrabold"><?= esc($lvl['approved']) ?></span>
-                                </div>
-                                <div class="text-[10px] text-amber-400 border-l border-slate-800/80 pl-4">
-                                    รอตรวจ: <span class="font-extrabold"><?= esc($lvl['pending']) ?></span>
-                                </div>
-                                <span class="text-[9px] font-black text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800 shrink-0">
-                                    โควตา: <?= $lvl['limit'] > 0 ? esc($lvl['limit']) : '∞' ?>
+                    <!-- Levels breakdown -->
+                    <div class="space-y-1.5">
+                        <?php foreach ($stat['levels'] as $lvl): ?>
+                            <div class="p-2 rounded-xl bg-white dark:bg-slate-950/80 border border-slate-100 dark:border-slate-850 flex items-center justify-between text-xs gap-3">
+                                <span class="font-bold text-slate-600 dark:text-slate-350 truncate max-w-[150px]" title="<?= esc($lvl['level_name']) ?>">
+                                    🎓 <?= esc($lvl['level_name']) ?>
                                 </span>
+                                <div class="flex items-center gap-3 shrink-0 font-mono">
+                                    <div class="text-[10px] text-slate-500 dark:text-slate-400">
+                                        สมัคร: <span class="text-slate-800 dark:text-slate-100 font-extrabold"><?= esc($lvl['total']) ?></span>
+                                    </div>
+                                    <div class="text-[10px] text-emerald-600 dark:text-emerald-450 border-l border-slate-200 dark:border-slate-800 pl-3">
+                                        อนุมัติ: <span class="font-extrabold"><?= esc($lvl['approved']) ?></span>
+                                    </div>
+                                    <div class="text-[10px] text-amber-600 dark:text-amber-400 border-l border-slate-200 dark:border-slate-800 pl-3">
+                                        รอตรวจ: <span class="font-extrabold"><?= esc($lvl['pending']) ?></span>
+                                    </div>
+                                    <span class="text-[9px] font-black text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-900 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-800 shrink-0">
+                                        โควตา: <?= $lvl['limit'] > 0 ? esc($lvl['limit']) : '∞' ?>
+                                    </span>
+                                </div>
                             </div>
-                        </div>
-                    <?php endforeach; ?>
+                        <?php endforeach; ?>
+                    </div>
                 </div>
-            </div>
-        <?php endforeach; ?>
+            <?php endforeach; ?>
+        </div>
     </div>
-</div>
+</template>
 <?php endif; ?>
 
 <!-- Admin Guidelines Box -->
@@ -74,7 +116,7 @@
 
 <!-- Filters Card -->
 <div class="glass-card p-4 sm:p-6 rounded-3xl mb-6 bg-slate-900/40 dark:bg-slate-900/60">
-    <form method="GET" action="<?= base_url('science-week/staff') ?>" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+    <form method="GET" action="<?= base_url('science-week/staff') ?>" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
         <!-- Search input -->
         <div class="relative">
             <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400"><i data-lucide="search" class="w-4 h-4"></i></span>
@@ -87,6 +129,16 @@
             <?php if (!empty($competitions)): ?>
                 <?php foreach ($competitions as $comp): ?>
                     <option value="<?= esc($comp['comp_name']) ?>" <?= $compType_active == $comp['comp_name'] ? 'selected' : '' ?> class="bg-slate-950 text-slate-300 dark:bg-slate-900 dark:text-slate-200"><?= esc($comp['comp_name']) ?></option>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </select>
+
+        <!-- Level Filter -->
+        <select name="level" class="w-full px-4 py-3 bg-slate-900/60 dark:bg-slate-850 border border-slate-700 dark:border-slate-750 focus:border-blue-500 rounded-2xl text-xs text-slate-200 outline-none transition-colors">
+            <option value="" class="bg-slate-950 text-slate-350 dark:bg-slate-900 dark:text-slate-200">-- ระดับชั้นแข่งขันทั้งหมด --</option>
+            <?php if (!empty($available_levels)): ?>
+                <?php foreach ($available_levels as $lvl): ?>
+                    <option value="<?= esc($lvl) ?>" <?= $level_active == $lvl ? 'selected' : '' ?> class="bg-slate-950 text-slate-300 dark:bg-slate-900 dark:text-slate-200"><?= esc($lvl) ?></option>
                 <?php endforeach; ?>
             <?php endif; ?>
         </select>
@@ -105,7 +157,7 @@
             <button type="submit" class="flex-1 py-3 bg-blue-50 hover:bg-blue-600 text-blue-600 hover:text-white border border-blue-100 hover:border-blue-600 text-xs font-bold rounded-2xl transition-all flex items-center justify-center gap-2">
                 <i data-lucide="filter" class="w-4 h-4"></i> กรองรายการ
             </button>
-            <?php if(!empty($search) || !empty($compType_active) || !empty($status_active)): ?>
+            <?php if(!empty($search) || !empty($compType_active) || !empty($status_active) || !empty($level_active)): ?>
                 <a href="<?= base_url('science-week/staff') ?>" class="p-3 bg-rose-50 hover:bg-rose-100 border border-rose-100 text-rose-600 rounded-2xl transition-all flex items-center justify-center" title="ล้างฟิลเตอร์">
                     <i data-lucide="refresh-cw" class="w-4 h-4"></i>
                 </a>
@@ -115,16 +167,34 @@
 </div>
 
 <!-- List Table -->
-<div class="glass-card rounded-3xl overflow-hidden bg-slate-900/40 dark:bg-slate-900/60 shadow-xl border border-slate-200 dark:border-slate-800">
+<div id="registration-table-container" class="glass-card rounded-3xl overflow-hidden bg-slate-900/40 dark:bg-slate-900/60 shadow-xl border border-slate-200 dark:border-slate-800">
     <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse">
             <thead>
                 <tr class="bg-slate-50 dark:bg-slate-800/40 border-b border-slate-100 dark:border-slate-800">
-                    <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">รหัส/ประเภท</th>
-                    <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">โรงเรียน / ทีม</th>
+                    <th class="px-4 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 text-center w-12">ลำดับ</th>
+                    <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">
+                        <a href="<?= getSortUrl('reg_code', $sort_by, $sort_order) ?>" class="hover:text-indigo-500 dark:hover:text-indigo-400 inline-flex items-center gap-1">
+                            รหัส/ประเภท <?= getSortIcon('reg_code', $sort_by, $sort_order) ?>
+                        </a>
+                    </th>
+                    <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">
+                        <a href="<?= getSortUrl('reg_school_name', $sort_by, $sort_order) ?>" class="hover:text-indigo-500 dark:hover:text-indigo-400 inline-flex items-center gap-1">
+                            โรงเรียน / ทีม <?= getSortIcon('reg_school_name', $sort_by, $sort_order) ?>
+                        </a>
+                    </th>
                     <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">สมาชิกในทีม</th>
                     <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">คุณครูที่ปรึกษา</th>
-                    <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">สถานะตรวจสอบ</th>
+                    <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">
+                        <a href="<?= getSortUrl('reg_status', $sort_by, $sort_order) ?>" class="hover:text-indigo-500 dark:hover:text-indigo-400 inline-flex items-center gap-1">
+                            สถานะตรวจสอบ <?= getSortIcon('reg_status', $sort_by, $sort_order) ?>
+                        </a>
+                    </th>
+                    <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 text-center">
+                        <a href="<?= getSortUrl('reg_checkin_status', $sort_by, $sort_order) ?>" class="hover:text-indigo-500 dark:hover:text-indigo-400 inline-flex items-center gap-1 justify-center mx-auto">
+                            เช็คอิน <?= getSortIcon('reg_checkin_status', $sort_by, $sort_order) ?>
+                        </a>
+                    </th>
                     <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 text-center">อนุมัติ</th>
                     <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 text-center">จัดการ</th>
                 </tr>
@@ -132,13 +202,19 @@
             <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                 <?php if (empty($registrations)): ?>
                     <tr>
-                        <td colspan="7" class="px-6 py-12 text-center text-slate-400 font-medium bg-white dark:bg-transparent">
+                        <td colspan="9" class="px-6 py-12 text-center text-slate-400 font-medium bg-white dark:bg-transparent">
                             ไม่พบข้อมูลใบสมัครประกวดหรือแข่งขันตามระบุ
                         </td>
                     </tr>
                 <?php else: ?>
+                    <?php 
+                    $currentPage = isset($pager) ? ($pager->getCurrentPage('default') ?: 1) : 1;
+                    $perPage = 20;
+                    $rowNum = ($currentPage - 1) * $perPage + 1;
+                    ?>
                     <?php foreach ($registrations as $reg): ?>
-                        <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
+                        <tr id="reg-row-<?= $reg['reg_id'] ?>" class="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors scroll-mt-24">
+                            <td class="px-4 py-4 whitespace-nowrap text-center text-xs font-extrabold text-slate-400 font-mono"><?= $rowNum++ ?></td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <span class="text-xs font-black text-cyan-600 dark:text-cyan-400 block font-mono"><?= $reg['reg_code'] ?></span>
                                 <span class="text-[10px] text-slate-500 block mt-1 font-bold truncate max-w-[180px]"><?= $reg['reg_competition_type'] ?></span>
@@ -239,6 +315,17 @@
                                     </span>
                                 <?php endif; ?>
                             </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center">
+                                <?php if($reg['reg_checkin_status'] == 1): ?>
+                                    <button onclick="toggleCheckin('<?= $reg['reg_code'] ?>', 'cancel')" class="px-2 py-1 bg-emerald-500/10 hover:bg-rose-500/10 text-emerald-500 hover:text-rose-500 rounded border border-emerald-500/20 hover:border-rose-500/20 transition-colors text-[10px] font-bold flex items-center gap-1 mx-auto cursor-pointer" title="รายงานตัวแล้ว คลิกเพื่อยกเลิก">
+                                        <i data-lucide="check-circle" class="w-3.5 h-3.5"></i> มาแล้ว
+                                    </button>
+                                <?php else: ?>
+                                    <button onclick="toggleCheckin('<?= $reg['reg_code'] ?>', 'confirm')" class="px-2 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-emerald-500/10 text-slate-500 dark:text-slate-400 hover:text-emerald-500 rounded border border-slate-200 dark:border-slate-700 hover:border-emerald-500/20 transition-colors text-[10px] font-bold flex items-center gap-1 mx-auto cursor-pointer" title="ยังไม่รายงานตัว คลิกเพื่อเช็คอิน">
+                                        <i data-lucide="clock" class="w-3.5 h-3.5"></i> รอเช็คอิน
+                                    </button>
+                                <?php endif; ?>
+                            </td>
                             <td class="px-6 py-4 whitespace-nowrap text-center text-xs">
                                 <div class="flex items-center justify-center gap-2">
                                     <button onclick="updateRegStatus(<?= $reg['reg_id'] ?>, 'approved')" class="p-1.5 bg-emerald-50 hover:bg-emerald-600 text-emerald-600 hover:text-white rounded-lg border border-emerald-100 dark:border-emerald-900 transition-all cursor-pointer" title="อนุมัติเป็นทีมจริง">
@@ -257,7 +344,7 @@
                                     <button onclick="viewRegDetails(<?= $reg['reg_id'] ?>)" class="p-1.5 bg-indigo-50 hover:bg-indigo-600 text-indigo-600 hover:text-white rounded-lg border border-indigo-100 dark:border-slate-800 transition-all cursor-pointer" title="ดูข้อมูลทั้งหมด">
                                         <i data-lucide="eye" class="w-4 h-4"></i>
                                     </button>
-                                    <a href="<?= base_url('science-week/staff/edit/' . $reg['reg_id']) ?>" class="p-1.5 bg-blue-50 hover:bg-blue-650 text-blue-600 hover:text-white rounded-lg border border-blue-100 dark:border-slate-800 transition-all" title="แก้ไขข้อมูลผู้สมัคร">
+                                    <a href="<?= base_url('science-week/staff/edit/' . $reg['reg_id']) . '?' . ($_SERVER['QUERY_STRING'] ?? '') ?>" class="p-1.5 bg-blue-50 hover:bg-blue-650 text-blue-600 hover:text-white rounded-lg border border-blue-100 dark:border-slate-800 transition-all" title="แก้ไขข้อมูลผู้สมัคร">
                                         <i data-lucide="edit-3" class="w-4 h-4"></i>
                                     </a>
                                 </div>
@@ -353,9 +440,10 @@
     </div>
 </div>
 
+<script id="registrations-data" type="application/json"><?= json_encode($registrations) ?></script>
 <script>
     // Embed registrations dataset
-    const allRegistrations = <?= json_encode($registrations) ?>;
+    let allRegistrations = <?= json_encode($registrations) ?>;
 
     function viewRegDetails(id) {
         const reg = allRegistrations.find(r => parseInt(r.reg_id) === parseInt(id));
@@ -509,7 +597,7 @@
                             confirmButtonColor: '#3b82f6',
                             customClass: { popup: 'glass-card rounded-[2rem]' }
                         }).then(() => {
-                            window.location.reload();
+                            loadPage(window.location.href);
                         });
                     } else {
                         Swal.fire({
@@ -537,5 +625,271 @@
             }
         });
     }
+
+    function toggleCheckin(regCode, action) {
+        let confirmMsg = action === 'confirm' ? 'ยืนยันการรายงานตัวของทีมนี้ใช่หรือไม่?' : 'ต้องการยกเลิกการรายงานตัวใช่หรือไม่?';
+        let confirmBtnColor = action === 'confirm' ? '#10b981' : '#ef4444';
+        
+        Swal.fire({
+            title: 'ยืนยันการดำเนินการ',
+            text: confirmMsg,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: confirmBtnColor,
+            cancelButtonColor: '#475569',
+            confirmButtonText: 'ยืนยัน',
+            cancelButtonText: 'ยกเลิก',
+            background: getSwalColors().bg,
+            color: getSwalColors().text,
+            customClass: { popup: 'glass-card rounded-[2rem]' }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.showLoading();
+                const formData = new FormData();
+                formData.append('action', action);
+
+                fetch(`<?= base_url('science-week/staff/checkin/process/') ?>${regCode}`, {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'สำเร็จ',
+                            text: data.message,
+                            timer: 1500,
+                            showConfirmButton: false,
+                            background: getSwalColors().bg,
+                            color: getSwalColors().text,
+                            customClass: { popup: 'glass-card rounded-[2rem]' }
+                        }).then(() => loadPage(window.location.href));
+                    } else {
+                        Swal.fire('ผิดพลาด', data.message, 'error');
+                    }
+                })
+                .catch(err => {
+                    Swal.fire('Error', 'ไม่สามารถเชื่อมต่อระบบได้', 'error');
+                });
+            }
+        });
+    }
+
+    // QR Code Scanner Modal Logic
+    let html5QrCode = null;
+    function openScannerModal() {
+        // We dynamically load the html5-qrcode script if it's not already loaded
+        if (typeof Html5Qrcode === 'undefined') {
+            const script = document.createElement('script');
+            script.src = "https://unpkg.com/html5-qrcode";
+            script.onload = () => initScanner();
+            document.head.appendChild(script);
+        } else {
+            initScanner();
+        }
+    }
+
+    function initScanner() {
+        Swal.fire({
+            title: 'สแกน QR Code เช็คอิน',
+            html: `
+                <div id="qr-reader" style="width: 100%; max-width: 500px; margin: 0 auto; border-radius: 1rem; overflow: hidden; border: 2px solid #e2e8f0; background: #000; min-height: 250px;"></div>
+                <p class="text-xs text-slate-500 mt-4 mb-2 font-bold" id="qr-status-msg">กำลังขอสิทธิ์เปิดกล้อง...</p>
+            `,
+            showCancelButton: true,
+            showConfirmButton: false,
+            cancelButtonText: 'ปิดกล้อง',
+            cancelButtonColor: '#64748b',
+            background: getSwalColors().bg,
+            color: getSwalColors().text,
+            customClass: { popup: 'glass-card rounded-[2rem]' },
+            didOpen: () => {
+                html5QrCode = new Html5Qrcode("qr-reader");
+                
+                Html5Qrcode.getCameras().then(devices => {
+                    if (devices && devices.length) {
+                        document.getElementById('qr-status-msg').innerText = 'หันกล้องไปที่ QR Code บนบัตรของผู้เข้าร่วม';
+                        
+                        html5QrCode.start(
+                            { facingMode: "environment" }, 
+                            {
+                                fps: 10,
+                                qrbox: { width: 250, height: 250 },
+                                aspectRatio: 1.0
+                            },
+                            onScanSuccess,
+                            onScanFailure
+                        ).catch(err => {
+                            console.error("Camera start error: ", err);
+                            showFallbackUpload();
+                        });
+                    } else {
+                        showFallbackUpload();
+                    }
+                }).catch(err => {
+                    console.error("Camera permission error: ", err);
+                    showFallbackUpload();
+                });
+            },
+            willClose: () => {
+                if (html5QrCode) {
+                    try {
+                        html5QrCode.stop().catch(error => console.error("Failed to stop scanner: ", error));
+                    } catch (e) {
+                        // ignore if not scanning
+                    }
+                }
+            }
+        });
+    }
+
+    function onScanSuccess(decodedText, decodedResult) {
+        if (decodedText.includes('science-week/staff/checkin/')) {
+            if (html5QrCode) {
+                try {
+                    html5QrCode.stop();
+                } catch(e) {}
+            }
+            Swal.showLoading();
+            window.location.href = decodedText;
+        } else {
+            document.getElementById('qr-status-msg').innerHTML = '<span class="text-rose-500">QR Code ไม่ถูกต้อง หรือไม่ใช่สำหรับงานนี้!</span>';
+        }
+    }
+
+    function onScanFailure(error) {
+        // ignore scan failures
+    }
+
+    function showFallbackUpload() {
+        document.getElementById('qr-reader').style.display = 'none';
+        document.getElementById('qr-status-msg').innerHTML = `
+            <div class="p-4 bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900/50 rounded-xl mb-4 mt-2">
+                <span class="text-rose-600 dark:text-rose-400 font-bold block mb-1">อุปกรณ์ไม่รองรับการเปิดกล้องโดยตรง</span>
+                <span class="text-xs text-rose-500/80">อาจเกิดจากไม่ได้เชื่อมต่อผ่าน https หรือถูกบล็อกสิทธิ์</span>
+            </div>
+            <div class="p-5 border-2 border-dashed border-indigo-300 dark:border-indigo-500/30 rounded-xl bg-slate-50 dark:bg-slate-800/50 text-center">
+                <p class="font-bold text-slate-700 dark:text-slate-300 mb-3">คุณยังสามารถเช็คอินได้โดยการอัปโหลดรูปภาพ!</p>
+                <p class="text-xs text-slate-500 mb-4">ใช้แอปกล้องในมือถือถ่ายรูป QR Code แล้วกดปุ่มด้านล่างเพื่ออัปโหลดรูปที่ถ่ายไว้</p>
+                <label class="px-5 py-3 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl font-bold cursor-pointer inline-flex items-center gap-2 transition-colors shadow-sm text-sm">
+                    <i data-lucide="image" class="w-4 h-4"></i> เลือกรูปภาพ QR Code
+                    <input type="file" accept="image/*" class="hidden" onchange="scanUploadedFile(event)">
+                </label>
+            </div>
+        `;
+        // Refresh icons for dynamically added HTML
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    }
+
+    function scanUploadedFile(event) {
+        if (event.target.files.length === 0) return;
+        const imageFile = event.target.files[0];
+        
+        Swal.showLoading();
+        html5QrCode.scanFile(imageFile, true)
+            .then(decodedText => {
+                onScanSuccess(decodedText, null);
+            })
+            .catch(err => {
+                Swal.hideLoading();
+                Swal.showValidationMessage('ไม่พบ QR Code ในรูปภาพนี้ หรือรูปไม่ชัดเจน โปรดถ่ายรูปแล้วลองใหม่อีกครั้ง');
+            });
+    }
+
+    function openStatsModal() {
+        const template = document.getElementById('stats-modal-template');
+        if (!template) return;
+        
+        Swal.fire({
+            title: '📊 สถิติการสมัครรายประเภทการแข่งขัน',
+            html: template.innerHTML,
+            showCloseButton: true,
+            showConfirmButton: false,
+            width: '900px',
+            background: getSwalColors().bg,
+            color: getSwalColors().text,
+            customClass: {
+                popup: 'glass-card rounded-[2rem] border border-slate-200 dark:border-slate-800'
+            },
+            didOpen: () => {
+                if (typeof lucide !== 'undefined') {
+                    lucide.createIcons();
+                }
+            }
+        });
+    }
+
+    function loadPage(url) {
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            
+            // Update table container
+            const newTable = doc.getElementById('registration-table-container');
+            if (newTable) {
+                document.getElementById('registration-table-container').innerHTML = newTable.innerHTML;
+            }
+            
+            // Update stats template
+            const newStats = doc.getElementById('stats-modal-template');
+            if (newStats) {
+                document.getElementById('stats-modal-template').innerHTML = newStats.innerHTML;
+            }
+            
+            // Update registrations data
+            const newData = doc.getElementById('registrations-data');
+            if (newData) {
+                document.getElementById('registrations-data').textContent = newData.textContent;
+                allRegistrations = JSON.parse(newData.textContent);
+            }
+            
+            // Update URL in browser history without reloading
+            window.history.pushState({path: url}, '', url);
+            
+            // Re-init lucide icons
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        });
+    }
+
+    // Intercept form submission for filters
+    document.addEventListener('submit', function(e) {
+        const form = e.target;
+        if (form && form.tagName === 'FORM' && form.action.includes('science-week/staff') && !form.action.includes('export')) {
+            e.preventDefault();
+            const formData = new FormData(form);
+            const params = new URLSearchParams();
+            for (const [key, val] of formData.entries()) {
+                if (val !== "") {
+                    params.append(key, val);
+                }
+            }
+            const url = form.action + '?' + params.toString();
+            loadPage(url);
+        }
+    });
+
+    // Intercept pagination and clear filter links
+    document.addEventListener('click', function(e) {
+        const link = e.target.closest('a');
+        if (link) {
+            const href = link.getAttribute('href');
+            const isTableLink = link.closest('#registration-table-container') !== null;
+            const isClearFilter = link.closest('.glass-card') !== null && link.querySelector('i[data-lucide="refresh-cw"]') !== null;
+            
+            if (href && (isTableLink || isClearFilter) && (href.includes('science-week/staff') || href.startsWith('?')) && !href.includes('export') && !href.includes('edit')) {
+                e.preventDefault();
+                const url = new URL(href, window.location.href).href;
+                loadPage(url);
+            }
+        }
+    });
 </script>
 <?= $this->endSection() ?>

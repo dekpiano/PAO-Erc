@@ -80,6 +80,12 @@ class ScienceWeek extends BaseController
             if (!$db->fieldExists('reg_rank', 'Tb_ScienceWeek_Registrations')) {
                 $db->query("ALTER TABLE Tb_ScienceWeek_Registrations ADD COLUMN reg_rank VARCHAR(100) NULL DEFAULT NULL AFTER reg_score");
             }
+            if (!$db->fieldExists('reg_checkin_status', 'Tb_ScienceWeek_Registrations')) {
+                $db->query("ALTER TABLE Tb_ScienceWeek_Registrations ADD COLUMN reg_checkin_status TINYINT(1) NOT NULL DEFAULT 0 AFTER reg_rank");
+            }
+            if (!$db->fieldExists('reg_checkin_time', 'Tb_ScienceWeek_Registrations')) {
+                $db->query("ALTER TABLE Tb_ScienceWeek_Registrations ADD COLUMN reg_checkin_time DATETIME NULL DEFAULT NULL AFTER reg_checkin_status");
+            }
         }
         if ($db->tableExists('Tb_ScienceWeek_Schedules')) {
             if (!$db->fieldExists('sch_year', 'Tb_ScienceWeek_Schedules')) {
@@ -564,7 +570,7 @@ class ScienceWeek extends BaseController
     /**
      * ตรวจสอบความถูกต้องของสิทธิ์การใช้งานของแอดมิน/เจ้าหน้าที่
      */
-    private function checkAccess()
+    private function checkAccess($allowStudentStaffOnly = false)
     {
         $u_id = session()->get('u_id');
         if (!$u_id) {
@@ -572,10 +578,19 @@ class ScienceWeek extends BaseController
         }
 
         $roles = session()->get('u_role') ?? '';
-        if (strpos($roles, 'superadmin') === false && strpos($roles, 'admin') === false && strpos($roles, 'science_week') === false) {
-            return redirect()->to(base_url('/'))->with('error', 'คุณไม่มีสิทธิ์เข้าถึงระบบสัปดาห์วิทยาศาสตร์');
+        
+        $hasFullAccess = (strpos($roles, 'superadmin') !== false || strpos($roles, 'admin') !== false || (strpos($roles, 'science_week') !== false && strpos($roles, 'science_week_student_staff') === false));
+        $hasStudentStaffOnly = (strpos($roles, 'science_week_student_staff') !== false);
+        
+        if ($allowStudentStaffOnly && ($hasFullAccess || $hasStudentStaffOnly)) {
+            return true;
         }
-        return true;
+        
+        if (!$allowStudentStaffOnly && $hasFullAccess) {
+            return true;
+        }
+
+        return redirect()->to(base_url('/'))->with('error', 'คุณไม่มีสิทธิ์เข้าถึงส่วนนี้');
     }
 
     /**
@@ -731,8 +746,62 @@ class ScienceWeek extends BaseController
         return $this->response->setJSON(['status' => 'error', 'message' => 'ไม่พบไฟล์ประกาศ']);
     }
 
+    /**
+     * ระบบสแกนเช็คอินหน้างาน (Fast Check-in)
+     */
+    public function checkinView($reg_code)
+    {
+        $access = $this->checkAccess();
+        if ($access !== true) return $access;
+
+        $reg = $this->regModel->where('reg_code', $reg_code)->first();
+        if (!$reg) {
+            return redirect()->to(base_url('science-week/staff'))->with('error', 'ไม่พบรหัสใบสมัครนี้');
+        }
+
+        $data['title'] = "ระบบเช็คอินหน้างาน | งานสัปดาห์วิทยาศาสตร์";
+        $data['reg'] = $reg;
+        $data['fullname'] = session()->get('u_fullname');
+
+        return view('science_week/checkin', $data);
+    }
+
+    public function checkinProcess($reg_code)
+    {
+        $access = $this->checkAccess();
+        if ($access !== true) return $this->response->setJSON(['status' => 'error', 'message' => 'Unauthorized']);
+
+        $reg = $this->regModel->where('reg_code', $reg_code)->first();
+        if (!$reg) {
+            return $this->response->setJSON(['status' => 'error', 'message' => 'ไม่พบข้อมูลผู้สมัคร']);
+        }
+
+        // สามารถทำ Toggle ได้ (ถ้าเช็คอินแล้วให้ยกเลิก / ถ้ายกเลิกแล้วให้เช็คอิน)
+        // หรือจะรับค่าเป็นพารามิเตอร์ post ก็ได้ ในที่นี้จะรับ action หรือแค่ toggle
+        $action = $this->request->getPost('action');
+        
+        $newStatus = ($action === 'cancel') ? 0 : 1;
+        $newTime = ($action === 'cancel') ? null : date('Y-m-d H:i:s');
+
+        $this->regModel->update($reg['reg_id'], [
+            'reg_checkin_status' => $newStatus,
+            'reg_checkin_time' => $newTime
+        ]);
+
+        $msg = ($newStatus === 1) ? 'บันทึกการรายงานตัวสำเร็จ' : 'ยกเลิกการรายงานตัวแล้ว';
+        return $this->response->setJSON(['status' => 'success', 'message' => $msg, 'checkin_status' => $newStatus]);
+    }
+
     public function adminIndex()
     {
+        $roles = session()->get('u_role') ?? '';
+        $hasFullAccess = (strpos($roles, 'superadmin') !== false || strpos($roles, 'admin') !== false || (strpos($roles, 'science_week') !== false && strpos($roles, 'science_week_student_staff') === false));
+        $hasStudentStaffOnly = (strpos($roles, 'science_week_student_staff') !== false && !$hasFullAccess);
+
+        if ($hasStudentStaffOnly) {
+            return redirect()->to(base_url('science-week/staff/student-staff'));
+        }
+
         $access = $this->checkAccess();
         if ($access !== true)
             return $access;
@@ -741,6 +810,17 @@ class ScienceWeek extends BaseController
         $searchTerm = $this->request->getGet('search');
         $compType = $this->request->getGet('competition_type');
         $status = $this->request->getGet('status');
+        $level = $this->request->getGet('level');
+        $sortBy = $this->request->getGet('sort_by') ?: 'reg_created_at';
+        $sortOrder = $this->request->getGet('sort_order') ?: 'DESC';
+
+        $allowedSortFields = ['reg_code', 'reg_school_name', 'reg_status', 'reg_checkin_status', 'reg_created_at'];
+        if (!in_array($sortBy, $allowedSortFields)) {
+            $sortBy = 'reg_created_at';
+        }
+        if (!in_array(strtoupper($sortOrder), ['ASC', 'DESC'])) {
+            $sortOrder = 'DESC';
+        }
 
         $query = $this->regModel->where('reg_year', $selectedYear);
 
@@ -765,6 +845,10 @@ class ScienceWeek extends BaseController
 
         if (!empty($status)) {
             $query = $query->where('reg_status', $status);
+        }
+
+        if (!empty($level)) {
+            $query = $query->where('reg_level', $level);
         }
 
         // ดึงรายการแข่งขันเฉพาะที่ staff มีสิทธิ์ (สำหรับ dropdown ตัวกรอง)
@@ -852,13 +936,29 @@ class ScienceWeek extends BaseController
             ];
         }
 
+        // Get available levels for filter
+        $levelsQuery = $db->table('Tb_ScienceWeek_Registrations')
+            ->select('reg_level')
+            ->where('reg_year', $selectedYear)
+            ->where('reg_level IS NOT NULL')
+            ->where('reg_level !=', '')
+            ->groupBy('reg_level')
+            ->orderBy('reg_level', 'ASC')
+            ->get()
+            ->getResultArray();
+        $availableLevels = array_column($levelsQuery, 'reg_level');
+
         $data['title'] = "จัดการผู้สมัครแข่งขัน งานสัปดาห์วิทยาศาสตร์ | อบจ.นครสวรรค์";
-        $data['registrations'] = $query->orderBy('reg_created_at', 'DESC')->paginate(20, 'default');
+        $data['registrations'] = $query->orderBy($sortBy, $sortOrder)->paginate(20, 'default');
         $data['pager'] = $this->regModel->pager;
 
         $data['search'] = $searchTerm;
         $data['compType_active'] = $compType;
         $data['status_active'] = $status;
+        $data['level_active'] = $level;
+        $data['available_levels'] = $availableLevels;
+        $data['sort_by'] = $sortBy;
+        $data['sort_order'] = $sortOrder;
         $data['fullname'] = session()->get('u_fullname');
         $data['competitions'] = $allComps;
         $data['competition_stats'] = $compStats;
@@ -1133,7 +1233,8 @@ class ScienceWeek extends BaseController
         ];
 
         if ($this->regModel->update($id, $dataUpdate)) {
-            return redirect()->to(base_url('science-week/staff'))->with('success', 'แก้ไขข้อมูลผู้สมัครสำเร็จเรียบร้อยแล้ว');
+            $queryString = $this->request->getUri()->getQuery();
+            return redirect()->to(base_url('science-week/staff' . ($queryString ? '?' . $queryString : '')) . '#reg-row-' . $id)->with('success', 'แก้ไขข้อมูลผู้สมัครสำเร็จเรียบร้อยแล้ว');
         }
 
         return redirect()->back()->withInput()->with('error', 'เกิดข้อผิดพลาดในการบันทึกข้อมูล กรุณาลองใหม่อีกครั้ง');
@@ -1151,8 +1252,10 @@ class ScienceWeek extends BaseController
         $compType = $this->request->getGet('competition_type');
         $status = $this->request->getGet('status');
         $searchTerm = $this->request->getGet('search');
+        $level = $this->request->getGet('level');
 
-        $query = $this->regModel;
+        $selectedYear = $this->getSelectedYear();
+        $query = $this->regModel->where('reg_year', $selectedYear);
 
         // กรองตามสิทธิ์ของ staff
         $allowedComps = $this->getAllowedCompetitions();
@@ -1174,6 +1277,10 @@ class ScienceWeek extends BaseController
 
         if (!empty($status)) {
             $query = $query->where('reg_status', $status);
+        }
+
+        if (!empty($level)) {
+            $query = $query->where('reg_level', $level);
         }
 
         $results = $query->orderBy('reg_created_at', 'ASC')->findAll();
@@ -3762,7 +3869,7 @@ class ScienceWeek extends BaseController
      */
     public function studentStaffIndex()
     {
-        $access = $this->checkAccess();
+        $access = $this->checkAccess(true);
         if ($access !== true)
             return $access;
 
@@ -3772,6 +3879,13 @@ class ScienceWeek extends BaseController
 
         $staffModel = new ScienceWeekStudentStaffModel();
         $query = $staffModel->where('staff_year', $selectedYear);
+
+        $roles = session()->get('u_role') ?? '';
+        $hasFullAccess = (strpos($roles, 'superadmin') !== false || strpos($roles, 'admin') !== false || (strpos($roles, 'science_week') !== false && strpos($roles, 'science_week_student_staff') === false));
+        $hasStudentStaffOnly = (strpos($roles, 'science_week_student_staff') !== false && !$hasFullAccess);
+        if ($hasStudentStaffOnly) {
+            $query = $query->where('staff_created_by', session()->get('u_id'));
+        }
 
         // Filter based on allowed competitions
         $allowedComps = $this->getAllowedCompetitions();
@@ -3810,8 +3924,11 @@ class ScienceWeek extends BaseController
         $db = \Config\Database::connect();
         $uniqueRolesQuery = $db->table('Tb_ScienceWeek_StudentStaff')
             ->select('staff_competition_type')
-            ->where('staff_year', $selectedYear)
-            ->distinct()
+            ->where('staff_year', $selectedYear);
+        if ($hasStudentStaffOnly) {
+            $uniqueRolesQuery = $uniqueRolesQuery->where('staff_created_by', session()->get('u_id'));
+        }
+        $uniqueRolesQuery = $uniqueRolesQuery->distinct()
             ->get()
             ->getResultArray();
         
@@ -3831,7 +3948,7 @@ class ScienceWeek extends BaseController
 
     public function studentStaffPrint()
     {
-        $access = $this->checkAccess();
+        $access = $this->checkAccess(true);
         if ($access !== true)
             return $access;
 
@@ -3841,6 +3958,13 @@ class ScienceWeek extends BaseController
 
         $staffModel = new ScienceWeekStudentStaffModel();
         $query = $staffModel->where('staff_year', $selectedYear);
+
+        $roles = session()->get('u_role') ?? '';
+        $hasFullAccess = (strpos($roles, 'superadmin') !== false || strpos($roles, 'admin') !== false || (strpos($roles, 'science_week') !== false && strpos($roles, 'science_week_student_staff') === false));
+        $hasStudentStaffOnly = (strpos($roles, 'science_week_student_staff') !== false && !$hasFullAccess);
+        if ($hasStudentStaffOnly) {
+            $query = $query->where('staff_created_by', session()->get('u_id'));
+        }
 
         $allowedComps = $this->getAllowedCompetitions();
         if ($allowedComps !== null && !empty($allowedComps)) {
@@ -3879,7 +4003,7 @@ class ScienceWeek extends BaseController
 
     public function studentStaffExport()
     {
-        $access = $this->checkAccess();
+        $access = $this->checkAccess(true);
         if ($access !== true)
             return $access;
 
@@ -3889,6 +4013,13 @@ class ScienceWeek extends BaseController
 
         $staffModel = new ScienceWeekStudentStaffModel();
         $query = $staffModel->where('staff_year', $selectedYear);
+
+        $roles = session()->get('u_role') ?? '';
+        $hasFullAccess = (strpos($roles, 'superadmin') !== false || strpos($roles, 'admin') !== false || (strpos($roles, 'science_week') !== false && strpos($roles, 'science_week_student_staff') === false));
+        $hasStudentStaffOnly = (strpos($roles, 'science_week_student_staff') !== false && !$hasFullAccess);
+        if ($hasStudentStaffOnly) {
+            $query = $query->where('staff_created_by', session()->get('u_id'));
+        }
 
         $allowedComps = $this->getAllowedCompetitions();
         if ($allowedComps !== null && !empty($allowedComps)) {
@@ -4031,7 +4162,7 @@ class ScienceWeek extends BaseController
 
     public function studentStaffStore()
     {
-        $access = $this->checkAccess();
+        $access = $this->checkAccess(true);
         if ($access !== true)
             return $this->response->setStatusCode(403)->setJSON(['status' => 'error', 'message' => 'Unauthorized']);
 
@@ -4087,7 +4218,7 @@ class ScienceWeek extends BaseController
 
     public function studentStaffUpdate($id)
     {
-        $access = $this->checkAccess();
+        $access = $this->checkAccess(true);
         if ($access !== true)
             return $this->response->setStatusCode(403)->setJSON(['status' => 'error', 'message' => 'Unauthorized']);
 
@@ -4136,7 +4267,7 @@ class ScienceWeek extends BaseController
 
     public function studentStaffDelete($id)
     {
-        $access = $this->checkAccess();
+        $access = $this->checkAccess(true);
         if ($access !== true)
             return $this->response->setStatusCode(403)->setJSON(['status' => 'error', 'message' => 'Unauthorized']);
 

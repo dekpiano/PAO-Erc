@@ -96,21 +96,25 @@
                 <?php
                 $layoutRoles = session()->get('u_role') ?? '';
                 $layoutIsAdmin = (strpos($layoutRoles, 'superadmin') !== false || strpos($layoutRoles, 'admin') !== false);
+                $layoutIsOrganizer = (strpos($layoutRoles, 'science_week') !== false && strpos($layoutRoles, 'science_week_student_staff') === false);
+                $layoutIsStudentStaffOnly = (strpos($layoutRoles, 'science_week_student_staff') !== false && !$layoutIsAdmin && !$layoutIsOrganizer);
                 ?>
                 <!-- Group 1: Registration & Scores -->
                 <div class="text-[9px] font-black text-slate-500 uppercase tracking-widest px-4 mb-2 mt-2">จัดการการแข่งขัน</div>
                 
-                <a href="<?= base_url('science-week/staff') ?>" class="flex items-center gap-4 px-4 py-3.5 rounded-xl font-bold text-sm transition-all duration-200 <?= uri_string() == 'science-week/staff' ? 'sidebar-item-active' : 'text-slate-450 hover:text-slate-100 hover:bg-slate-900/30' ?>">
-                    <i data-lucide="users" class="w-5 h-5 text-cyan-400"></i><span>รายชื่อผู้สมัครแข่งขัน</span>
-                </a>
+                <?php if (!$layoutIsStudentStaffOnly): ?>
+                    <a href="<?= base_url('science-week/staff') ?>" class="flex items-center gap-4 px-4 py-3.5 rounded-xl font-bold text-sm transition-all duration-200 <?= uri_string() == 'science-week/staff' ? 'sidebar-item-active' : 'text-slate-450 hover:text-slate-100 hover:bg-slate-900/30' ?>">
+                        <i data-lucide="users" class="w-5 h-5 text-cyan-400"></i><span>รายชื่อผู้สมัครแข่งขัน</span>
+                    </a>
 
-                <a href="<?= base_url('science-week/staff/ranking') ?>" class="flex items-center gap-4 px-4 py-3.5 rounded-xl font-bold text-sm transition-all duration-200 <?= strpos(uri_string(), 'science-week/staff/ranking') !== false ? 'sidebar-item-active' : 'text-slate-450 hover:text-slate-100 hover:bg-slate-900/30' ?>">
-                    <i data-lucide="trophy" class="w-5 h-5 text-amber-400"></i><span>จัดการผลการแข่งขัน</span>
-                </a>
+                    <a href="<?= base_url('science-week/staff/ranking') ?>" class="flex items-center gap-4 px-4 py-3.5 rounded-xl font-bold text-sm transition-all duration-200 <?= strpos(uri_string(), 'science-week/staff/ranking') !== false ? 'sidebar-item-active' : 'text-slate-450 hover:text-slate-100 hover:bg-slate-900/30' ?>">
+                        <i data-lucide="trophy" class="w-5 h-5 text-amber-400"></i><span>จัดการผลการแข่งขัน</span>
+                    </a>
 
-                <a href="<?= base_url('science-week/staff/competitions') ?>" class="flex items-center gap-4 px-4 py-3.5 rounded-xl font-bold text-sm transition-all duration-200 <?= strpos(uri_string(), 'science-week/staff/competitions') !== false ? 'sidebar-item-active' : 'text-slate-450 hover:text-slate-100 hover:bg-slate-900/30' ?>">
-                    <i data-lucide="award" class="w-5 h-5 text-indigo-400"></i><span>จัดการประเภทการแข่งขัน</span>
-                </a>
+                    <a href="<?= base_url('science-week/staff/competitions') ?>" class="flex items-center gap-4 px-4 py-3.5 rounded-xl font-bold text-sm transition-all duration-200 <?= strpos(uri_string(), 'science-week/staff/competitions') !== false ? 'sidebar-item-active' : 'text-slate-450 hover:text-slate-100 hover:bg-slate-900/30' ?>">
+                        <i data-lucide="award" class="w-5 h-5 text-indigo-400"></i><span>จัดการประเภทการแข่งขัน</span>
+                    </a>
+                <?php endif; ?>
 
                 <a href="<?= base_url('science-week/staff/student-staff') ?>" class="flex items-center gap-4 px-4 py-3.5 rounded-xl font-bold text-sm transition-all duration-200 <?= strpos(uri_string(), 'science-week/staff/student-staff') !== false ? 'sidebar-item-active' : 'text-slate-450 hover:text-slate-100 hover:bg-slate-900/30' ?>">
                     <i data-lucide="user-cog" class="w-5 h-5 text-violet-400"></i><span>นักเรียนช่วยงาน (Staff)</span>
@@ -148,16 +152,18 @@
                     </a>
                 <?php endif; ?>
 
-                <!-- Group 4: Navigation -->
-                <div class="text-[9px] font-black text-slate-500 uppercase tracking-widest px-4 pt-4 mb-2">ลิงก์ระบบงาน</div>
-                
-                <a href="<?= base_url('science-week') ?>" target="_blank" class="flex items-center gap-4 px-4 py-3.5 rounded-xl font-bold text-sm text-slate-450 hover:text-slate-100 hover:bg-slate-900/30 transition-all">
-                    <i data-lucide="external-link" class="w-5 h-5 text-emerald-400"></i><span>เปิดหน้าเว็บกิจกรรม</span>
-                </a>
+                <?php if (!$layoutIsStudentStaffOnly): ?>
+                    <!-- Group 4: Navigation -->
+                    <div class="text-[9px] font-black text-slate-500 uppercase tracking-widest px-4 pt-4 mb-2">ลิงก์ระบบงาน</div>
+                    
+                    <a href="<?= base_url('science-week') ?>" target="_blank" class="flex items-center gap-4 px-4 py-3.5 rounded-xl font-bold text-sm text-slate-450 hover:text-slate-100 hover:bg-slate-900/30 transition-all">
+                        <i data-lucide="external-link" class="w-5 h-5 text-emerald-400"></i><span>เปิดหน้าเว็บกิจกรรม</span>
+                    </a>
 
-                <a href="<?= base_url('auth/select') ?>" class="flex items-center gap-4 px-4 py-3.5 rounded-xl font-bold text-sm text-slate-450 hover:text-slate-100 hover:bg-slate-900/30 transition-all">
-                    <i data-lucide="arrow-left-right" class="w-5 h-5 text-blue-400"></i><span>สลับระบบงานอื่น</span>
-                </a>
+                    <a href="<?= base_url('auth/select') ?>" class="flex items-center gap-4 px-4 py-3.5 rounded-xl font-bold text-sm text-slate-450 hover:text-slate-100 hover:bg-slate-900/30 transition-all">
+                        <i data-lucide="arrow-left-right" class="w-5 h-5 text-blue-400"></i><span>สลับระบบงานอื่น</span>
+                    </a>
+                <?php endif; ?>
             </nav>
 
             <div class="p-6 border-t border-slate-900">

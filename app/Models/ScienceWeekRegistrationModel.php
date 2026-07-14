@@ -28,6 +28,8 @@ class ScienceWeekRegistrationModel extends Model
         'reg_custom_fields',
         'reg_score',
         'reg_rank',
+        'reg_checkin_status',
+        'reg_checkin_time',
         'reg_updated_by'
     ];
 

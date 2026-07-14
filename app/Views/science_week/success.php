@@ -181,11 +181,11 @@
         display: none;
     }
 
-    /* Print styles optimized for exactly half A4 portrait */
+    /* Print styles optimized for A4 Landscape split-screen */
     @media print {
         @page {
-            size: A4 portrait;
-            margin: 0;
+            size: A4 landscape;
+            margin: 10mm;
         }
 
         html,
@@ -195,8 +195,7 @@
             color: #000000 !important;
             margin: 0 !important;
             padding: 0 !important;
-            height: 100% !important;
-            overflow: hidden !important;
+            height: auto !important;
         }
 
         /* Hide layout items */
@@ -227,48 +226,80 @@
             margin: 0 !important;
         }
 
-        /* Compact Half A4 size print container */
+        /* Full A4 landscape print container - using standard relative widths instead of absolute */
         .printable-area {
-            position: absolute !important;
-            left: 50% !important;
-            top: 15px !important;
-            transform: translateX(-50%) !important;
-            width: 142mm !important;
-            /* Compact width approx A5 width */
-            max-height: 135mm !important;
-            /* Hard constraint to keep under half page */
+            position: relative !important;
+            width: 100% !important;
+            max-width: 275mm !important; /* Avoid clipping at edges */
+            height: 180mm !important;
+            margin: 0 auto !important;
             background: #ffffff !important;
             background-image: none !important;
             color: #000000 !important;
-            border: 1.5px solid #0f172a !important;
+            border: 2px solid #000000 !important;
             box-shadow: none !important;
-            padding: 12px 16px !important;
+            padding: 24px !important;
             border-radius: 12px !important;
             page-break-inside: avoid !important;
-            overflow: hidden !important;
+            box-sizing: border-box !important;
+            
+            /* Flex Row for left/right split */
+            display: flex !important;
+            flex-direction: row !important;
+            gap: 24px !important;
+        }
+
+        /* Left/Right Panels for Print - Exactly 50/50 split */
+        .print-left-panel {
+            width: 50% !important;
+            padding-right: 24px !important;
+            border-right: 2px dashed #000000 !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: flex-start !important; /* Stack items to the top instead of spreading them */
+            box-sizing: border-box !important;
+        }
+        
+        .print-right-panel {
+            width: 50% !important;
+            padding-left: 24px !important;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: center !important;
+            border: none !important;
+            box-sizing: border-box !important;
         }
 
         /* Scale down everything inside card for print */
         .printable-area * {
-            font-size: 8px !important;
-            line-height: 1.15 !important;
+            font-size: 11px !important;
+            line-height: 1.4 !important;
+            color: #000000 !important;
         }
 
         .printable-area h2 {
-            font-size: 10px !important;
+            font-size: 13px !important;
+            font-weight: 800 !important;
+            color: #000000 !important;
         }
 
         .printable-area h3 {
-            font-size: 14px !important;
+            font-size: 18px !important;
+            font-weight: 900 !important;
+            color: #000000 !important;
         }
 
         .printable-area .field-value {
-            font-size: 9.5px !important;
-            font-weight: 850 !important;
+            font-size: 12px !important;
+            font-weight: 800 !important;
+            color: #000000 !important;
         }
 
         .printable-area .field-label {
-            font-size: 7.5px !important;
+            font-size: 9px !important;
+            font-weight: 700 !important;
+            color: #000000 !important;
         }
 
         .printable-area p {
@@ -286,26 +317,27 @@
         .printable-area .p-5,
         .printable-area .p-6,
         .printable-area .p-4 {
-            padding: 5px 8px !important;
+            padding: 6px 10px !important;
         }
 
-        .printable-area .space-y-6>*+* {
+        .printable-area .space-y-6 > * + * {
             margin-top: 4px !important;
         }
 
-        .printable-area .space-y-4>*+* {
+        .printable-area .space-y-4 > * + * {
             margin-top: 3px !important;
         }
 
-        .barcode-line {
-            height: 15px !important;
-            background-size: 20px 100% !important;
+        .print-qr-img {
+            width: 50mm !important;
+            height: 50mm !important;
+            margin-bottom: 10px !important;
         }
 
         /* Enable Contact details on print */
         .group-contact-section {
-            background: #f8fafc !important;
-            border: 1px solid #e2e8f0 !important;
+            background: #ffffff !important;
+            border: 1px solid #000000 !important;
             padding: 6px !important;
             border-radius: 8px !important;
             margin-top: 4px !important;
@@ -386,8 +418,8 @@
 <!-- Confetti Celebration -->
 <div class="confetti-container" id="confetti-container"></div>
 
-<div class="page-container pt-8 pb-20 relative">
-    <div class="max-w-2xl mx-auto px-4 sm:px-6 relative z-10">
+<div class="page-container pt-8 pb-20 relative print:p-0 print:m-0">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 relative z-10 print:max-w-none print:w-full print:p-0 print:m-0">
 
         <!-- Top Status -->
         <div class="text-center py-6 space-y-3 no-print">
@@ -402,35 +434,32 @@
         </div>
 
         <!-- Ticket Card -->
-        <div class="ticket-badge printable-area rounded-3xl p-8 sm:p-10 space-y-6 success-ticket">
-            <!-- Ticket Cutouts on the sides -->
+        <div class="ticket-badge printable-area rounded-3xl p-8 sm:p-10 success-ticket flex flex-col md:flex-row gap-6 print:flex-row print:gap-4 print:p-6">
+            <!-- Ticket Cutouts on the sides (Hidden on print) -->
             <div class="ticket-cut-left no-print"></div>
             <div class="ticket-cut-right no-print"></div>
 
-            <!-- Code Header -->
-            <div
-                class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-200 pb-5 gap-4 pt-2">
-                <div class="flex items-center gap-4">
-                    <img src="<?= base_url('uploads/science_week/logo/S__49446940.jpg') ?>" alt="STEAM Logo"
-                        class="w-14 h-14 rounded-2xl border border-indigo-150 object-cover shadow-sm shrink-0">
-                    <div>
-                        <h2 class="text-sm font-black uppercase text-indigo-650 tracking-wider">STEAM SCIENCE WEEK 2026
-                        </h2>
-                        <p class="text-xs text-slate-500 mt-0.5 font-semibold">สนุกคิด ติดปีกจินตนาการ</p>
+            <!-- Left Side (Info) -->
+            <div class="print-left-panel flex-1 space-y-6">
+                <!-- Code Header -->
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-200 pb-5 gap-4 pt-2">
+                    <div class="flex items-center gap-4">
+                        <img src="<?= base_url('uploads/science_week/logo/S__49446940.jpg') ?>" alt="STEAM Logo" class="w-14 h-14 rounded-2xl border border-indigo-150 object-cover shadow-sm shrink-0">
+                        <div>
+                            <h2 class="text-sm font-black uppercase text-indigo-650 tracking-wider">STEAM SCIENCE WEEK 2026</h2>
+                            <p class="text-xs text-slate-500 mt-0.5 font-semibold">สนุกคิด ติดปีกจินตนาการ</p>
+                        </div>
+                    </div>
+                    <div class="text-left sm:text-right bg-slate-50 border border-slate-100 px-4 py-2.5 rounded-2xl shrink-0 w-full sm:w-auto">
+                        <span class="text-[10px] text-slate-500 font-bold block uppercase tracking-wider">รหัสใบสมัคร</span>
+                        <h3 class="text-2xl font-black text-indigo-600 font-mono tracking-wider leading-none mt-1">
+                            <?= $reg['reg_code'] ?>
+                        </h3>
                     </div>
                 </div>
-                <div
-                    class="text-left sm:text-right bg-slate-50 border border-slate-100 px-4 py-2.5 rounded-2xl shrink-0 w-full sm:w-auto">
-                    <span class="text-[10px] text-slate-500 font-bold block uppercase tracking-wider">รหัสใบสมัคร
-                        (Application ID)</span>
-                    <h3 class="text-2xl font-black text-indigo-600 font-mono tracking-wider leading-none mt-1">
-                        <?= $reg['reg_code'] ?>
-                    </h3>
-                </div>
-            </div>
 
-            <!-- Details Section -->
-            <div class="space-y-6">
+                <!-- Details Section -->
+                <div class="space-y-6">
                 <!-- Competition Name -->
                 <div class="bg-indigo-50/40 border border-indigo-100/50 p-5 rounded-2xl">
                     <span class="field-label text-indigo-700">
@@ -587,30 +616,34 @@
                     </div>
                 <?php endif; ?>
 
-                <div class="border-t border-dashed border-slate-200 my-4"></div>
+                <div class="border-t border-dashed border-slate-200 my-4 mt-auto"></div>
 
                 <!-- Contact and Date footer -->
-                <div
-                    class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-50/50 p-4 rounded-2xl border border-slate-100 text-xs">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-50/50 p-4 rounded-2xl border border-slate-100 text-xs">
                     <div>
                         <span class="text-slate-500 font-bold tracking-wider">เบอร์โทรศัพท์ติดต่อ</span>
-                        <span
-                            class="text-slate-900 font-extrabold font-mono text-sm block mt-0.5"><?= $reg['reg_contact_phone'] ?></span>
+                        <span class="text-slate-900 font-extrabold font-mono text-sm block mt-0.5"><?= $reg['reg_contact_phone'] ?></span>
                     </div>
                     <div class="sm:text-right">
                         <span class="text-slate-500 font-bold tracking-wider">วันที่เวลาที่ส่งสมัคร</span>
-                        <span
-                            class="text-slate-900 font-extrabold font-mono text-sm block mt-0.5"><?= date('d/m/Y H:i', strtotime($reg['reg_created_at'])) ?>
-                            N.</span>
+                        <span class="text-slate-900 font-extrabold font-mono text-sm block mt-0.5"><?= date('d/m/Y H:i', strtotime($reg['reg_created_at'])) ?> น.</span>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Barcode Footer -->
-            <div class="pt-5 border-t border-slate-200 flex flex-col items-center justify-center gap-2">
-                <div class="barcode-line w-full opacity-60"></div>
-                <span
-                    class="text-[9px] font-mono tracking-widest text-slate-450 uppercase font-bold">SCI-CONFIRMED-VERIFIED-2026</span>
+            <!-- Right Side (QR Code for Check-in) -->
+            <div class="print-right-panel w-full md:w-1/3 pt-6 md:pt-0 border-t md:border-t-0 md:border-l border-slate-200 border-dashed flex flex-col items-center justify-center gap-4 text-center">
+                <?php 
+                    $qrUrl = base_url('science-week/staff/checkin/' . $reg['reg_code']); 
+                    $qrImageUrl = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=" . urlencode($qrUrl);
+                ?>
+                <img src="<?= $qrImageUrl ?>" alt="Check-in QR Code" class="print-qr-img w-32 h-32 sm:w-40 sm:h-40 p-2 border-2 border-indigo-100 rounded-xl bg-white shadow-sm" crossorigin="anonymous">
+                <div class="space-y-1.5 mt-2">
+                    <span class="text-sm sm:text-base font-black text-indigo-600 uppercase tracking-widest block">เช็คอินร่วมกิจกรรม</span>
+                    <span class="text-slate-500 font-bold text-xs sm:text-sm block">กรุณาเตรียมหน้านี้ไว้ให้เจ้าหน้าที่สแกน<br>เพื่อยืนยันสิทธิ์ในวันเข้าร่วมกิจกรรม</span>
+                    <span class="text-xs sm:text-sm font-mono tracking-widest text-slate-800 uppercase font-black mt-3 block py-1.5 px-3 bg-slate-100 rounded-lg">ID: <?= $reg['reg_code'] ?></span>
+                </div>
             </div>
         </div>
 
