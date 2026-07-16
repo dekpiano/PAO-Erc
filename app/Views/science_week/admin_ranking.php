@@ -70,8 +70,14 @@ if (!empty($registrations)) {
 <!-- Grouped Tables Section -->
 <div class="space-y-8">
     <?php if (empty($grouped)): ?>
-        <div class="glass-card rounded-3xl overflow-hidden bg-slate-900/40 dark:bg-slate-900/60 shadow-xl border border-slate-200 dark:border-slate-800 p-12 text-center text-slate-400 font-medium">
-            ไม่พบรายชื่อผู้สมัครที่ได้รับการอนุมัติสำหรับกรอกคะแนนรางวัล
+        <div class="glass-card rounded-3xl overflow-hidden bg-slate-900/40 dark:bg-slate-900/60 shadow-xl border border-slate-200 dark:border-slate-800 p-12 text-center text-slate-400 font-bold text-sm">
+            <?php if (empty($search) && empty($compType_active)): ?>
+                <i data-lucide="filter" class="w-10 h-10 mx-auto text-indigo-500 mb-3 opacity-60"></i>
+                <span>กรุณาพิมพ์ค้นหา หรือเลือก "ประเภทการแข่งขัน" เพื่อจัดการอันดับรางวัล</span>
+            <?php else: ?>
+                <i data-lucide="alert-circle" class="w-10 h-10 mx-auto text-rose-500 mb-3 opacity-60"></i>
+                <span>ไม่พบรายชื่อผู้สมัครตามตัวกรองที่เลือก</span>
+            <?php endif; ?>
         </div>
     <?php else: ?>
         <?php foreach ($grouped as $compName => $regs): ?>
@@ -94,7 +100,6 @@ if (!empty($registrations)) {
                                     <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 w-1/5">รหัสสิทธิ์</th>
                                     <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 w-2/5">โรงเรียน / ทีม</th>
                                     <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 w-1/5">สมาชิกในทีม</th>
-                                    <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 text-center w-[100px]">คะแนนดิบ</th>
                                     <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 w-1/5">อันดับรางวัล</th>
                                     <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 text-center w-[130px]">ผู้บันทึก</th>
                                     <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 text-center w-[150px]">จัดการ</th>
@@ -145,9 +150,6 @@ if (!empty($registrations)) {
                                                 </ul>
                                             </div>
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-black text-indigo-650 dark:text-indigo-400 font-mono">
-                                            <?= $reg['reg_score'] !== null ? number_format($reg['reg_score'], 2) : '<span class="text-slate-400 dark:text-slate-600 font-normal italic">-</span>' ?>
-                                        </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <?php if (!empty($reg['reg_rank'])): ?>
                                                 <span class="px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-100 dark:border-amber-900/30 text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 w-max">
@@ -172,7 +174,7 @@ if (!empty($registrations)) {
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-center text-xs">
                                             <div class="flex items-center justify-center gap-2">
-                                                <button onclick="editRegRank(<?= $reg['reg_id'] ?>, '<?= esc($reg['reg_score'] !== null ? $reg['reg_score'] : '') ?>', '<?= esc($reg['reg_rank'] ?: '') ?>')" class="px-3.5 py-2 bg-amber-50 hover:bg-amber-600 text-amber-600 hover:text-white rounded-xl border border-amber-100 dark:border-amber-900 transition-all font-bold flex items-center gap-1.5" title="ระบุคะแนนและอันดับรางวัล">
+                                                <button onclick="editRegRank(<?= $reg['reg_id'] ?>, '<?= esc($reg['reg_rank'] ?: '') ?>')" class="px-3.5 py-2 bg-amber-50 hover:bg-amber-600 text-amber-600 hover:text-white rounded-xl border border-amber-100 dark:border-amber-900 transition-all font-bold flex items-center gap-1.5" title="ระบุอันดับรางวัล">
                                                     <i data-lucide="award" class="w-4 h-4"></i> บันทึกผล
                                                 </button>
                                             </div>
@@ -189,15 +191,11 @@ if (!empty($registrations)) {
 </div>
 
 <script>
-    function editRegRank(id, currentScore, currentRank) {
+    function editRegRank(id, currentRank) {
         Swal.fire({
-            title: 'ระบุคะแนนและรางวัล',
+            title: 'ระบุอันดับรางวัล',
             html: `
                 <div class="text-left space-y-4">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 mb-1.5">คะแนนการแข่งขัน (0.00 - 100.00)</label>
-                        <input type="number" id="swal-score" step="0.01" min="0" max="100" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none" value="${currentScore}" placeholder="ระบุคะแนน เช่น 85.50">
-                    </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-500 mb-1.5">อันดับ / รางวัลที่ได้รับ</label>
                         <select id="swal-rank" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none cursor-pointer">
@@ -206,10 +204,7 @@ if (!empty($registrations)) {
                             <option value="รางวัลรองชนะเลิศอันดับ 1" ${currentRank === 'รางวัลรองชนะเลิศอันดับ 1' ? 'selected' : ''}>🥈 รางวัลรองชนะเลิศอันดับ 1</option>
                             <option value="รางวัลรองชนะเลิศอันดับ 2" ${currentRank === 'รางวัลรองชนะเลิศอันดับ 2' ? 'selected' : ''}>🥉 รางวัลรองชนะเลิศอันดับ 2</option>
                             <option value="รางวัลชมเชย" ${currentRank === 'รางวัลชมเชย' ? 'selected' : ''}>🏅 รางวัลชมเชย</option>
-                            <option value="รางวัลเหรียญทอง" ${currentRank === 'รางวัลเหรียญทอง' ? 'selected' : ''}>🥇 รางวัลเหรียญทอง</option>
-                            <option value="รางวัลเหรียญเงิน" ${currentRank === 'รางวัลเหรียญเงิน' ? 'selected' : ''}>🥈 รางวัลเหรียญเงิน</option>
-                            <option value="รางวัลเหรียญทองแดง" ${currentRank === 'รางวัลเหรียญทองแดง' ? 'selected' : ''}>🥉 รางวัลเหรียญทองแดง</option>
-                            <option value="custom" ${currentRank !== '' && !['รางวัลชนะเลิศ','รางวัลรองชนะเลิศอันดับ 1','รางวัลรองชนะเลิศอันดับ 2','รางวัลชมเชย','รางวัลเหรียญทอง','รางวัลเหรียญเงิน','รางวัลเหรียญทองแดง'].includes(currentRank) ? 'selected' : ''}>ระบุอื่นๆ...</option>
+                            <option value="custom" ${currentRank !== '' && !['รางวัลชนะเลิศ','รางวัลรองชนะเลิศอันดับ 1','รางวัลรองชนะเลิศอันดับ 2','รางวัลชมเชย'].includes(currentRank) ? 'selected' : ''}>ระบุอื่นๆ...</option>
                         </select>
                     </div>
                     <div id="swal-custom-rank-wrapper" class="hidden">
@@ -233,7 +228,7 @@ if (!empty($registrations)) {
                 
                 select.addEventListener('change', toggleCustom);
                 
-                if (currentRank !== '' && !['รางวัลชนะเลิศ','รางวัลรองชนะเลิศอันดับ 1','รางวัลรองชนะเลิศอันดับ 2','รางวัลชมเชย','รางวัลเหรียญทอง','รางวัลเหรียญเงิน','รางวัลเหรียญทองแดง'].includes(currentRank)) {
+                if (currentRank !== '' && !['รางวัลชนะเลิศ','รางวัลรองชนะเลิศอันดับ 1','รางวัลรองชนะเลิศอันดับ 2','รางวัลชมเชย'].includes(currentRank)) {
                     select.value = 'custom';
                     customInput.value = currentRank;
                     toggleCustom();
@@ -248,7 +243,7 @@ if (!empty($registrations)) {
             color: getSwalColors().text,
             customClass: { popup: 'glass-card rounded-[2rem]' },
             preConfirm: () => {
-                const score = document.getElementById('swal-score').value;
+                const score = '';
                 const selectValue = document.getElementById('swal-rank').value;
                 let rank = selectValue;
                 if (selectValue === 'custom') {

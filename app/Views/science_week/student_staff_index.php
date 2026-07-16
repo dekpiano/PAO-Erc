@@ -336,6 +336,27 @@ foreach($student_staff as $st) {
                         <option value="ฝ่ายประชาสัมพันธ์และต้อนรับ">ฝ่ายประชาสัมพันธ์และต้อนรับ</option>
                         <option value="ฝ่ายจัดนิทรรศการและกิจกรรมพิเศษ">ฝ่ายจัดนิทรรศการและกิจกรรมพิเศษ</option>
                     </optgroup>
+                    <?php
+                    $compNames = array_column($competitions, 'comp_name');
+                    $genRoles = [
+                        'ฝ่ายงานทั่วไป / ส่วนกลาง',
+                        'ฝ่ายลงทะเบียนและประเมินผล',
+                        'ฝ่ายสถานที่และโสตทัศนูปกรณ์',
+                        'ฝ่ายอาหารและเครื่องดื่ม',
+                        'ฝ่ายประชาสัมพันธ์และต้อนรับ',
+                        'ฝ่ายจัดนิทรรศการและกิจกรรมพิเศษ'
+                    ];
+                    $customDbRoles = array_filter($assigned_roles ?? [], function($role) use ($compNames, $genRoles) {
+                        return !in_array($role, $compNames) && !in_array($role, $genRoles) && !empty($role);
+                    });
+                    if (!empty($customDbRoles)):
+                    ?>
+                    <optgroup label="ฝ่ายงานเพิ่มเติม (เคยระบุในระบบ)">
+                        <?php foreach ($customDbRoles as $cdr): ?>
+                            <option value="<?= esc($cdr) ?>"><?= esc($cdr) ?></option>
+                        <?php endforeach; ?>
+                    </optgroup>
+                    <?php endif; ?>
                     <optgroup label="กำหนดเอง">
                         <option value="custom_role">-- ระบุฝ่ายงาน/รายการแข่งขันอื่นๆ (พิมพ์ระบุเอง) --</option>
                     </optgroup>

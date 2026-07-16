@@ -51,7 +51,7 @@ tr:target {
         <button type="button" onclick="openScannerModal()" class="w-full md:w-auto justify-center px-5 py-3 rounded-2xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-black text-xs sm:text-sm transition-all shadow-md hover:shadow-lg flex items-center gap-2 transform hover:-translate-y-0.5">
             <i data-lucide="scan-line" class="w-4 h-4"></i> สแกน QR เช็คอินหน้างาน
         </button>
-        <a href="<?= base_url('science-week/staff/export?' . http_build_query($_GET)) ?>" class="w-full md:w-auto justify-center px-5 py-3 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:text-slate-900 font-bold text-xs sm:text-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors flex items-center gap-2 shadow-sm">
+        <a id="btn-export-excel" href="<?= base_url('science-week/staff/export?' . http_build_query($_GET)) ?>" class="w-full md:w-auto justify-center px-5 py-3 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:text-slate-900 font-bold text-xs sm:text-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors flex items-center gap-2 shadow-sm">
             <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-600"></i> ส่งออกรายงาน Excel
         </a>
     </div>
@@ -847,6 +847,14 @@ tr:target {
             if (newData) {
                 document.getElementById('registrations-data').textContent = newData.textContent;
                 allRegistrations = JSON.parse(newData.textContent);
+            }
+            
+            // Update Export button href dynamically based on loaded URL
+            const exportBtn = document.getElementById('btn-export-excel');
+            if (exportBtn) {
+                const newUrl = new URL(url, window.location.href);
+                const baseUrl = exportBtn.href.split('?')[0];
+                exportBtn.href = baseUrl + newUrl.search;
             }
             
             // Update URL in browser history without reloading

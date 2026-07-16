@@ -232,8 +232,8 @@
                                     </span>
                                     <div class="flex gap-2">
                                         <a href="<?= base_url('science-week/success/' . $reg['reg_code']) ?>" class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-indigo-500/10 hover:bg-indigo-600 hover:text-white text-indigo-300 border border-indigo-500/20 transition-all font-bold shadow-sm">
-                                            <i data-lucide="ticket" class="w-4 h-4 text-indigo-400"></i>
-                                            <span>ดูรายละเอียด/พิมพ์ตั๋วใบสมัคร</span>
+                                            <i data-lucide="file-text" class="w-4 h-4 text-indigo-400"></i>
+                                            <span>ดูรายละเอียดการสมัคร</span>
                                         </a>
                                     </div>
                                 </div>

@@ -941,8 +941,18 @@ class ScienceWeek extends BaseController
             ->select('reg_level')
             ->where('reg_year', $selectedYear)
             ->where('reg_level IS NOT NULL')
-            ->where('reg_level !=', '')
-            ->groupBy('reg_level')
+            ->where('reg_level !=', '');
+
+        // กรองตามสิทธิ์ของ staff (ไม่ใช่ admin)
+        if ($allowedComps !== null && !empty($allowedComps)) {
+            $levelsQuery = $levelsQuery->whereIn('reg_competition_type', $allowedComps);
+        }
+
+        if (!empty($compType)) {
+            $levelsQuery = $levelsQuery->where('reg_competition_type', $compType);
+        }
+
+        $levelsQuery = $levelsQuery->groupBy('reg_level')
             ->orderBy('reg_level', 'ASC')
             ->get()
             ->getResultArray();
@@ -1009,11 +1019,15 @@ class ScienceWeek extends BaseController
         }
 
         $data['title'] = "จัดการผลคะแนนและอันดับรางวัล | อบจ.นครสวรรค์";
-        $data['registrations'] = $query->orderBy('reg_competition_type', 'ASC')
-                                       ->orderBy('CASE WHEN reg_rank IS NULL OR reg_rank = \'\' THEN 1 ELSE 0 END', 'ASC')
-                                       ->orderBy('reg_score', 'DESC')
-                                       ->orderBy('reg_id', 'ASC')
-                                       ->findAll();
+        $registrations = [];
+        if (!empty($searchTerm) || !empty($compType)) {
+            $registrations = $query->orderBy('reg_competition_type', 'ASC')
+                                   ->orderBy('CASE WHEN reg_rank IS NULL OR reg_rank = \'\' THEN 1 ELSE 0 END', 'ASC')
+                                   ->orderBy('reg_score', 'DESC')
+                                   ->orderBy('reg_id', 'ASC')
+                                   ->findAll();
+        }
+        $data['registrations'] = $registrations;
 
         $data['search'] = $searchTerm;
         $data['compType_active'] = $compType;
@@ -1289,23 +1303,24 @@ class ScienceWeek extends BaseController
         $sheet = $spreadsheet->getActiveSheet();
 
         $sheet->setCellValue('A1', 'รายชื่อผู้สมัครเข้าร่วมแข่งขันกิจกรรมวันสัปดาห์วิทยาศาสตร์');
-        $sheet->mergeCells('A1:M1');
+        $sheet->mergeCells('A1:N1');
         $sheet->setCellValue('A2', 'พิมพ์เมื่อวันที่: ' . date('d/m/Y H:i') . ' น.');
-        $sheet->mergeCells('A2:M2');
+        $sheet->mergeCells('A2:N2');
 
         $sheet->setCellValue('A4', 'ลำดับ');
         $sheet->setCellValue('B4', 'รหัสใบสมัคร');
         $sheet->setCellValue('C4', 'ประเภทการแข่งขัน');
-        $sheet->setCellValue('D4', 'ชื่อโรงเรียน');
-        $sheet->setCellValue('E4', 'จังหวัด');
-        $sheet->setCellValue('F4', 'ชื่อทีม');
-        $sheet->setCellValue('G4', 'สมาชิกในทีม');
-        $sheet->setCellValue('H4', 'ครูผู้ควบคุม/ที่ปรึกษา');
-        $sheet->setCellValue('I4', 'เบอร์โทรติดต่อ');
-        $sheet->setCellValue('J4', 'สถานะการสมัคร');
-        $sheet->setCellValue('K4', 'คะแนน');
-        $sheet->setCellValue('L4', 'รางวัลที่ได้รับ');
-        $sheet->setCellValue('M4', 'ข้อมูลเพิ่มเติม (Custom Fields)');
+        $sheet->setCellValue('D4', 'ระดับชั้น');
+        $sheet->setCellValue('E4', 'ชื่อโรงเรียน');
+        $sheet->setCellValue('F4', 'จังหวัด');
+        $sheet->setCellValue('G4', 'ชื่อทีม');
+        $sheet->setCellValue('H4', 'สมาชิกในทีม');
+        $sheet->setCellValue('I4', 'ครูผู้ควบคุม/ที่ปรึกษา');
+        $sheet->setCellValue('J4', 'เบอร์โทรติดต่อ');
+        $sheet->setCellValue('K4', 'สถานะการสมัคร');
+        $sheet->setCellValue('L4', 'คะแนน');
+        $sheet->setCellValue('M4', 'รางวัลที่ได้รับ');
+        $sheet->setCellValue('N4', 'ข้อมูลเพิ่มเติม (Custom Fields)');
 
         $rowIdx = 5;
         $i = 1;
@@ -1360,20 +1375,21 @@ class ScienceWeek extends BaseController
             $sheet->setCellValue('A' . $rowIdx, $i++);
             $sheet->setCellValue('B' . $rowIdx, $reg['reg_code']);
             $sheet->setCellValue('C' . $rowIdx, $reg['reg_competition_type']);
-            $sheet->setCellValue('D' . $rowIdx, $reg['reg_school_name']);
-            $sheet->setCellValue('E' . $rowIdx, $reg['reg_school_province'] ?: '-');
-            $sheet->setCellValue('F' . $rowIdx, $reg['reg_team_name'] ?: '-');
-            $sheet->setCellValue('G' . $rowIdx, $members);
-            $sheet->setCellValue('H' . $rowIdx, $advisors);
-            $sheet->setCellValue('I' . $rowIdx, $reg['reg_contact_phone']);
-            $sheet->setCellValue('J' . $rowIdx, $statusText);
-            $sheet->setCellValue('K' . $rowIdx, $reg['reg_score'] !== null ? $reg['reg_score'] : '-');
-            $sheet->setCellValue('L' . $rowIdx, $reg['reg_rank'] ?: '-');
-            $sheet->setCellValue('M' . $rowIdx, $customText ?: '-');
+            $sheet->setCellValue('D' . $rowIdx, $reg['reg_level'] ?: '-');
+            $sheet->setCellValue('E' . $rowIdx, $reg['reg_school_name']);
+            $sheet->setCellValue('F' . $rowIdx, $reg['reg_school_province'] ?: '-');
+            $sheet->setCellValue('G' . $rowIdx, $reg['reg_team_name'] ?: '-');
+            $sheet->setCellValue('H' . $rowIdx, $members);
+            $sheet->setCellValue('I' . $rowIdx, $advisors);
+            $sheet->setCellValue('J' . $rowIdx, $reg['reg_contact_phone']);
+            $sheet->setCellValue('K' . $rowIdx, $statusText);
+            $sheet->setCellValue('L' . $rowIdx, $reg['reg_score'] !== null ? $reg['reg_score'] : '-');
+            $sheet->setCellValue('M' . $rowIdx, $reg['reg_rank'] ?: '-');
+            $sheet->setCellValue('N' . $rowIdx, $customText ?: '-');
             $rowIdx++;
         }
 
-        foreach (range('A', 'M') as $col) {
+        foreach (range('A', 'N') as $col) {
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
 

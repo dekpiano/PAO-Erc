@@ -266,7 +266,7 @@
                                                 <?php endforeach; ?>
                                             </td>
                                             <td class="px-6 py-4 text-center whitespace-nowrap">
-                                                <a href="<?= base_url('science-week/success/' . $reg['reg_code']) ?>" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-500/10 hover:bg-indigo-600 hover:text-white text-indigo-300 border border-indigo-500/20 transition-all font-bold text-xs shadow-sm">
+                                                <a href="<?= base_url('science-week/success/' . $reg['reg_code'] . '?mode=print') ?>" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-500/10 hover:bg-indigo-600 hover:text-white text-indigo-300 border border-indigo-500/20 transition-all font-bold text-xs shadow-sm">
                                                     <i data-lucide="ticket" class="w-4 h-4 text-indigo-400"></i>
                                                     <span>พิมพ์บัตร/ตั๋วทีม</span>
                                                 </a>
@@ -345,7 +345,7 @@
                                 </div>
 
                                 <div class="flex flex-col gap-2 pt-2.5 border-t border-slate-800/80">
-                                    <a href="<?= base_url('science-week/success/' . $reg['reg_code']) ?>" class="w-full inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-500/10 hover:bg-indigo-600 hover:text-white text-indigo-300 border border-indigo-500/20 transition-all font-bold text-xs shadow-sm">
+                                    <a href="<?= base_url('science-week/success/' . $reg['reg_code'] . '?mode=print') ?>" class="w-full inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-500/10 hover:bg-indigo-600 hover:text-white text-indigo-300 border border-indigo-500/20 transition-all font-bold text-xs shadow-sm">
                                         <i data-lucide="ticket" class="w-4 h-4"></i>
                                         <span>พิมพ์บัตร/ตั๋วทีม</span>
                                     </a>
