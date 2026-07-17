@@ -194,10 +194,10 @@ class ScienceWeek extends BaseController
         $compCount = $this->compModel->where('comp_year', $activeYear)->countAllResults();
 
         // 3. Registered Teams count (where status is not rejected)
-        $teamCount = $this->regModel->where('reg_year', $activeYear)->where('reg_status !=', 'rejected')->countAllResults();
+        $teamCount = $this->regModel->where('reg_year', $activeYear)->whereIn('reg_status', ['pending', 'approved'])->countAllResults();
 
         // 4. Participating Students count (sum of all members array size)
-        $registrations = $this->regModel->where('reg_year', $activeYear)->where('reg_status !=', 'rejected')->findAll();
+        $registrations = $this->regModel->where('reg_year', $activeYear)->whereIn('reg_status', ['pending', 'approved'])->findAll();
         $studentCount = 0;
         foreach ($registrations as $reg) {
             $members = json_decode($reg['reg_members'], true) ?: [];
@@ -207,7 +207,7 @@ class ScienceWeek extends BaseController
         $popularCompetitions = $db->query("
             SELECT c.*, COUNT(r.reg_id) AS reg_count
             FROM Tb_ScienceWeek_Competitions c
-            LEFT JOIN Tb_ScienceWeek_Registrations r ON r.reg_competition_type = c.comp_name AND r.reg_status != 'rejected' AND r.reg_year = c.comp_year
+            LEFT JOIN Tb_ScienceWeek_Registrations r ON r.reg_competition_type = c.comp_name AND r.reg_status IN ('pending', 'approved') AND r.reg_year = c.comp_year
             WHERE c.comp_year = ?
             GROUP BY c.comp_id
             ORDER BY reg_count DESC, c.comp_id ASC
@@ -246,7 +246,7 @@ class ScienceWeek extends BaseController
         foreach ($competitions as &$comp) {
             $comp['reg_count'] = $this->regModel->where('reg_competition_type', $comp['comp_name'])
                 ->where('reg_year', $activeYear)
-                ->where('reg_status !=', 'rejected')
+                ->whereIn('reg_status', ['pending', 'approved'])
                 ->countAllResults();
         }
 
@@ -281,7 +281,7 @@ class ScienceWeek extends BaseController
                     $activeRegLevelCount = $this->regModel->where('reg_competition_type', $comp['comp_name'])
                         ->where('reg_year', $activeYear)
                         ->where('reg_level', $lvl['level'])
-                        ->where('reg_status !=', 'rejected')
+                        ->whereIn('reg_status', ['pending', 'approved'])
                         ->countAllResults();
                     if ($lvl['limit'] == 0 || $activeRegLevelCount < $lvl['limit']) {
                         $allFull = false;
@@ -295,7 +295,7 @@ class ScienceWeek extends BaseController
         } else {
             $activeRegCount = $this->regModel->where('reg_competition_type', $comp['comp_name'])
                 ->where('reg_year', $activeYear)
-                ->where('reg_status !=', 'rejected')
+                ->whereIn('reg_status', ['pending', 'approved'])
                 ->countAllResults();
             if (!empty($comp['comp_limit']) && $comp['comp_limit'] > 0 && $activeRegCount >= $comp['comp_limit']) {
                 return redirect()->to(base_url('science-week/register'))->with('error', 'ขออภัย การแข่งขันนี้มีผู้สมัครครบเต็มจำนวนโควตาแล้ว');
@@ -343,7 +343,7 @@ class ScienceWeek extends BaseController
                     $activeRegLevelCount = $this->regModel->where('reg_competition_type', $compType)
                         ->where('reg_year', $activeYear)
                         ->where('reg_level', $selectedLevel)
-                        ->where('reg_status !=', 'rejected')
+                        ->whereIn('reg_status', ['pending', 'approved'])
                         ->countAllResults();
                     if ($foundLevelLimit > 0 && $activeRegLevelCount >= $foundLevelLimit) {
                         $msg = "ขออภัย ระดับชั้น {$selectedLevel} มีผู้สมัครครบเต็มจำนวนโควตา ({$foundLevelLimit} ทีม) แล้ว";
@@ -354,7 +354,7 @@ class ScienceWeek extends BaseController
         } else {
             $activeRegCount = $this->regModel->where('reg_competition_type', $compType)
                 ->where('reg_year', $activeYear)
-                ->where('reg_status !=', 'rejected')
+                ->whereIn('reg_status', ['pending', 'approved'])
                 ->countAllResults();
             if (!empty($comp['comp_limit']) && $comp['comp_limit'] > 0 && $activeRegCount >= $comp['comp_limit']) {
                 $msg = 'ขออภัย การแข่งขันนี้มีผู้สมัครครบเต็มจำนวนโควตาแล้ว';
@@ -456,7 +456,7 @@ class ScienceWeek extends BaseController
                     $activeRegLevelCount = $this->regModel->where('reg_competition_type', $compType)
                         ->where('reg_year', $activeYear)
                         ->where('reg_level', $selectedLevel)
-                        ->where('reg_status !=', 'rejected')
+                        ->whereIn('reg_status', ['pending', 'approved'])
                         ->countAllResults();
                     if ($foundLevelLimit > 0 && $activeRegLevelCount >= $foundLevelLimit) {
                         $msg = "ขออภัย ระดับชั้น {$selectedLevel} มีผู้สมัครครบเต็มจำนวนโควตา ({$foundLevelLimit} ทีม) แล้ว";
@@ -467,7 +467,7 @@ class ScienceWeek extends BaseController
         } else {
             $activeRegCount = $this->regModel->where('reg_competition_type', $compType)
                 ->where('reg_year', $activeYear)
-                ->where('reg_status !=', 'rejected')
+                ->whereIn('reg_status', ['pending', 'approved'])
                 ->countAllResults();
             if (!empty($comp['comp_limit']) && $comp['comp_limit'] > 0 && $activeRegCount >= $comp['comp_limit']) {
                 $msg = 'ขออภัย การแข่งขันนี้มีผู้สมัครครบเต็มจำนวนโควตาแล้ว';

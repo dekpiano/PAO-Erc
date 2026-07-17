@@ -542,7 +542,7 @@ if (!empty($comp['comp_member_custom_fields'])) {
                                     $activeRegForLevel = $db->table('Tb_ScienceWeek_Registrations')
                                         ->where('reg_competition_type', $comp['comp_name'])
                                         ->where('reg_level', $lvl['level'])
-                                        ->where('reg_status !=', 'rejected')
+                                        ->whereIn('reg_status', ['pending', 'approved'])
                                         ->countAllResults();
 
                                     $isFull = false;
