@@ -31,7 +31,8 @@ class ScienceWeekCompetitionModel extends Model
         'comp_member_limit',
         'comp_status',
         'comp_open_time',
-        'comp_close_time'
+        'comp_close_time',
+        'comp_announce_time'
     ];
 
     // Dates

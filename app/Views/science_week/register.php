@@ -279,7 +279,7 @@
                             </div>
 
                             <!-- Show Time Limits in Thai BE Format -->
-                            <?php if (!empty($comp['comp_open_time']) || !empty($comp['comp_close_time'])): ?>
+                            <?php if (!empty($comp['comp_open_time']) || !empty($comp['comp_close_time']) || !empty($comp['comp_announce_time'])): ?>
                                 <div class="mt-3 p-3 bg-slate-950/20 rounded-xl border border-slate-800/30 text-[10px] space-y-1 text-slate-400">
                                     <?php if (!empty($comp['comp_open_time'])): ?>
                                         <div class="flex justify-between">
@@ -291,6 +291,12 @@
                                         <div class="flex justify-between">
                                             <span>สิ้นสุดรับสมัคร:</span>
                                             <span class="font-bold text-rose-400"><?= date('d/m/Y H:i', strtotime($comp['comp_close_time'] . ' +543 years')) ?> น. (พ.ศ.)</span>
+                                        </div>
+                                    <?php endif; ?>
+                                    <?php if (!empty($comp['comp_announce_time'])): ?>
+                                        <div class="flex justify-between">
+                                            <span>ประกาศรายชื่อ:</span>
+                                            <span class="font-bold text-purple-400"><?= date('d/m/Y H:i', strtotime($comp['comp_announce_time'] . ' +543 years')) ?> น. (พ.ศ.)</span>
                                         </div>
                                     <?php endif; ?>
                                 </div>

@@ -152,6 +152,58 @@
                     <p class="text-xs text-slate-400">เลือกประเภทการแข่งขัน หรือกรอกคำค้นหา แล้วกดปุ่ม "กรองรายชื่อ"</p>
                 </div>
             <?php else:
+                // Check if the selected competition's announce time has been reached
+                $selectedCompMeta = null;
+                if (!empty($compType_active)) {
+                    foreach ($competitions as $c) {
+                        if ($c['comp_name'] === $compType_active) {
+                            $selectedCompMeta = $c;
+                            break;
+                        }
+                    }
+                }
+
+                $isAnnounceTimeReached = true;
+                $announceTimeMsg = '';
+                if ($selectedCompMeta) {
+                    $now = date('Y-m-d H:i:s');
+                    if (empty($selectedCompMeta['comp_announce_time'])) {
+                        $isAnnounceTimeReached = false;
+                        $announceTimeMsg = 'รายการนี้ยังไม่มีการกำหนดวันเวลาประกาศรายชื่อ กรุณารอประกาศจากเจ้าหน้าที่';
+                    } elseif ($now < $selectedCompMeta['comp_announce_time']) {
+                        $isAnnounceTimeReached = false;
+                        $announceDateBE = date('d/m/Y H:i', strtotime($selectedCompMeta['comp_announce_time'] . ' +543 years'));
+                        $announceTimeMsg = 'จะทำการประกาศรายชื่อในวันที่ ' . $announceDateBE . ' น.';
+                    }
+                }
+
+                if (!$isAnnounceTimeReached):
+            ?>
+                    <div class="glass-sci-card rounded-3xl p-12 text-center text-slate-400 border border-dashed border-amber-500/30 bg-amber-500/5">
+                        <i data-lucide="clock" class="w-16 h-16 mx-auto text-amber-400/60 mb-4 animate-pulse"></i>
+                        <p class="font-bold text-lg mb-1 text-white">ยังไม่ถึงเวลาประกาศรายชื่อผู้มีสิทธิ์</p>
+                        <p class="text-sm font-semibold text-amber-300 mt-2"><?= esc($announceTimeMsg) ?></p>
+                    </div>
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            if (typeof Swal !== 'undefined') {
+                                Swal.fire({
+                                    icon: 'warning',
+                                    title: 'ยังไม่ถึงเวลาประกาศรายชื่อ',
+                                    text: '<?= esc($announceTimeMsg) ?>',
+                                    confirmButtonText: 'ตกลง',
+                                    confirmButtonColor: '#f59e0b',
+                                    background: 'rgba(15, 23, 42, 0.95)',
+                                    color: '#f1f5f9',
+                                    backdrop: `rgba(0,0,0,0.6)`,
+                                    customClass: {
+                                        popup: 'glass-sci-card rounded-3xl border border-amber-500/30'
+                                    }
+                                });
+                            }
+                        });
+                    </script>
+            <?php else:
                 // Group registrations in PHP to display clearly per competition
                 $groupedRegs = [];
                 foreach ($registrations as $r) {
@@ -357,6 +409,7 @@
             <?php 
                 $secDelay += 100;
                 endforeach; 
+            endif;
             endif;
             endif;
             ?>

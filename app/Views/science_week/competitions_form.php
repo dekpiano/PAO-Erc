@@ -207,6 +207,10 @@
             if (!empty($comp['comp_close_time'])) {
                 $closeTime = date('Y-m-d H:i:s', strtotime($comp['comp_close_time']));
             }
+            $announceTime = '';
+            if (!empty($comp['comp_announce_time'])) {
+                $announceTime = date('Y-m-d H:i:s', strtotime($comp['comp_announce_time']));
+            }
             ?>
             <div class="grid grid-cols-1 gap-4">
                 <!-- Open Time -->
@@ -225,6 +229,15 @@
                     </label>
                     <input type="text" name="comp_close_time" id="comp_close_time" value="<?= old('comp_close_time', $closeTime) ?>" class="datetimepicker-be w-full px-4 py-3.5 neon-input rounded-2xl text-xs sm:text-sm font-bold outline-none transition-colors" placeholder="เลือกวันเวลาสิ้นสุดรับสมัคร...">
                     <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 block mt-1">ระบุเวลาหมดเขตรับสมัครของรายการนี้</span>
+                </div>
+                
+                <!-- Announce Time -->
+                <div class="space-y-2">
+                    <label for="comp_announce_time" class="block text-sm sm:text-base font-black text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                        <i data-lucide="megaphone" class="w-5 h-5 text-purple-400"></i> วันเวลาประกาศรายชื่อผู้มีสิทธิ์ (พ.ศ.)
+                    </label>
+                    <input type="text" name="comp_announce_time" id="comp_announce_time" value="<?= old('comp_announce_time', $announceTime) ?>" class="datetimepicker-be w-full px-4 py-3.5 neon-input rounded-2xl text-xs sm:text-sm font-bold outline-none transition-colors" placeholder="เลือกวันเวลาประกาศรายชื่อ...">
+                    <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 block mt-1">กำหนดวันประกาศรายชื่อผู้มีสิทธิ์เข้าแข่งขัน (เว้นว่างได้)</span>
                 </div>
             </div>
 

@@ -1586,7 +1586,8 @@ class ScienceWeek extends BaseController
             'comp_member_limit' => (int) $this->request->getPost('comp_member_limit'),
             'comp_status' => $this->request->getPost('comp_status') ?: 'open',
             'comp_open_time' => $this->request->getPost('comp_open_time') ?: null,
-            'comp_close_time' => $this->request->getPost('comp_close_time') ?: null
+            'comp_close_time' => $this->request->getPost('comp_close_time') ?: null,
+            'comp_announce_time' => $this->request->getPost('comp_announce_time') ?: null
         ];
 
         if ($this->compModel->insert($dataInsert)) {
@@ -1804,7 +1805,8 @@ class ScienceWeek extends BaseController
             'comp_member_limit' => (int) $this->request->getPost('comp_member_limit'),
             'comp_status' => $this->request->getPost('comp_status') ?: 'open',
             'comp_open_time' => $this->request->getPost('comp_open_time') ?: null,
-            'comp_close_time' => $this->request->getPost('comp_close_time') ?: null
+            'comp_close_time' => $this->request->getPost('comp_close_time') ?: null,
+            'comp_announce_time' => $this->request->getPost('comp_announce_time') ?: null
         ];
 
         $oldName = $comp['comp_name'];
