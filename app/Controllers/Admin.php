@@ -69,6 +69,7 @@ class Admin extends Controller
         $builder->select('Tb_Users.*, Tb_Positions.pos_name as position_name');
         $builder->join('Tb_Positions', 'Tb_Positions.pos_id = Tb_Users.u_position', 'left');
         $builder->where('Tb_Users.u_status', 'active');
+        $builder->whereIn('Tb_Users.u_division', ['ผู้บริหาร', 'ฝ่ายบริหาร', 'ฝ่ายส่งเสริม']);
         $builder->orderBy('Tb_Users.u_sort', 'ASC');
         $data['users'] = $builder->get()->getResultArray();
         $data['fullname'] = session()->get('u_fullname');

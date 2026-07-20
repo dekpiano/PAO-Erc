@@ -66,7 +66,7 @@
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
                     <?php foreach($images as $idx => $img): ?>
                         <div class="relative rounded-2xl overflow-hidden aspect-video border border-slate-200 bg-slate-50 shadow-sm cursor-zoom-in group" onclick="zoomImage(<?= $imgJson ?>, <?= $idx ?>)">
-                            <img src="<?= base_url('uploads/it_support/' . $img) ?>" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105">
+                            <img loading="lazy" src="<?= base_url('uploads/it_support/' . $img) ?>" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105">
                             <div class="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white">
                                 <i data-lucide="zoom-in" class="w-5 h-5"></i>
                             </div>
@@ -157,7 +157,7 @@
                 </button>
                 
                 <div class="w-full h-full flex items-center justify-center p-2">
-                    <img id="gallery-image" src="${images[currentIndex]}" class="max-w-full max-h-[72vh] object-contain rounded-2xl shadow-2xl transition-all duration-300 transform scale-100 ease-out">
+                    <img loading="lazy" id="gallery-image" src="${images[currentIndex]}" class="max-w-full max-h-[72vh] object-contain rounded-2xl shadow-2xl transition-all duration-300 transform scale-100 ease-out">
                 </div>
                 
                 <button id="gallery-next" class="absolute right-2 sm:right-4 p-3.5 bg-slate-900/60 border border-slate-800/50 hover:bg-blue-600 hover:border-blue-500 hover:scale-110 rounded-full text-white transition-all z-20 shadow-xl ${images.length <= 1 ? 'hidden' : ''}">
@@ -171,7 +171,7 @@
             <div class="z-10 py-3 flex justify-center gap-2 overflow-x-auto max-w-xl mx-auto w-full px-4 scrollbar-none">
                 ${images.map((img, idx) => `
                     <div id="gallery-thumb-${idx}" onclick="window.setGalleryIndex(${idx})" class="w-12 h-12 sm:w-16 sm:h-16 rounded-xl overflow-hidden cursor-pointer border-2 transition-all shrink-0 ${idx === currentIndex ? 'border-blue-500 scale-105 shadow-md shadow-blue-500/20' : 'border-slate-800 opacity-50 hover:opacity-80'}">
-                        <img src="${img}" class="w-full h-full object-cover">
+                        <img loading="lazy" src="${img}" class="w-full h-full object-cover">
                     </div>
                 `).join('')}
             </div>

@@ -977,16 +977,17 @@ class Staff extends BaseController
         $posModel = new \App\Models\PositionModel();
 
         $data['title'] = "จัดการบุคลากร | อบจ.นครสวรรค์";
-        // Join Tb_Positions to get pos_name
+        // Join Tb_Positions to get pos_name and filter by division
         $allUsers = $model->select('Tb_Users.*, p.pos_name as position_name')
                                ->join('Tb_Positions as p', 'p.pos_id = Tb_Users.u_position', 'left')
+                               ->whereIn('u_division', ['ผู้บริหาร', 'ฝ่ายบริหาร', 'ฝ่ายส่งเสริม'])
                                ->orderBy('u_sort', 'ASC')
                                ->findAll();
         
         // จัดกลุ่มตามฝ่ายงาน
         $groupedUsers = [];
         foreach ($allUsers as $u) {
-            $div = !empty($u['u_division']) ? $u['u_division'] : 'ไม่ระบุฝ่ายงาน';
+            $div = $u['u_division'];
             $groupedUsers[$div][] = $u;
         }
         $data['users'] = $allUsers;
@@ -1012,9 +1013,6 @@ class Staff extends BaseController
         $model = new \App\Models\UserModel();
         $id = $this->request->getPost('u_id');
         $email = $this->request->getPost('u_email');
-        $roles = $this->request->getPost('u_role');
-        
-        $roleStr = is_array($roles) ? implode(',', $roles) : ($roles ?: 'user');
 
         $birthday  = $this->request->getPost('u_birthday');
         $hiredDate = $this->request->getPost('u_hired_date');
@@ -1036,14 +1034,14 @@ class Staff extends BaseController
         $data = [
             'u_prefix'   => $this->request->getPost('u_prefix'),
             'u_fullname' => $this->request->getPost('u_fullname'),
-            'u_email'    => $email,
+            'u_email'    => empty($email) ? null : $email,
             'u_position' => $this->request->getPost('u_pos_id') ?: null,
             'u_level'    => $this->request->getPost('u_level'),
+            'u_emp_type' => $this->request->getPost('u_emp_type'),
             'u_division' => $this->request->getPost('u_division'),
             'u_phone'    => $this->request->getPost('u_phone'),
             'u_sort'     => $this->request->getPost('u_sort') ?: 99,
             'u_status'   => $this->request->getPost('u_status') ?: 'active',
-            'u_role'     => $roleStr,
             // ข้อมูลส่วนตัวเชิงลึก (แปลง พ.ศ. -> ค.ศ. ก่อนเข้า DB)
             'u_id_card'          => $this->request->getPost('u_id_card'),
             'u_birthday'         => $convertToAD($birthday),
@@ -1063,6 +1061,7 @@ class Staff extends BaseController
         if (!$id) {
             $data['u_username'] = uniqid('user_');
             $data['u_password'] = password_hash(uniqid(), PASSWORD_DEFAULT);
+            $data['u_role'] = 'user'; // Default role for new personnel
         }
 
         // Handle Photo Upload (Normal or Chunked)
@@ -1264,7 +1263,19 @@ class Staff extends BaseController
             
             $u_prefix = $user['u_prefix'] ?? '';
             $pos_name = $user['position_name'] ?: ($user['u_position'] ?: 'ไม่ระบุตำแหน่ง');
-            $u_level = (!empty($user['u_level']) && $user['u_level'] !== 'ไม่มีระดับ') ? '<span class="text-slate-400 font-medium">('.$user['u_level'].')</span>' : '';
+            $u_emp_type = !empty($user['u_emp_type']) ? $user['u_emp_type'] : '';
+            $u_level_text = (!empty($user['u_level']) && $user['u_level'] !== 'ไม่มีระดับ') ? $user['u_level'] : '';
+            
+            $badge_text = '';
+            if ($u_emp_type && $u_level_text) {
+                $badge_text = $u_emp_type . ' - ' . $u_level_text;
+            } elseif ($u_emp_type) {
+                $badge_text = $u_emp_type;
+            } elseif ($u_level_text) {
+                $badge_text = $u_level_text;
+            }
+            
+            $u_level = $badge_text ? '<span class="text-slate-400 font-medium">('.$badge_text.')</span>' : '';
             $u_phone = !empty($user['u_phone']) ? '<p class="text-[10px] text-slate-400 mt-1"><i data-lucide="phone" class="w-3 h-3 inline"></i> '.$user['u_phone'].'</p>' : '';
             $u_email = !empty($user['u_email']) ? '<p class="text-[10px] text-blue-400 mt-0.5 font-medium"><i data-lucide="mail" class="w-3 h-3 inline"></i> '.$user['u_email'].'</p>' : '';
             

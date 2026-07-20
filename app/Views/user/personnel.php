@@ -44,51 +44,49 @@
                 <h2 class="text-3xl md:text-4xl font-black text-slate-800 mt-4 italic">คณะผู้บริหารกองการศึกษา</h2>
             </div>
             
-            <div class="flex flex-wrap justify-center gap-10">
+            <div class="flex flex-wrap justify-center gap-8">
                 <?php foreach($personnel['executives'] as $p): ?>
-                <div class="w-full max-w-[380px]" data-aos="zoom-in">
-                    <div class="group relative bg-white rounded-[3rem] p-10 shadow-[0_30px_60px_-15px_rgba(15,23,42,0.1)] border border-blue-50 overflow-hidden transition-all duration-500 hover:-translate-y-3 hover:shadow-blue-900/10">
-                        <!-- Card Glow -->
-                        <div class="absolute -top-24 -right-24 w-48 h-48 bg-blue-600/5 rounded-full blur-3xl group-hover:bg-blue-600/10 transition-all duration-500"></div>
-                        
-                        <!-- Photo Section -->
-                        <div class="relative w-56 h-56 mx-auto mb-10">
-                            <div class="absolute inset-0 bg-blue-600 rounded-[3rem] rotate-6 opacity-5 group-hover:rotate-12 transition-all duration-500"></div>
-                            <div class="relative w-full h-full rounded-[2.5rem] overflow-hidden border-4 border-white shadow-xl">
-                                <?php if($p['u_photo']): ?>
-                                    <img src="<?= base_url('uploads/personnel/' . $p['u_photo']) ?>" class="w-full h-full object-cover scale-110 group-hover:scale-100 transition-transform duration-700">
-                                <?php else: ?>
-                                    <div class="w-full h-full bg-slate-50 flex items-center justify-center text-slate-300">
-                                        <i data-lucide="user" class="w-24 h-24"></i>
-                                    </div>
-                                <?php endif; ?>
-                            </div>
+                <div class="w-full sm:w-fit sm:max-w-none" data-aos="zoom-in">
+                    <div class="group relative bg-white hover:bg-blue-100/60 hover:backdrop-blur-md rounded-3xl p-6 md:p-8 shadow-[0_15px_40px_rgba(15,23,42,0.04)] hover:shadow-xl hover:shadow-blue-500/20 hover:-translate-y-1 transition-all duration-500 border border-slate-100 hover:border-blue-300 flex flex-row items-center gap-6 md:gap-8 w-full sm:w-fit">
+                        <!-- Left: Circular Photo -->
+                        <div class="w-24 h-24 sm:w-32 sm:h-32 rounded-full overflow-hidden shrink-0 border-2 border-slate-100 shadow-sm bg-slate-50 relative">
+                            <?php if($p['u_photo']): ?>
+                                <img src="<?= base_url('uploads/personnel/' . $p['u_photo']) ?>" class="w-full h-full object-cover object-top scale-105 group-hover:scale-100 transition-transform duration-500">
+                            <?php else: ?>
+                                <div class="w-full h-full flex items-center justify-center text-slate-300">
+                                    <i data-lucide="user" class="w-12 h-12 md:w-16 md:h-16"></i>
+                                </div>
+                            <?php endif; ?>
                         </div>
-
-                        <!-- Info Section -->
-                        <div class="text-center">
-                            <h3 class="text-2xl md:text-3xl font-black text-slate-800 mb-3 leading-tight tracking-tight">
+                        
+                        <!-- Right: Info -->
+                        <div class="flex-1 min-w-0 flex flex-col justify-center">
+                            <h3 class="text-[clamp(0.95rem,4vw,1.875rem)] font-black text-slate-800 leading-tight mb-1 whitespace-nowrap">
                                 <?= $p['u_prefix'] ?><?= $p['u_fullname'] ?>
                             </h3>
-                            <div class="inline-block px-5 py-2 rounded-2xl bg-slate-50 border border-slate-100 mb-2">
-                                <p class="text-blue-600 font-black uppercase tracking-widest text-[12px]"><?= $p['position_name'] ?? 'ไม่มีตำแหน่ง' ?></p>
-                            </div>
-                            <?php if(!empty($p['u_level']) && $p['u_level'] !== 'ไม่มีระดับ'): ?>
-                                <p class="text-slate-400 font-bold text-[11px] mb-6 uppercase tracking-wider"><?= $p['u_level'] ?></p>
-                            <?php else: ?>
-                                <div class="mb-6"></div>
+                            <p class="text-slate-500 font-bold text-xs sm:text-sm mb-2.5"><?= $p['position_name'] ?? 'ไม่มีตำแหน่ง' ?></p>
+                            
+                            <hr class="border-slate-200/60 w-16 mb-2.5">
+                            
+                            <?php 
+                                $u_emp_type = !empty($p['u_emp_type']) ? $p['u_emp_type'] : '';
+                                $u_level_text = (!empty($p['u_level']) && $p['u_level'] !== 'ไม่มีระดับ') ? $p['u_level'] : '';
+                                $badge_text = $u_emp_type && $u_level_text ? $u_emp_type . ' - ' . $u_level_text : ($u_emp_type ?: $u_level_text);
+                            ?>
+                            <?php if($badge_text): ?>
+                                <p class="text-slate-400 font-bold text-[10px] sm:text-xs uppercase tracking-wider mb-3"><?= $badge_text ?></p>
                             <?php endif; ?>
                             
-                            <!-- Contact -->
-                            <div class="flex justify-center gap-4 pt-6 border-t border-slate-50">
+                            <!-- Contacts (Gray circular buttons matching mockup) -->
+                            <div class="flex gap-2">
                                 <?php if($p['u_phone']): ?>
-                                <a href="tel:<?= $p['u_phone'] ?>" class="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-blue-600 hover:text-white hover:scale-110 transition-all duration-300 shadow-sm">
-                                    <i data-lucide="phone" class="w-5 h-5"></i>
+                                <a href="tel:<?= $p['u_phone'] ?>" class="w-8 h-8 rounded-full bg-slate-100/80 flex items-center justify-center text-slate-600 hover:bg-blue-600 hover:text-white transition-all duration-300 transform hover:scale-105">
+                                    <i data-lucide="phone" class="w-4 h-4"></i>
                                 </a>
                                 <?php endif; ?>
                                 <?php if($p['u_email']): ?>
-                                <a href="mailto:<?= $p['u_email'] ?>" class="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-blue-600 hover:text-white hover:scale-110 transition-all duration-300 shadow-sm">
-                                    <i data-lucide="mail" class="w-5 h-5"></i>
+                                <a href="mailto:<?= $p['u_email'] ?>" class="w-8 h-8 rounded-full bg-slate-100/80 flex items-center justify-center text-slate-600 hover:bg-blue-600 hover:text-white transition-all duration-300 transform hover:scale-105">
+                                    <i data-lucide="mail" class="w-4 h-4"></i>
                                 </a>
                                 <?php endif; ?>
                             </div>
@@ -103,51 +101,63 @@
         <!-- ==========================================
              TIER 2 & 3: DIVISIONS & STAFF (SIDE-BY-SIDE)
              ========================================== -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 sm:gap-20">
+        <!-- Changed to grid-cols-1 or xl:grid-cols-2 so they don't squish too early -->
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-12 sm:gap-16">
             <?php foreach($personnel['divisions'] as $division): ?>
-            <div class="relative flex flex-col">
+            <div class="relative flex flex-col w-full">
                 <!-- Division Title -->
-                <div class="flex items-center gap-4 mb-12" data-aos="fade-up">
+                <div class="flex items-center gap-4 mb-10" data-aos="fade-up">
                     <div class="w-12 h-1 bg-blue-600 rounded-full"></div>
                     <div>
                         <span class="text-[9px] font-black uppercase tracking-[0.4em] text-blue-500 block mb-1">Division</span>
-                        <h2 class="text-2xl md:text-3xl font-black text-slate-800 tracking-tighter uppercase leading-none"><?= $division['name'] ?></h2>
+                        <h2 class="text-xl md:text-2xl font-black text-slate-800 tracking-tight uppercase leading-none"><?= $division['name'] ?></h2>
                     </div>
                 </div>
 
-                <!-- Division Heads (หัวหน้าฝ่าย) - Suports multiple heads -->
+                <!-- Division Heads (หัวหน้าฝ่าย) -->
                 <?php if(!empty($division['heads'])): ?>
-                <div class="space-y-4 mb-20">
+                <div class="space-y-6 mb-8">
                     <?php foreach($division['heads'] as $h): ?>
                     <div class="group relative w-full" data-aos="zoom-in">
                         <!-- Head Label Badge -->
-                        <div class="absolute -top-4 left-6 z-20 px-4 py-1.5 rounded-full bg-[#1e293b] text-white text-[9px] font-black uppercase tracking-[0.2em] shadow-xl border border-white/10">
+                        <div class="absolute -top-3 left-6 z-20 px-4 py-1 rounded-full bg-blue-600 text-white text-[9px] font-black uppercase tracking-[0.2em] shadow-lg shadow-blue-500/30">
                             หัวหน้าฝ่าย
                         </div>
                         
-                        <div class="bg-white rounded-[2rem] p-6 shadow-2xl shadow-blue-900/5 border-2 border-blue-500/10 flex items-center gap-6 group-hover:border-blue-500/30 transition-all duration-500">
-                            <div class="w-24 h-24 rounded-2xl overflow-hidden shadow-lg shrink-0 border-4 border-white group-hover:scale-110 transition-transform duration-500">
+                        <div class="bg-white hover:bg-blue-100/60 hover:backdrop-blur-md rounded-3xl p-5 shadow-lg hover:shadow-xl hover:shadow-blue-500/20 hover:-translate-y-0.5 transition-all duration-500 border border-slate-100 hover:border-blue-300 flex flex-row items-center gap-5 w-full">
+                            <!-- Left: Circular Photo -->
+                            <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden shrink-0 border-2 border-slate-100 shadow-inner bg-slate-50 relative">
                                 <?php if($h['u_photo']): ?>
-                                    <img src="<?= base_url('uploads/personnel/' . $h['u_photo']) ?>" class="w-full h-full object-cover">
+                                    <img src="<?= base_url('uploads/personnel/' . $h['u_photo']) ?>" class="w-full h-full object-cover object-top scale-105 group-hover:scale-100 transition-transform duration-500">
                                 <?php else: ?>
-                                    <div class="w-full h-full bg-slate-50 flex items-center justify-center text-slate-200">
-                                        <i data-lucide="user" class="w-8 h-8"></i>
+                                    <div class="w-full h-full flex items-center justify-center text-slate-300">
+                                        <i data-lucide="user" class="w-10 h-10"></i>
                                     </div>
                                 <?php endif; ?>
                             </div>
-                            <div class="relative z-10 flex-1">
-                                <h3 class="text-lg font-black text-slate-800 leading-tight mb-1"><?= $h['u_prefix'] ?><?= $h['u_fullname'] ?></h3>
-                                <p class="text-blue-600 font-black text-[10px] uppercase tracking-widest mb-1 leading-tight"><?= $h['position_name'] ?? 'หัวหน้าฝ่าย' ?></p>
-                                <?php if(!empty($h['u_level']) && $h['u_level'] !== 'ไม่มีระดับ'): ?>
-                                    <p class="text-slate-400 font-bold text-[8px] uppercase"><?= $h['u_level'] ?></p>
+                            
+                            <!-- Right: Info -->
+                            <div class="flex-1 min-w-0 flex flex-col justify-center">
+                                <h3 class="text-[clamp(0.85rem,3.8vw,1.5rem)] font-black text-slate-800 leading-tight mb-1 whitespace-nowrap"><?= $h['u_prefix'] ?><?= $h['u_fullname'] ?></h3>
+                                <p class="text-slate-500 font-bold text-xs mb-2"><?= $h['position_name'] ?? 'หัวหน้าฝ่าย' ?></p>
+                                
+                                <hr class="border-slate-200/60 w-12 mb-2">
+                                
+                                <?php 
+                                    $h_emp = !empty($h['u_emp_type']) ? $h['u_emp_type'] : '';
+                                    $h_lv = (!empty($h['u_level']) && $h['u_level'] !== 'ไม่มีระดับ') ? $h['u_level'] : '';
+                                    $h_badge = $h_emp && $h_lv ? $h_emp . ' - ' . $h_lv : ($h_emp ?: $h_lv);
+                                ?>
+                                <?php if($h_badge): ?>
+                                    <p class="text-slate-400 font-bold text-[10px] uppercase tracking-wider mb-2.5"><?= $h_badge ?></p>
                                 <?php endif; ?>
                                 
-                                <div class="flex gap-2 mt-3">
+                                <div class="flex gap-1.5">
                                     <?php if($h['u_phone']): ?>
-                                        <a href="tel:<?= $h['u_phone'] ?>" class="text-slate-300 hover:text-blue-600 transition-colors"><i data-lucide="phone" class="w-3.5 h-3.5"></i></a>
+                                        <a href="tel:<?= $h['u_phone'] ?>" class="w-7 h-7 bg-slate-100/80 rounded-full flex items-center justify-center text-slate-600 hover:bg-blue-600 hover:text-white transition-all transform hover:scale-105"><i data-lucide="phone" class="w-3.5 h-3.5"></i></a>
                                     <?php endif; ?>
                                     <?php if($h['u_email']): ?>
-                                        <a href="mailto:<?= $h['u_email'] ?>" class="text-slate-300 hover:text-blue-600 transition-colors"><i data-lucide="mail" class="w-3.5 h-3.5"></i></a>
+                                        <a href="mailto:<?= $h['u_email'] ?>" class="w-7 h-7 bg-slate-100/80 rounded-full flex items-center justify-center text-slate-600 hover:bg-blue-600 hover:text-white transition-all transform hover:scale-105"><i data-lucide="mail" class="w-3.5 h-3.5"></i></a>
                                     <?php endif; ?>
                                 </div>
                             </div>
@@ -157,29 +167,52 @@
                 </div>
                 <?php endif; ?>
 
-                <!-- Staff Grid (เจ้าหน้าที่) - Adjusted to 2 cols for side-by-side layout -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <!-- Staff Grid (เจ้าหน้าที่) -->
+                <div class="space-y-4">
                     <?php foreach($division['staff'] as $i => $s): ?>
-                    <div class="group bg-white rounded-3xl p-5 shadow-lg shadow-slate-200/40 border border-slate-100 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 hover:border-blue-200" 
+                    <div class="group bg-white hover:bg-blue-100/60 hover:backdrop-blur-md rounded-3xl p-5 shadow-md hover:shadow-lg hover:shadow-blue-500/15 hover:-translate-y-0.5 transition-all duration-500 border border-slate-100 hover:border-blue-300 flex flex-row items-center gap-5 w-full" 
                          data-aos="fade-up" 
                          data-aos-delay="<?= $i * 30 ?>"
                          data-u-role="<?= $s['u_role'] ?? '' ?>">
-                        <div class="flex items-center gap-4">
+                        
+                        <!-- Left: Circular Photo -->
+                        <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden shrink-0 border-2 border-slate-100 shadow-inner bg-slate-50 relative">
+                            <?php if($s['u_photo']): ?>
+                                <img src="<?= base_url('uploads/personnel/' . $s['u_photo']) ?>" class="w-full h-full object-cover object-top scale-105 group-hover:scale-100 transition-transform duration-500">
+                            <?php else: ?>
+                                <div class="w-full h-full flex items-center justify-center text-slate-200">
+                                    <i data-lucide="user" class="w-10 h-10"></i>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+
+                        <!-- Right: Details -->
+                        <div class="flex-1 min-w-0">
+                            <h3 class="text-[clamp(0.75rem,3.3vw,1.125rem)] font-black text-slate-800 leading-tight mb-1 whitespace-nowrap"><?= $s['u_prefix'] ?? '' ?><?= $s['u_fullname'] ?></h3>
+                            <p class="text-slate-500 font-bold text-xs mb-2"><?= $s['position_name'] ?? 'เจ้าหน้าที่' ?></p>
                             
-                            <div class="w-16 h-16 rounded-2xl overflow-hidden shrink-0 border-2 border-slate-50 shadow-sm group-hover:scale-105 transition-transform">
-                                <?php if($s['u_photo']): ?>
-                                    <img src="<?= base_url('uploads/personnel/' . $s['u_photo']) ?>" class="w-full h-full object-cover">
-                                <?php else: ?>
-                                    <div class="w-full h-full bg-slate-50 flex items-center justify-center text-slate-200">
-                                        <i data-lucide="user" class="w-6 h-6"></i>
-                                    </div>
+                            <hr class="border-slate-200/60 w-10 mb-2">
+                            
+                            <?php 
+                                $s_emp = !empty($s['u_emp_type']) ? $s['u_emp_type'] : '';
+                                $s_lv = (!empty($s['u_level']) && $s['u_level'] !== 'ไม่มีระดับ') ? $s['u_level'] : '';
+                                $s_badge = $s_emp && $s_lv ? $s_emp . ' - ' . $s_lv : ($s_emp ?: $s_lv);
+                            ?>
+                            <?php if($s_badge): ?>
+                                <p class="text-[10px] text-slate-400 font-semibold uppercase mb-2.5"><?= $s_badge ?></p>
+                            <?php endif; ?>
+
+                            <!-- Small Contact icons -->
+                            <div class="flex gap-1.5">
+                                <?php if($s['u_phone']): ?>
+                                <a href="tel:<?= $s['u_phone'] ?>" class="w-7 h-7 bg-slate-100/80 rounded-full flex items-center justify-center text-slate-600 hover:bg-blue-600 hover:text-white transition-all transform hover:scale-105">
+                                    <i data-lucide="phone" class="w-3.5 h-3.5"></i>
+                                </a>
                                 <?php endif; ?>
-                            </div>
-                            <div class="overflow-hidden">
-                                <h3 class="font-black text-slate-800 text-sm leading-tight mb-1 truncate"><?= $s['u_prefix'] ?? '' ?><?= $s['u_fullname'] ?></h3>
-                                <p class="text-[9px] text-blue-500 font-bold uppercase tracking-wider mb-1 opacity-80"><?= $s['position_name'] ?? 'เจ้าหน้าที่' ?></p>
-                                <?php if(!empty($s['u_level']) && $s['u_level'] !== 'ไม่มีระดับ'): ?>
-                                    <p class="text-[8px] text-slate-400 font-medium truncate"><?= $s['u_level'] ?></p>
+                                <?php if($s['u_email']): ?>
+                                <a href="mailto:<?= $s['u_email'] ?>" class="w-7 h-7 bg-slate-100/80 rounded-full flex items-center justify-center text-slate-600 hover:bg-blue-600 hover:text-white transition-all transform hover:scale-105">
+                                    <i data-lucide="mail" class="w-3.5 h-3.5"></i>
+                                </a>
                                 <?php endif; ?>
                             </div>
                         </div>
@@ -189,34 +222,6 @@
             </div>
             <?php endforeach; ?>
         </div>
-
-        <!-- ==========================================
-             OTHER / UNCATEGORIZED
-             ========================================== -->
-        <?php if(!empty($personnel['other'])): ?>
-        <div class="mt-40">
-            <div class="text-center mb-16">
-                <span class="px-4 py-1 bg-slate-100 rounded-full text-[10px] font-black uppercase text-slate-400 tracking-widest">Other Personnel</span>
-            </div>
-            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6 opacity-80 hover:opacity-100 transition-opacity">
-                <?php foreach($personnel['other'] as $s): ?>
-                <div class="flex flex-col items-center text-center">
-                    <div class="w-16 h-16 rounded-2xl overflow-hidden mb-3 border-2 border-slate-100">
-                        <?php if($s['u_photo']): ?>
-                            <img src="<?= base_url('uploads/personnel/' . $s['u_photo']) ?>" class="w-full h-full object-cover">
-                        <?php else: ?>
-                            <div class="w-full h-full bg-slate-50 flex items-center justify-center text-slate-200">
-                                <i data-lucide="user" class="w-6 h-6"></i>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-                    <h4 class="text-[11px] font-black text-slate-700 leading-tight"><?= $s['u_prefix'] ?? '' ?><?= $s['u_fullname'] ?></h4>
-                    <p class="text-[9px] text-slate-400 mt-1"><?= $s['position_name'] ?? 'พนักงาน' ?></p>
-                </div>
-                <?php endforeach; ?>
-            </div>
-        </div>
-        <?php endif; ?>
 
     </div>
 </section>

@@ -160,6 +160,18 @@
         .dark .bg-slate-900, .dark .bg-slate-950 {
             background-color: #020617 !important;
         }
+        
+        /* Image Loading Spinner */
+        .img-loading-spinner {
+            background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 12a9 9 0 1 1-6.219-8.56'%3E%3CanimateTransform attributeName='transform' type='rotate' from='0 12 12' to='360 12 12' dur='1s' repeatCount='indefinite'/%3E%3C/path%3E%3C/svg%3E") !important;
+            background-position: center !important;
+            background-repeat: no-repeat !important;
+            background-color: rgba(226, 232, 240, 0.3) !important;
+        }
+        .dark .img-loading-spinner {
+            background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 12a9 9 0 1 1-6.219-8.56'%3E%3CanimateTransform attributeName='transform' type='rotate' from='0 12 12' to='360 12 12' dur='1s' repeatCount='indefinite'/%3E%3C/path%3E%3C/svg%3E") !important;
+            background-color: rgba(15, 23, 42, 0.4) !important;
+        }
     </style>
 </head>
 <body class="antialiased custom-scrollbar overflow-x-hidden">
@@ -251,7 +263,7 @@
                             </div>
                             <div class="w-10 h-10 bg-slate-100 dark:bg-slate-800 rounded-full border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm shadow-black/5">
                                 <?php if(session()->get('u_photo')): ?>
-                                    <img src="<?= base_url('uploads/personnel/' . session()->get('u_photo')) ?>" class="w-full h-full object-cover">
+                                    <img loading="lazy" src="<?= base_url('uploads/personnel/' . session()->get('u_photo')) ?>" class="w-full h-full object-cover">
                                 <?php else: ?>
                                     <div class="w-full h-full flex items-center justify-center bg-slate-100 dark:bg-slate-800 text-slate-400">
                                         <i data-lucide="user" class="w-5 h-5"></i>
@@ -350,6 +362,19 @@
         <?php endif; ?>
 
         document.addEventListener('DOMContentLoaded', function() {
+            // Add loading spinner to lazy images
+            const lazyImages = document.querySelectorAll('img[loading="lazy"]');
+            lazyImages.forEach(img => {
+                if (!img.complete) {
+                    img.classList.add('img-loading-spinner');
+                    img.addEventListener('load', function() {
+                        img.classList.remove('img-loading-spinner');
+                    });
+                    img.addEventListener('error', function() {
+                        img.classList.remove('img-loading-spinner');
+                    });
+                }
+            });
             // Init theme toggle buttons state
             const sunIcon = document.getElementById('theme-icon-sun');
             const moonIcon = document.getElementById('theme-icon-moon');

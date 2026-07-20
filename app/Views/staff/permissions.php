@@ -21,13 +21,13 @@
 
 <!-- Permission Matrix Table -->
 <div class="glass-card rounded-[2.5rem] overflow-hidden">
-    <div class="overflow-x-auto">
+    <div class="overflow-x-auto overflow-y-auto max-h-[75vh] custom-scrollbar">
         <table class="w-full text-left">
-            <thead>
+            <thead class="sticky top-0 z-20 bg-white shadow-sm">
                 <tr class="border-b border-slate-100">
-                    <th class="p-6 sm:p-8 text-[11px] font-black uppercase tracking-widest text-slate-400 sticky left-0 bg-white z-10 shadow-[4px_0_10px_-5px_rgba(0,0,0,0.05)]">บุคลากร</th>
+                    <th class="p-6 sm:p-8 text-[11px] font-black uppercase tracking-widest text-slate-400 sticky left-0 top-0 z-30 bg-white shadow-[4px_0_10px_-5px_rgba(0,0,0,0.05)]">บุคลากร</th>
                     <?php foreach($available_permissions as $key => $perms): ?>
-                    <th class="p-8 text-center bg-slate-50/50">
+                    <th class="p-8 text-center bg-slate-50/90 backdrop-blur-sm sticky top-0 z-20">
                         <div class="flex flex-col items-center gap-2">
                             <div class="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center <?= $perms['color'] ?>">
                                 <i data-lucide="<?= $perms['icon'] ?>" class="w-5 h-5"></i>

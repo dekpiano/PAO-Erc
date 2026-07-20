@@ -261,7 +261,7 @@
                         <div class="image-grid count-<?= min($imgCount, 3) ?>">
                             <?php foreach($images as $img): ?>
                                 <div class="image-card">
-                                    <img src="<?= base_url('uploads/it_support/' . $img) ?>" alt="ภาพถ่ายหน้างาน">
+                                    <img loading="lazy" src="<?= base_url('uploads/it_support/' . $img) ?>" alt="ภาพถ่ายหน้างาน">
                                 </div>
                             <?php endforeach; ?>
                         </div>

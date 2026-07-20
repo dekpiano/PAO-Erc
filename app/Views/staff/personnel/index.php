@@ -146,16 +146,34 @@ foreach($users as $u) {
                             </select>
                         </div>
 
-                        <div>
-                            <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">ระดับ / วิทยฐานะ</label>
-                            <select name="u_level" id="u_level" class="w-full border border-slate-200 rounded-xl px-4 py-3 text-slate-700 font-bold">
-                                <option value="ไม่มีระดับ">- ไม่มีระดับ -</option><option value="ปฏิบัติงาน">ปฏิบัติงาน (ปง.)</option><option value="ชำนาญงาน">ชำนาญงาน (ชง.)</option><option value="อาวุธโส">อาวุโส</option><option value="ปฏิบัติการ">ปฏิบัติการ (ปก.)</option><option value="ชำนาญการ">ชำนาญการ (ชก.)</option><option value="ชำนาญการพิเศษ">ชำนาญการพิเศษ (ชพ.)</option><option value="ลูกจ้างประจำ">ลูกจ้างประจำ</option>
-                            </select>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">ประเภทการจ้างงาน</label>
+                                <select name="u_emp_type" id="u_emp_type" class="w-full border border-slate-200 rounded-xl px-4 py-3 text-slate-700 font-bold">
+                                    <option value="">- ระบุประเภทการจ้าง -</option>
+                                    <option value="ข้าราชการส่วนท้องถิ่น">ข้าราชการส่วนท้องถิ่น</option>
+                                    <option value="ลูกจ้างประจำ">ลูกจ้างประจำ</option>
+                                    <option value="พนักงานจ้างตามภารกิจ">พนักงานจ้างตามภารกิจ</option>
+                                    <option value="พนักงานจ้างทั่วไป">พนักงานจ้างทั่วไป</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">ระดับ / วิทยฐานะ</label>
+                                <select name="u_level" id="u_level" class="w-full border border-slate-200 rounded-xl px-4 py-3 text-slate-700 font-bold">
+                                    <option value="ไม่มีระดับ">- ไม่มีระดับ -</option>
+                                    <option value="ปฏิบัติงาน">ปฏิบัติงาน (ปง.)</option>
+                                    <option value="ชำนาญงาน">ชำนาญงาน (ชง.)</option>
+                                    <option value="อาวุธโส">อาวุโส</option>
+                                    <option value="ปฏิบัติการ">ปฏิบัติการ (ปก.)</option>
+                                    <option value="ชำนาญการ">ชำนาญการ (ชก.)</option>
+                                    <option value="ชำนาญการพิเศษ">ชำนาญการพิเศษ (ชพ.)</option>
+                                </select>
+                            </div>
                         </div>
 
                         <div>
                             <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Email (Google Login)</label>
-                            <input type="email" name="u_email" id="u_email" required class="w-full border border-slate-200 rounded-xl px-4 py-3 text-blue-600 font-black">
+                            <input type="email" name="u_email" id="u_email" class="w-full border border-slate-200 rounded-xl px-4 py-3 text-blue-600 font-black">
                         </div>
 
                         <div>
@@ -273,6 +291,39 @@ foreach($users as $u) {
     </div>
 </div>
 
+<!-- Cropper Modal -->
+<div id="cropperModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[80] hidden flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl animate-[fadeIn_0.3s_ease-out]">
+        <div class="p-6 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
+            <h3 class="text-lg font-black text-slate-800">ปรับแต่งรูปภาพโปรไฟล์</h3>
+            <button type="button" onclick="closeCropperModal()" class="text-slate-400 hover:text-rose-500 transition-colors">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+        </div>
+        <div class="p-6">
+            <div class="w-full h-80 bg-slate-100 rounded-xl overflow-hidden relative border-2 border-dashed border-slate-300 flex items-center justify-center">
+                <img id="cropperImage" src="" class="max-w-full hidden">
+                <!-- Loading Overlay for AI -->
+                <div id="aiLoadingOverlay" class="absolute inset-0 bg-white/90 backdrop-blur-sm z-10 hidden flex-col items-center justify-center">
+                    <div class="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mb-4"></div>
+                    <p class="text-blue-600 font-bold text-sm">กำลังลบพื้นหลังด้วย AI...</p>
+                    <p class="text-slate-400 text-[10px] mt-1">อาจใช้เวลาสักครู่ในการโหลดโมเดลครั้งแรก</p>
+                </div>
+            </div>
+            
+            <div class="mt-6 flex justify-between items-center">
+                <button type="button" id="btnRemoveBg" onclick="removeBackground()" class="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-xl font-bold text-sm hover:shadow-lg hover:shadow-indigo-500/30 hover:-translate-y-0.5 transition-all">
+                    <i data-lucide="wand-2" class="w-4 h-4"></i> ลบพื้นหลัง (AI)
+                </button>
+                <div class="flex gap-3">
+                    <button type="button" onclick="closeCropperModal()" class="px-6 py-3 bg-slate-100 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-200 transition-colors">ยกเลิก</button>
+                    <button type="button" id="btnConfirmCrop" onclick="confirmCrop()" class="px-6 py-3 bg-blue-600 text-white rounded-xl font-bold text-sm shadow-lg shadow-blue-600/20 hover:bg-blue-700 transition-colors">ยืนยันนำไปใช้</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <style>
     .sortable-ghost { opacity: 0.3; background: #dbeafe !important; }
     .sortable-drag { background: white !important; box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1) !important; }
@@ -286,11 +337,21 @@ foreach($users as $u) {
 <?= $this->endSection() ?>
 
 <?= $this->section('scripts') ?>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+<script type="module">
+  import { removeBackground } from 'https://esm.sh/@imgly/background-removal@1.4.3';
+  window.imglyRemoveBackground = removeBackground;
+</script>
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/th.js"></script>
 <script>
+    let cropper = null;
+    let processedPhotoBlob = null;
+    let currentOriginalImageFileName = '';
+
     // Tab Logic
     function switchTab(tab) {
         document.getElementById('pane-basic').classList.add('hidden');
@@ -310,9 +371,13 @@ foreach($users as $u) {
     }
 
     function openModal() {
+        processedPhotoBlob = null;
         document.getElementById('modalTitle').textContent = 'เพิ่มบุคลากรใหม่';
         document.getElementById('u_id').value = '';
+        document.getElementById('u_email').value = '';
+        document.getElementById('u_emp_type').value = '';
         document.getElementById('personnel-form').reset();
+        processedPhotoBlob = null;
         switchTab('basic');
         document.getElementById('tab-detailed').classList.add('hidden');
         document.getElementById('photo-preview-container').classList.add('hidden');
@@ -325,6 +390,7 @@ foreach($users as $u) {
     }
 
     function editUser(user) {
+        processedPhotoBlob = null;
         console.log("Personnel Data:", user); // ตรวจสอบข้อมูลที่ส่งมาจากเซิร์ฟเวอร์
         document.getElementById('modalTitle').textContent = 'แก้ไขข้อมูลบุคลากร';
         document.getElementById('u_id').value = user.u_id;
@@ -332,6 +398,7 @@ foreach($users as $u) {
         document.getElementById('u_fullname').value = user.u_fullname;
         document.getElementById('u_prefix').value = user.u_prefix || 'นาย';
         document.getElementById('u_pos_id').value = user.u_position || '';
+        document.getElementById('u_emp_type').value = user.u_emp_type || '';
         document.getElementById('u_level').value = user.u_level || 'ไม่มีระดับ';
         document.getElementById('u_division').value = user.u_division || 'ฝ่ายบริหาร';
         document.getElementById('u_phone').value = user.u_phone || '';
@@ -380,16 +447,101 @@ foreach($users as $u) {
         document.getElementById('userModal').classList.remove('hidden');
     }
 
-    // Photo Preview
+    function closeCropperModal() {
+        document.getElementById('cropperModal').classList.add('hidden');
+        if (cropper) {
+            cropper.destroy();
+            cropper = null;
+        }
+        document.getElementById('u_photo_input').value = '';
+    }
+
+    // Photo Preview & Cropper Initialization
     function previewUserPhoto(input) {
-        const container = document.getElementById('photo-preview-container');
-        const preview = document.getElementById('photo-preview');
-        const filename = document.getElementById('photo-filename');
         if (input.files && input.files[0]) {
+            currentOriginalImageFileName = input.files[0].name;
             const reader = new FileReader();
-            reader.onload = e => { preview.src = e.target.result; filename.textContent = input.files[0].name; container.classList.remove('hidden'); }
+            reader.onload = e => { 
+                document.getElementById('cropperModal').classList.remove('hidden');
+                const image = document.getElementById('cropperImage');
+                image.src = e.target.result;
+                image.classList.remove('hidden');
+                
+                if (cropper) cropper.destroy();
+                cropper = new Cropper(image, {
+                    aspectRatio: 3 / 4, // รูปโปรไฟล์แนวตั้ง (รูปติดบัตร) สัดส่วน 3:4
+                    viewMode: 1,
+                    autoCropArea: 1,
+                });
+            }
             reader.readAsDataURL(input.files[0]);
         }
+    }
+
+    async function removeBackground() {
+        if (!cropper) return;
+        
+        const overlay = document.getElementById('aiLoadingOverlay');
+        const btnBg = document.getElementById('btnRemoveBg');
+        
+        overlay.classList.remove('hidden');
+        overlay.classList.add('flex');
+        btnBg.disabled = true;
+
+        try {
+            // ดึงรูปที่ตัดมาแล้ว
+            const canvas = cropper.getCroppedCanvas();
+            const dataUrl = canvas.toDataURL('image/png');
+
+            // แปลงเป็น Blob เพื่อส่งให้ AI
+            const response = await fetch(dataUrl);
+            const blob = await response.blob();
+
+            // กำหนด Path สำหรับโหลดโมเดล AI จาก CDN (ต้องชี้ไปที่ -data package)
+            const config = {
+                publicPath: 'https://unpkg.com/@imgly/background-removal-data@1.4.3/dist/'
+            };
+
+            // ลบพื้นหลัง
+            const imageWithoutBackground = await imglyRemoveBackground(blob, config);
+            
+            // นำรูปใหม่กลับไปใส่ใน Cropper
+            const processedUrl = URL.createObjectURL(imageWithoutBackground);
+            cropper.replace(processedUrl);
+            
+        } catch (error) {
+            console.error(error);
+            Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: 'ไม่สามารถลบพื้นหลังได้ โปรดลองอีกครั้ง' });
+        } finally {
+            overlay.classList.add('hidden');
+            overlay.classList.remove('flex');
+            btnBg.disabled = false;
+        }
+    }
+
+    function confirmCrop() {
+        if (!cropper) return;
+        
+        const canvas = cropper.getCroppedCanvas({
+            width: 600,
+            height: 800
+        });
+
+        canvas.toBlob((blob) => {
+            processedPhotoBlob = blob;
+            
+            // แสดงพรีวิวในฟอร์มหลัก
+            const preview = document.getElementById('photo-preview');
+            const filename = document.getElementById('photo-filename');
+            const container = document.getElementById('photo-preview-container');
+            
+            const processedUrl = URL.createObjectURL(blob);
+            preview.src = processedUrl;
+            filename.textContent = 'Cropped_' + currentOriginalImageFileName;
+            container.classList.remove('hidden');
+            
+            closeCropperModal();
+        }, 'image/png');
     }
 
     // Sorting Logic
@@ -419,8 +571,16 @@ foreach($users as $u) {
         const btn = document.getElementById('submit-btn');
         btn.disabled = true;
         btn.innerHTML = 'กำลังบันทึก...';
+        
         try {
-            const response = await fetch(this.action, { method: 'POST', body: new FormData(this), headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+            const formData = new FormData(this);
+            if (processedPhotoBlob) {
+                // เอารูปเดิมออก แล้วใส่รูปที่จัดการแล้วแทนที่ (แปลงเป็น PNG เพื่อคงพื้นหลังใส)
+                formData.delete('u_photo');
+                formData.append('u_photo', processedPhotoBlob, 'profile.png');
+            }
+            
+            const response = await fetch(this.action, { method: 'POST', body: formData, headers: { 'X-Requested-With': 'XMLHttpRequest' } });
             const data = await response.json();
             if (data.status === 'success') {
                 Swal.fire({ icon: 'success', title: 'สำเร็จ!', text: data.message, timer: 2000, showConfirmButton: false }).then(() => { window.location.href = data.redirect; });

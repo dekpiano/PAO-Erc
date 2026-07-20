@@ -157,7 +157,7 @@
             <div class="image-grid">
                 <?php foreach($images as $img): ?>
                     <div class="image-card">
-                        <img src="<?= base_url('uploads/it_support/' . $img) ?>">
+                        <img loading="lazy" src="<?= base_url('uploads/it_support/' . $img) ?>">
                     </div>
                 <?php endforeach; ?>
             </div>

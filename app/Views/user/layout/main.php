@@ -1,41 +1,49 @@
 <!DOCTYPE html>
 <html lang="th">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $title ?? 'กองการศึกษา ศาสนา และวัฒนธรรม อบจ.นครสวรรค์' ?></title>
-    
+
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="<?= base_url('assets/images/logo-pao.png') ?>">
-    
+
     <!-- SEO & Social Media Meta Tags -->
-    <meta name="description" content="<?= isset($news['news_content']) ? mb_substr(strip_tags($news['news_content']), 0, 160) : (isset($scholarship['sch_content']) ? mb_substr(strip_tags($scholarship['sch_content']), 0, 160) : 'ข่าวสารประชาสัมพันธ์ กองการศึกษา ศาสนา และวัฒนธรรม องค์การบริหารส่วนจังหวัดนครสวรรค์') ?>">
-    <meta name="keywords" content="อบจ.นครสวรรค์, กองการศึกษา, ทุนการศึกษา, จองคิวออนไลน์, นครสวรรค์, ข่าวประชาสัมพันธ์">
+    <meta name="description"
+        content="<?= isset($news['news_content']) ? mb_substr(strip_tags($news['news_content']), 0, 160) : (isset($scholarship['sch_content']) ? mb_substr(strip_tags($scholarship['sch_content']), 0, 160) : 'ข่าวสารประชาสัมพันธ์ กองการศึกษา ศาสนา และวัฒนธรรม องค์การบริหารส่วนจังหวัดนครสวรรค์') ?>">
+    <meta name="keywords"
+        content="อบจ.นครสวรรค์, กองการศึกษา, ทุนการศึกษา, จองคิวออนไลน์, นครสวรรค์, ข่าวประชาสัมพันธ์">
     <meta name="author" content="องค์การบริหารส่วนจังหวัดนครสวรรค์">
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="<?= isset($news['news_content']) ? 'article' : 'website' ?>">
     <meta property="og:url" content="<?= current_url() ?>">
     <meta property="og:title" content="<?= $title ?? 'กองการศึกษา ศาสนา และวัฒนธรรม อบจ.นครสวรรค์' ?>">
-    <meta property="og:description" content="<?= isset($news['news_content']) ? mb_substr(strip_tags($news['news_content']), 0, 160) : (isset($scholarship['sch_content']) ? mb_substr(strip_tags($scholarship['sch_content']), 0, 160) : 'ระบบจองคิวออนไลน์และข่าวสารประชาสัมพันธ์ กองการศึกษา ศาสนา และวัฒนธรรม องค์การบริหารส่วนจังหวัดนครสวรรค์') ?>">
-    <meta property="og:image" content="<?= isset($news['news_cover']) && $news['news_cover'] ? base_url('uploads/news/covers/' . $news['news_cover']) : (isset($scholarship['sch_cover']) && $scholarship['sch_cover'] ? base_url('uploads/scholarships/covers/' . $scholarship['sch_cover']) : base_url('assets/images/logo-pao.png')) ?>">
+    <meta property="og:description"
+        content="<?= isset($news['news_content']) ? mb_substr(strip_tags($news['news_content']), 0, 160) : (isset($scholarship['sch_content']) ? mb_substr(strip_tags($scholarship['sch_content']), 0, 160) : 'ระบบจองคิวออนไลน์และข่าวสารประชาสัมพันธ์ กองการศึกษา ศาสนา และวัฒนธรรม องค์การบริหารส่วนจังหวัดนครสวรรค์') ?>">
+    <meta property="og:image"
+        content="<?= isset($news['news_cover']) && $news['news_cover'] ? base_url('uploads/news/covers/' . $news['news_cover']) : (isset($scholarship['sch_cover']) && $scholarship['sch_cover'] ? base_url('uploads/scholarships/covers/' . $scholarship['sch_cover']) : base_url('assets/images/logo-pao.png')) ?>">
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image" />
     <meta property="twitter:url" content="<?= current_url() ?>">
     <meta property="twitter:title" content="<?= $title ?? 'กองการศึกษา ศาสนา และวัฒนธรรม อบจ.นครสวรรค์' ?>">
-    <meta property="twitter:description" content="<?= isset($news['news_content']) ? mb_substr(strip_tags($news['news_content']), 0, 160) : (isset($scholarship['sch_content']) ? mb_substr(strip_tags($scholarship['sch_content']), 0, 160) : 'ระบบจองคิวออนไลน์และข่าวสารประชาสัมพันธ์ กองการศึกษา ศาสนา และวัฒนธรรม องค์การบริหารส่วนจังหวัดนครสวรรค์') ?>">
-    <meta property="twitter:image" content="<?= isset($news['news_cover']) && $news['news_cover'] ? base_url('uploads/news/covers/' . $news['news_cover']) : (isset($scholarship['sch_cover']) && $scholarship['sch_cover'] ? base_url('uploads/scholarships/covers/' . $scholarship['sch_cover']) : base_url('assets/images/logo-pao.png')) ?>">
-    
-    <!-- Google Fonts: Inter & Sarabun -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
+    <meta property="twitter:description"
+        content="<?= isset($news['news_content']) ? mb_substr(strip_tags($news['news_content']), 0, 160) : (isset($scholarship['sch_content']) ? mb_substr(strip_tags($scholarship['sch_content']), 0, 160) : 'ระบบจองคิวออนไลน์และข่าวสารประชาสัมพันธ์ กองการศึกษา ศาสนา และวัฒนธรรม องค์การบริหารส่วนจังหวัดนครสวรรค์') ?>">
+    <meta property="twitter:image"
+        content="<?= isset($news['news_cover']) && $news['news_cover'] ? base_url('uploads/news/covers/' . $news['news_cover']) : (isset($scholarship['sch_cover']) && $scholarship['sch_cover'] ? base_url('uploads/scholarships/covers/' . $scholarship['sch_cover']) : base_url('assets/images/logo-pao.png')) ?>">
+
+    <!-- Google Fonts: K2D -->
+    <link href="https://fonts.googleapis.com/css2?family=K2D:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
     <!-- Tailwind CSS (CDN) -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
+
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    
+
     <!-- AOS Animation -->
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
@@ -51,7 +59,7 @@
         }
 
         body {
-            font-family: 'Inter', 'Sarabun', sans-serif;
+            font-family: 'K2D', sans-serif;
             background: #f8fafc;
             color: #1e293b;
         }
@@ -81,28 +89,59 @@
         }
     </style>
 </head>
+
 <body class="antialiased">
 
     <!-- Navigation -->
-    <nav class="glass-nav fixed top-0 left-0 right-0 z-50">
+    <nav class="glass-nav fixed top-0 left-0 right-0 z-[70]">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-20">
                 <a href="<?= base_url('/') ?>" class="flex items-center gap-2 sm:gap-3 group">
-                    <div class="w-10 h-10 sm:w-12 sm:h-12 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg group-hover:bg-blue-700 transition-colors">
+                    <div
+                        class="w-10 h-10 sm:w-12 sm:h-12 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg group-hover:bg-blue-700 transition-colors">
                         <i data-lucide="graduation-cap" class="w-6 h-6 sm:w-7 sm:h-7"></i>
                     </div>
                     <div>
-                        <h1 class="text-[13px] min-[375px]:text-sm sm:text-lg font-extrabold text-blue-900 leading-none whitespace-nowrap group-hover:text-blue-700 transition-colors">กองการศึกษา ศาสนา และวัฒนธรรม</h1>
-                        <p class="text-[8px] sm:text-[10px] text-blue-600 font-semibold uppercase tracking-widest mt-1 group-hover:text-blue-800 transition-colors">อบจ.นครสวรรค์ | PAO NAKHONSAWAN</p>
+                        <h1
+                            class="text-[13px] min-[375px]:text-sm sm:text-lg font-extrabold text-blue-900 leading-none whitespace-nowrap group-hover:text-blue-700 transition-colors">
+                            กองการศึกษา ศาสนา และวัฒนธรรม</h1>
+                        <p
+                            class="text-[8px] sm:text-[10px] text-blue-600 font-semibold uppercase tracking-widest mt-1 group-hover:text-blue-800 transition-colors">
+                            อบจ.นครสวรรค์ | PAO NAKHONSAWAN</p>
                     </div>
                 </a>
 
                 <div class="hidden md:flex items-center gap-8">
-                    <a href="<?= base_url('/') ?>" class="text-sm font-semibold text-slate-600 hover:text-blue-600 transition-colors">หน้าแรก</a>
-                    <a href="<?= base_url('news') ?>" class="text-sm font-semibold text-slate-600 hover:text-blue-600 transition-colors">ข่าวสาร</a>
-                    <a href="<?= base_url('personnel') ?>" class="text-sm font-semibold text-slate-600 hover:text-blue-600 transition-colors">ทำเนียบบุคลากร</a>
-                    <a href="#" class="text-sm font-semibold text-slate-600 hover:text-blue-600 transition-colors">ดาวน์โหลด</a>
-                    <a href="<?= base_url('staff/attendance') ?>" class="px-5 py-2.5 bg-blue-600 text-white rounded-full text-sm font-bold premium-btn">
+                    <a href="<?= base_url('/') ?>"
+                        class="text-sm font-semibold text-slate-600 hover:text-blue-600 transition-colors">หน้าแรก</a>
+                    <a href="<?= base_url('news') ?>"
+                        class="text-sm font-semibold text-slate-600 hover:text-blue-600 transition-colors">ข่าวสาร</a>
+
+                    <!-- Activities Dropdown -->
+                    <div class="relative group">
+                        <button
+                            class="flex items-center gap-1 text-sm font-semibold text-slate-600 hover:text-blue-600 transition-colors py-2">
+                            กิจกรรม <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                        </button>
+                        <div
+                            class="absolute top-full left-0 w-56 bg-white border border-slate-100 rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 overflow-hidden transform origin-top group-hover:translate-y-0 translate-y-2">
+                            <a href="<?= base_url('science-week') ?>"
+                                class="block px-5 py-3 text-sm font-medium text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors border-b border-slate-50 last:border-0">
+                                สัปดาห์วิทยาศาสตร์
+                            </a>
+                            <a href="<?= base_url('/#scholarships') ?>"
+                                class="block px-5 py-3 text-sm font-medium text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors border-b border-slate-50 last:border-0">
+                                ทุนการศึกษา
+                            </a>
+                        </div>
+                    </div>
+
+                    <a href="<?= base_url('personnel') ?>"
+                        class="text-sm font-semibold text-slate-600 hover:text-blue-600 transition-colors">ทำเนียบบุคลากร</a>
+                    <a href="#"
+                        class="text-sm font-semibold text-slate-600 hover:text-blue-600 transition-colors">ดาวน์โหลด</a>
+                    <a href="<?= base_url('staff/attendance') ?>"
+                        class="px-5 py-2.5 bg-blue-600 text-white rounded-full text-sm font-bold premium-btn">
                         สำหรับบุคลากร
                     </a>
                 </div>
@@ -116,23 +155,46 @@
             </div>
         </div>
     </nav>
-    
+
     <!-- Mobile Menu -->
     <div id="mobile-menu" class="hidden fixed inset-0 z-[60] bg-white pt-24 px-6 overflow-y-auto">
         <div class="flex flex-col gap-6 animate-[fadeIn_0.3s_ease-out]">
-            <a href="<?= base_url('/') ?>" class="text-xl font-bold text-slate-800 border-b border-slate-50 pb-4 flex items-center justify-between">
+            <a href="<?= base_url('/') ?>"
+                class="text-xl font-bold text-slate-800 border-b border-slate-50 pb-4 flex items-center justify-between">
                 หน้าแรก <i data-lucide="chevron-right" class="w-5 h-5 text-slate-300"></i>
             </a>
-            <a href="<?= base_url('news') ?>" class="text-xl font-bold text-slate-800 border-b border-slate-50 pb-4 flex items-center justify-between">
+            <a href="<?= base_url('news') ?>"
+                class="text-xl font-bold text-slate-800 border-b border-slate-50 pb-4 flex items-center justify-between">
                 ข่าวสาร <i data-lucide="chevron-right" class="w-5 h-5 text-slate-300"></i>
             </a>
-            <a href="<?= base_url('personnel') ?>" class="text-xl font-bold text-slate-800 border-b border-slate-50 pb-4 flex items-center justify-between">
+
+            <!-- Mobile Activities Dropdown -->
+            <div class="border-b border-slate-50 pb-4">
+                <button id="mobile-submenu-btn" class="w-full text-xl font-bold text-slate-800 flex items-center justify-between py-2 focus:outline-none">
+                    กิจกรรม <i data-lucide="chevron-down" class="w-5 h-5 text-slate-300 transition-transform duration-300"></i>
+                </button>
+                <div id="mobile-submenu" class="hidden pl-4 space-y-4 mt-4 transition-all duration-300">
+                    <a href="<?= base_url('science-week') ?>"
+                        class="text-lg font-bold text-slate-600 flex items-center justify-between">
+                        กิจกรรมสัปดาห์วิทยาศาสตร์ <i data-lucide="chevron-right" class="w-5 h-5 text-slate-300"></i>
+                    </a>
+                    <a href="<?= base_url('/#scholarships') ?>"
+                        class="text-lg font-bold text-slate-600 flex items-center justify-between">
+                        ทุนการศึกษา <i data-lucide="chevron-right" class="w-5 h-5 text-slate-300"></i>
+                    </a>
+                </div>
+            </div>
+
+            <a href="<?= base_url('personnel') ?>"
+                class="text-xl font-bold text-slate-800 border-b border-slate-50 pb-4 flex items-center justify-between">
                 ทำเนียบบุคลากร <i data-lucide="chevron-right" class="w-5 h-5 text-slate-300"></i>
             </a>
-            <a href="#" class="text-xl font-bold text-slate-800 border-b border-slate-50 pb-4 flex items-center justify-between">
+            <a href="#"
+                class="text-xl font-bold text-slate-800 border-b border-slate-50 pb-4 flex items-center justify-between">
                 ดาวน์โหลด <i data-lucide="chevron-right" class="w-5 h-5 text-slate-300"></i>
             </a>
-            <a href="<?= base_url('staff/attendance') ?>" class="w-full py-5 bg-blue-600 text-white rounded-[2rem] text-center font-black shadow-xl shadow-blue-100 flex items-center justify-center gap-3 mt-4">
+            <a href="<?= base_url('staff/attendance') ?>"
+                class="w-full py-5 bg-blue-600 text-white rounded-[2rem] text-center font-black shadow-xl shadow-blue-100 flex items-center justify-center gap-3 mt-4">
                 <i data-lucide="user" class="w-6 h-6"></i> สำหรับบุคลากร
             </a>
         </div>
@@ -157,33 +219,46 @@
                     </p>
                 </div>
                 <div>
-                    <h3 class="text-sm font-bold uppercase tracking-wider mb-6 text-slate-200">หน่วยงานที่เกี่ยวข้อง</h3>
+                    <h3 class="text-sm font-bold uppercase tracking-wider mb-6 text-slate-200">หน่วยงานที่เกี่ยวข้อง
+                    </h3>
                     <ul class="space-y-4 text-sm text-slate-400">
-                        <li><a href="https://www.nakhonsawanpao.go.th" target="_blank" class="hover:text-white transition-colors flex items-center gap-2 italic">อบจ.นครสวรรค์ <i data-lucide="external-link" class="w-3 h-3"></i></a></li>
-                        <li><a href="https://www.skj.ac.th" target="_blank" class="hover:text-white transition-colors flex items-center gap-2 italic">รร.สวนกุหลาบฯ (จิรประวัติ) <i data-lucide="external-link" class="w-3 h-3"></i></a></li>
+                        <li><a href="https://www.nakhonsawanpao.go.th" target="_blank"
+                                class="hover:text-white transition-colors flex items-center gap-2 italic">อบจ.นครสวรรค์
+                                <i data-lucide="external-link" class="w-3 h-3"></i></a></li>
+                        <li><a href="https://www.skj.ac.th" target="_blank"
+                                class="hover:text-white transition-colors flex items-center gap-2 italic">รร.สวนกุหลาบฯ
+                                (จิรประวัติ) <i data-lucide="external-link" class="w-3 h-3"></i></a></li>
                     </ul>
                 </div>
                 <div>
                     <h3 class="text-sm font-bold uppercase tracking-wider mb-6 text-slate-200">เข้าถึงข้อมูล</h3>
                     <ul class="space-y-4 text-sm text-slate-400">
-                        <li><a href="<?= base_url('news?category=ข่าวประชาสัมพันธ์') ?>" class="hover:text-white transition-colors">ข่าวประชาสัมพันธ์</a></li>
-                        <li><a href="<?= base_url('personnel') ?>" class="hover:text-white transition-colors">ทำเนียบบุคลากร</a></li>
+                        <li><a href="<?= base_url('news?category=ข่าวประชาสัมพันธ์') ?>"
+                                class="hover:text-white transition-colors">ข่าวประชาสัมพันธ์</a></li>
+                        <li><a href="<?= base_url('personnel') ?>"
+                                class="hover:text-white transition-colors">ทำเนียบบุคลากร</a></li>
                     </ul>
                 </div>
                 <div>
                     <h3 class="text-sm font-bold uppercase tracking-wider mb-6 text-slate-200">สำหรับเจ้าหน้าที่</h3>
                     <ul class="space-y-4 text-sm text-slate-400">
-                        <li><a href="<?= base_url('staff/attendance') ?>" class="hover:text-white transition-colors font-bold text-blue-400">ลงชื่อเข้างาน</a></li>
-                        <li><a href="<?= base_url('admin') ?>" class="hover:text-white transition-colors">ระบบจัดการหลังบ้าน</a></li>
+                        <li><a href="<?= base_url('staff/attendance') ?>"
+                                class="hover:text-white transition-colors font-bold text-blue-400">ลงชื่อเข้างาน</a>
+                        </li>
+                        <li><a href="<?= base_url('admin') ?>"
+                                class="hover:text-white transition-colors">ระบบจัดการหลังบ้าน</a></li>
                     </ul>
                 </div>
             </div>
-            
-            <div class="border-t border-slate-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-500 font-medium">
-                <div>&copy; <?= date('Y') ?> กองการศึกษา ศาสนา และวัฒนธรรม องค์การบริหารส่วนจังหวัดนครสวรรค์ (อบจ.นว)</div>
+
+            <div
+                class="border-t border-slate-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-500 font-medium">
+                <div>&copy; <?= date('Y') ?> กองการศึกษา ศาสนา และวัฒนธรรม องค์การบริหารส่วนจังหวัดนครสวรรค์ (อบจ.นว)
+                </div>
                 <div class="flex items-center gap-1">
                     <span>Developed by</span>
-                    <a href="https://github.com/dekpiano" target="_blank" class="text-blue-400 hover:text-blue-300 transition-colors font-bold flex items-center gap-1">
+                    <a href="https://github.com/dekpiano" target="_blank"
+                        class="text-blue-400 hover:text-blue-300 transition-colors font-bold flex items-center gap-1">
                         <i data-lucide="music" class="w-3 h-3"></i> Dekpiano
                     </a>
                 </div>
@@ -202,14 +277,39 @@
         // Mobile Menu Toggle
         const menuBtn = document.getElementById('mobile-menu-btn');
         const mobileMenu = document.getElementById('mobile-menu');
+        
+        // Mobile Submenu Toggle
+        const submenuBtn = document.getElementById('mobile-submenu-btn');
+        const submenu = document.getElementById('mobile-submenu');
+
+        if (submenuBtn && submenu) {
+            submenuBtn.addEventListener('click', () => {
+                const isHidden = submenu.classList.toggle('hidden');
+                const icon = submenuBtn.querySelector('i');
+                if (icon) {
+                    if (isHidden) {
+                        icon.style.transform = 'rotate(0deg)';
+                    } else {
+                        icon.style.transform = 'rotate(180deg)';
+                    }
+                }
+            });
+        }
 
         if (menuBtn && mobileMenu) {
             const menuBtnIcon = menuBtn.querySelector('i');
-            
+
             menuBtn.addEventListener('click', () => {
                 const isHidden = mobileMenu.classList.toggle('hidden');
                 document.body.classList.toggle('overflow-hidden'); // Prevent scrolling
-                
+
+                // Reset submenu if main menu is closed
+                if (isHidden && submenu) {
+                    submenu.classList.add('hidden');
+                    const icon = submenuBtn.querySelector('i');
+                    if (icon) icon.style.transform = 'rotate(0deg)';
+                }
+
                 if (menuBtnIcon) {
                     if (isHidden) {
                         menuBtnIcon.setAttribute('data-lucide', 'menu');
@@ -222,10 +322,10 @@
         }
 
         // Global Loading for All Submit Buttons
-        document.addEventListener('submit', function(e) {
+        document.addEventListener('submit', function (e) {
             const form = e.target;
             const submitBtn = e.submitter || form.querySelector('button[type="submit"]');
-            
+
             if (submitBtn && !submitBtn.hasAttribute('data-no-loading')) {
                 if (form.checkValidity()) {
                     setTimeout(() => {
@@ -246,4 +346,5 @@
         });
     </script>
 </body>
+
 </html>

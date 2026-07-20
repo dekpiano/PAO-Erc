@@ -102,7 +102,7 @@
                 <div class="grid grid-cols-3 sm:grid-cols-5 gap-4">
                     <?php foreach($images as $img): ?>
                         <div id="existing-img-container-<?= md5($img) ?>" class="relative rounded-2xl overflow-hidden aspect-video border border-slate-200 bg-slate-50 shadow-sm transition-all duration-300 group">
-                            <img src="<?= base_url('uploads/it_support/' . $img) ?>" class="w-full h-full object-cover">
+                            <img loading="lazy" src="<?= base_url('uploads/it_support/' . $img) ?>" class="w-full h-full object-cover">
                             
                             <!-- Overlay and Trash Button -->
                             <button type="button" onclick="toggleDeleteExisting('<?= esc($img) ?>', '<?= md5($img) ?>')" class="absolute top-1.5 right-1.5 w-6 h-6 bg-rose-600 hover:bg-rose-700 text-white rounded-full flex items-center justify-center shadow-md transition-all z-10" title="เลือกเพื่อลบรูปนี้">
@@ -215,7 +215,7 @@
                 const div = document.createElement('div');
                 div.className = 'relative rounded-2xl overflow-hidden aspect-video border border-slate-200 bg-slate-50 shadow-sm animate-[fadeIn_0.3s_ease] group';
                 div.innerHTML = `
-                    <img src="${e.target.result}" class="w-full h-full object-cover">
+                    <img loading="lazy" src="${e.target.result}" class="w-full h-full object-cover">
                     <button type="button" onclick="removeEditFile(${index})" class="absolute top-1 right-1 w-5 h-5 bg-rose-600 hover:bg-rose-700 text-white rounded-full flex items-center justify-center text-[10px] font-black shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200" title="ลบรูปภาพนี้">✕</button>
                     <div class="absolute inset-0 bg-slate-900/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
                         <span class="text-[9px] font-black text-white bg-slate-900/70 px-2 py-1 rounded-md uppercase tracking-wider">${(file.size / 1024).toFixed(0)} KB</span>

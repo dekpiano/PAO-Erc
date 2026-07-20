@@ -37,7 +37,8 @@ class UserModel extends Model
         'u_address', 
         'u_current_address', 
         'u_emergency_contact', 
-        'u_hired_date'
+        'u_hired_date',
+        'u_emp_type'
     ];
 
     protected $useTimestamps = true;

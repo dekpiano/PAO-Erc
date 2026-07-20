@@ -137,7 +137,7 @@
                     const div = document.createElement('div');
                     div.className = 'relative rounded-2xl overflow-hidden aspect-video border border-slate-200 bg-slate-50 shadow-sm animate-[fadeIn_0.3s_ease]';
                     div.innerHTML = `
-                        <img src="${e.target.result}" class="w-full h-full object-cover">
+                        <img loading="lazy" src="${e.target.result}" class="w-full h-full object-cover">
                         <div class="absolute inset-0 bg-slate-900/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
                             <span class="text-[9px] font-black text-white bg-slate-900/70 px-2 py-1 rounded-md uppercase tracking-wider">${(file.size / 1024).toFixed(0)} KB</span>
                         </div>
