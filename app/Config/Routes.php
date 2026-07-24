@@ -155,7 +155,9 @@ $routes->group('science-week/staff', ['filter' => 'auth'], function($routes) {
     $routes->post('update/(:num)', 'ScienceWeek::adminUpdate/$1');
     $routes->post('update-status/(:num)', 'ScienceWeek::updateStatus/$1');
     $routes->post('update-rank/(:num)', 'ScienceWeek::updateRank/$1');
-    $routes->post('toggle-publish-results', 'ScienceWeek::togglePublishResults');
+    $routes->match(['get', 'post'], 'toggle-publish-results', 'ScienceWeek::togglePublishResults');
+    $routes->match(['get', 'post'], 'toggle-publish-comp/(:num)', 'ScienceWeek::toggleCompPublish/$1');
+    $routes->match(['get', 'post'], 'toggle-publish-level', 'ScienceWeek::toggleLevelPublish');
     $routes->get('export', 'ScienceWeek::export');
 
     // Certificates Management

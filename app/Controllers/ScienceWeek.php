@@ -9,6 +9,10 @@ use App\Models\ScienceWeekEvaluationModel;
 use App\Models\ScienceWeekStudentStaffModel;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
 
 class ScienceWeek extends BaseController
 {
@@ -59,6 +63,9 @@ class ScienceWeek extends BaseController
             }
             if (!$db->fieldExists('comp_level_limits', 'Tb_ScienceWeek_Competitions')) {
                 $db->query("ALTER TABLE Tb_ScienceWeek_Competitions ADD COLUMN comp_level_limits TEXT NULL AFTER comp_level");
+            }
+            if (!$db->fieldExists('comp_publish_results', 'Tb_ScienceWeek_Competitions')) {
+                $db->query("ALTER TABLE Tb_ScienceWeek_Competitions ADD COLUMN comp_publish_results TINYINT(1) NOT NULL DEFAULT 1 AFTER comp_status");
             }
         }
         if ($db->tableExists('Tb_ScienceWeek_Registrations')) {
@@ -936,27 +943,51 @@ class ScienceWeek extends BaseController
             ];
         }
 
-        // Get available levels for filter
-        $levelsQuery = $db->table('Tb_ScienceWeek_Registrations')
-            ->select('reg_level')
-            ->where('reg_year', $selectedYear)
-            ->where('reg_level IS NOT NULL')
-            ->where('reg_level !=', '');
+        // สร้าง Map ของระดับชั้นแยกตามประเภทการแข่งขัน
+        $compLevelMap = [];
+        $allAvailableLevelsList = [];
+        foreach ($allComps as $c) {
+            $cLevels = [];
+            if (!empty($c['comp_level_limits'])) {
+                $limits = json_decode($c['comp_level_limits'], true) ?: [];
+                foreach ($limits as $l) {
+                    if (!empty($l['level'])) {
+                        $cLevels[] = trim($l['level']);
+                    }
+                }
+            }
+            if (empty($cLevels) && !empty($c['comp_level'])) {
+                $cLevels[] = trim($c['comp_level']);
+            }
 
-        // กรองตามสิทธิ์ของ staff (ไม่ใช่ admin)
-        if ($allowedComps !== null && !empty($allowedComps)) {
-            $levelsQuery = $levelsQuery->whereIn('reg_competition_type', $allowedComps);
+            $regLevels = $db->table('Tb_ScienceWeek_Registrations')
+                ->select('reg_level')
+                ->where('reg_year', $selectedYear)
+                ->where('reg_competition_type', $c['comp_name'])
+                ->where('reg_level IS NOT NULL')
+                ->where('reg_level !=', '')
+                ->groupBy('reg_level')
+                ->get()
+                ->getResultArray();
+            foreach ($regLevels as $rl) {
+                if (!empty($rl['reg_level'])) {
+                    $cLevels[] = trim($rl['reg_level']);
+                }
+            }
+
+            $uniqueLevels = array_values(array_unique(array_filter($cLevels)));
+            $compLevelMap[$c['comp_name']] = $uniqueLevels;
+            $allAvailableLevelsList = array_merge($allAvailableLevelsList, $uniqueLevels);
         }
 
-        if (!empty($compType)) {
-            $levelsQuery = $levelsQuery->where('reg_competition_type', $compType);
-        }
+        $allAvailableLevels = array_values(array_unique(array_filter($allAvailableLevelsList)));
+        sort($allAvailableLevels);
 
-        $levelsQuery = $levelsQuery->groupBy('reg_level')
-            ->orderBy('reg_level', 'ASC')
-            ->get()
-            ->getResultArray();
-        $availableLevels = array_column($levelsQuery, 'reg_level');
+        if (!empty($compType) && isset($compLevelMap[$compType])) {
+            $availableLevels = $compLevelMap[$compType];
+        } else {
+            $availableLevels = $allAvailableLevels;
+        }
 
         $data['title'] = "จัดการผู้สมัครแข่งขัน งานสัปดาห์วิทยาศาสตร์ | อบจ.นครสวรรค์";
         $data['registrations'] = $query->orderBy($sortBy, $sortOrder)->paginate(20, 'default');
@@ -967,6 +998,8 @@ class ScienceWeek extends BaseController
         $data['status_active'] = $status;
         $data['level_active'] = $level;
         $data['available_levels'] = $availableLevels;
+        $data['comp_level_map'] = $compLevelMap;
+        $data['all_available_levels'] = $allAvailableLevels;
         $data['sort_by'] = $sortBy;
         $data['sort_order'] = $sortOrder;
         $data['fullname'] = session()->get('u_fullname');
@@ -989,6 +1022,7 @@ class ScienceWeek extends BaseController
         $selectedYear = $this->getSelectedYear();
         $searchTerm = $this->request->getGet('search');
         $compType = $this->request->getGet('competition_type');
+        $level = $this->request->getGet('level');
 
         // Only rank approved registrations of selected year
         $query = $this->regModel->where('reg_year', $selectedYear)->whereIn('reg_status', ['approved', 'approved_reserve']);
@@ -1012,17 +1046,81 @@ class ScienceWeek extends BaseController
             $query = $query->where('reg_competition_type', $compType);
         }
 
+        if (!empty($level)) {
+            $query = $query->where('reg_level', $level);
+        }
+
         // ดึงรายการแข่งขันเฉพาะที่ staff มีสิทธิ์
         $allComps = $this->compModel->where('comp_year', $selectedYear)->orderBy('comp_id', 'ASC')->findAll();
         if ($allowedComps !== null && !empty($allowedComps)) {
             $allComps = array_values(array_filter($allComps, fn($c) => in_array($c['comp_name'], $allowedComps)));
         }
 
+        // สร้าง Map ของระดับชั้นแยกตามประเภทการแข่งขัน
+        $db = \Config\Database::connect();
+        $compLevelMap = [];
+        $allAvailableLevelsList = [];
+        foreach ($allComps as $c) {
+            $cLevels = [];
+            if (!empty($c['comp_level_limits'])) {
+                $limits = json_decode($c['comp_level_limits'], true) ?: [];
+                foreach ($limits as $l) {
+                    if (!empty($l['level'])) {
+                        $cLevels[] = trim($l['level']);
+                    }
+                }
+            }
+            if (empty($cLevels) && !empty($c['comp_level'])) {
+                $cLevels[] = trim($c['comp_level']);
+            }
+
+            $regLevels = $db->table('Tb_ScienceWeek_Registrations')
+                ->select('reg_level')
+                ->where('reg_year', $selectedYear)
+                ->where('reg_competition_type', $c['comp_name'])
+                ->whereIn('reg_status', ['approved', 'approved_reserve'])
+                ->where('reg_level IS NOT NULL')
+                ->where('reg_level !=', '')
+                ->groupBy('reg_level')
+                ->get()
+                ->getResultArray();
+            foreach ($regLevels as $rl) {
+                if (!empty($rl['reg_level'])) {
+                    $cLevels[] = trim($rl['reg_level']);
+                }
+            }
+
+            $uniqueLevels = array_values(array_unique(array_filter($cLevels)));
+            $compLevelMap[$c['comp_name']] = $uniqueLevels;
+            $allAvailableLevelsList = array_merge($allAvailableLevelsList, $uniqueLevels);
+        }
+
+        $allAvailableLevels = array_values(array_unique(array_filter($allAvailableLevelsList)));
+        sort($allAvailableLevels);
+
+        if (!empty($compType) && isset($compLevelMap[$compType])) {
+            $availableLevels = $compLevelMap[$compType];
+        } else {
+            $availableLevels = $allAvailableLevels;
+        }
+
+        $rankOrderSql = "CASE 
+            WHEN reg_rank = 'รางวัลชนะเลิศ' THEN 1
+            WHEN reg_rank = 'รางวัลรองชนะเลิศอันดับ 1' THEN 2
+            WHEN reg_rank = 'รางวัลรองชนะเลิศอันดับ 2' THEN 3
+            WHEN reg_rank = 'รางวัลชมเชย' THEN 4
+            WHEN reg_rank LIKE '%เหรียญทอง%' AND reg_rank NOT LIKE '%เหรียญทองแดง%' THEN 5
+            WHEN reg_rank LIKE '%เหรียญเงิน%' THEN 6
+            WHEN reg_rank LIKE '%เหรียญทองแดง%' THEN 7
+            WHEN reg_rank IS NOT NULL AND reg_rank != '' THEN 8
+            ELSE 9
+        END";
+
         $data['title'] = "จัดการผลคะแนนและอันดับรางวัล | อบจ.นครสวรรค์";
         $registrations = [];
-        if (!empty($searchTerm) || !empty($compType)) {
+        if (!empty($searchTerm) || !empty($compType) || !empty($level)) {
             $registrations = $query->orderBy('reg_competition_type', 'ASC')
-                                   ->orderBy('CASE WHEN reg_rank IS NULL OR reg_rank = \'\' THEN 1 ELSE 0 END', 'ASC')
+                                   ->orderBy($rankOrderSql, 'ASC')
                                    ->orderBy('reg_score', 'DESC')
                                    ->orderBy('reg_id', 'ASC')
                                    ->findAll();
@@ -1031,6 +1129,10 @@ class ScienceWeek extends BaseController
 
         $data['search'] = $searchTerm;
         $data['compType_active'] = $compType;
+        $data['level_active'] = $level;
+        $data['available_levels'] = $availableLevels;
+        $data['comp_level_map'] = $compLevelMap;
+        $data['all_available_levels'] = $allAvailableLevels;
         $data['fullname'] = session()->get('u_fullname');
         $data['competitions'] = $allComps;
         $data['selected_year'] = $selectedYear;
@@ -1300,7 +1402,12 @@ class ScienceWeek extends BaseController
         $results = $query->orderBy('reg_created_at', 'ASC')->findAll();
 
         $spreadsheet = new Spreadsheet();
+        $spreadsheet->getDefaultStyle()->getFont()->setName('TH Sarabun New');
+        $spreadsheet->getDefaultStyle()->getFont()->setSize(13);
+
+        // Sheet 1: รายชื่อผู้สมัคร
         $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('รายชื่อผู้สมัคร');
 
         $sheet->setCellValue('A1', 'รายชื่อผู้สมัครเข้าร่วมแข่งขันกิจกรรมวันสัปดาห์วิทยาศาสตร์');
         $sheet->mergeCells('A1:N1');
@@ -1389,9 +1496,240 @@ class ScienceWeek extends BaseController
             $rowIdx++;
         }
 
+        $lastRowSheet1 = max($rowIdx - 1, 4);
+
+        // ตั้งค่าฟอนต์ TH Sarabun New ให้กับ Sheet 1
+        $sheet->getStyle("A1:N{$lastRowSheet1}")->getFont()->setName('TH Sarabun New');
+        $sheet->getStyle('A1')->getFont()->setSize(16)->setBold(true);
+        $sheet->getStyle('A2')->getFont()->setSize(12);
+        $sheet->getStyle('A4:N4')->getFont()->setSize(14)->setBold(true);
+        $sheet->getStyle("A5:N{$lastRowSheet1}")->getFont()->setSize(13);
+
         foreach (range('A', 'N') as $col) {
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
+
+        // ----------------------------------------------------
+        // Sheet 2: ตารางสำหรับพิมพ์ (แบบลงทะเบียนลงชื่อหน้างาน)
+        // ----------------------------------------------------
+        $sheet2 = $spreadsheet->createSheet();
+        $sheet2->setTitle('ตารางสำหรับพิมพ์');
+
+        // ตั้งค่าหน้ากระดาษฟิกซ์ขนาด A4 แนวนอน (Fit to 1 Page Wide)
+        $sheet2->getPageSetup()->setOrientation(PageSetup::ORIENTATION_LANDSCAPE);
+        $sheet2->getPageSetup()->setPaperSize(PageSetup::PAPERSIZE_A4);
+        $sheet2->getPageSetup()->setFitToPage(true);
+        $sheet2->getPageSetup()->setFitToWidth(1);
+        $sheet2->getPageSetup()->setFitToHeight(0);
+
+        // กำหนดระยะขอบกระดาษ (Margins) ให้พอดี A4
+        $sheet2->getPageMargins()->setTop(0.4);
+        $sheet2->getPageMargins()->setRight(0.4);
+        $sheet2->getPageMargins()->setLeft(0.4);
+        $sheet2->getPageMargins()->setBottom(0.4);
+
+        // กำหนดข้อความส่วนหัว
+        $displayCompType = $compType;
+        if (empty($displayCompType) && !empty($results)) {
+            $uniqueComps = array_unique(array_filter(array_column($results, 'reg_competition_type')));
+            if (count($uniqueComps) === 1) {
+                $displayCompType = reset($uniqueComps);
+            }
+        }
+
+        $displayLevel = $level;
+        if (empty($displayLevel) && !empty($results)) {
+            $uniqueLevels = array_unique(array_filter(array_column($results, 'reg_level')));
+            if (count($uniqueLevels) === 1) {
+                $displayLevel = reset($uniqueLevels);
+            }
+        }
+
+        $actText = 'กิจกรรม ';
+        if (!empty($displayCompType)) {
+            $actText .= $displayCompType;
+        } else {
+            $actText .= 'การแข่งขันวันสัปดาห์วิทยาศาสตร์';
+        }
+        if (!empty($displayLevel)) {
+            $actText .= ' (' . $displayLevel . ')';
+        }
+
+        $ceYear = ($selectedYear > 2500) ? ($selectedYear - 543) : $selectedYear;
+        helper('thai_date');
+        $dateStr = function_exists('thai_date') ? thai_date(date('Y-m-d'), true) : (date('j') . ' กรกฎาคม ' . (date('Y') + 543));
+
+        // ใส่หัวกระดาษ บรรทัดที่ 1-6
+        $sheet2->setCellValue('A1', 'สัปดาห์วิทยาศาสตร์ สนุกคิด ติดปีกจินตนาการ');
+        $sheet2->mergeCells('A1:H1');
+
+        $sheet2->setCellValue('A2', 'เปิดโลกแห่งการเรียนรู้ยุคใหม่ผ่านแนวคิด STEAM Education ผสมผสานวิทยาศาสตร์ เทคโนโลยี วิศวกรรมศาสตร์ ศิลปะ');
+        $sheet2->mergeCells('A2:H2');
+
+        $sheet2->setCellValue('A3', 'และคณิตศาสตร์ STEAM Science Week ' . $ceYear);
+        $sheet2->mergeCells('A3:H3');
+
+        $sheet2->setCellValue('A4', 'แบบลงทะเบียน');
+        $sheet2->mergeCells('A4:H4');
+
+        $sheet2->setCellValue('A5', $actText);
+        $sheet2->mergeCells('A5:H5');
+
+        $sheet2->setCellValue('A6', 'วันที่ ' . $dateStr);
+        $sheet2->mergeCells('A6:H6');
+
+        // จัดรูปแบบหัวกระดาษ (ตรงกลาง ตัวหนา ฟอนต์ TH Sarabun New)
+        $sheet2->getStyle('A1:H6')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet2->getStyle('A1:H6')->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+        $sheet2->getStyle('A1:A6')->getFont()->setBold(true);
+        $sheet2->getStyle('A1')->getFont()->setSize(16);
+        $sheet2->getStyle('A2:A3')->getFont()->setSize(13);
+        $sheet2->getStyle('A4')->getFont()->setSize(15);
+        $sheet2->getStyle('A5:A6')->getFont()->setSize(14);
+
+        // หัวตาราง (บรรทัดที่ 7)
+        $sheet2->setCellValue('A7', 'ลำดับ');
+        $sheet2->setCellValue('B7', 'ชื่อทีม');
+        $sheet2->setCellValue('C7', 'โรงเรียน');
+        $sheet2->setCellValue('D7', 'ผู้เข้าแข่งขัน');
+        $sheet2->setCellValue('E7', 'ลงชื่อ');
+        $sheet2->setCellValue('F7', 'ครูผู้ควบคุม');
+        $sheet2->setCellValue('G7', 'ลงชื่อ');
+        $sheet2->setCellValue('H7', 'หมายเหตุ');
+
+        $sheet2->getStyle('A7:H7')->getFont()->setBold(true);
+        $sheet2->getStyle('A7:H7')->getFont()->setSize(14);
+        $sheet2->getStyle('A7:H7')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet2->getStyle('A7:H7')->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+
+        // เติมข้อมูลลงตาราง Sheet 2
+        $rowIdx2 = 8;
+        $teamNo = 1;
+
+        foreach ($results as $reg) {
+            // รายชื่อผู้เข้าแข่งขัน
+            $memberData = json_decode($reg['reg_members'], true) ?? [];
+            $memberNamesList = [];
+            foreach ($memberData as $m) {
+                if (is_array($m)) {
+                    $prefix = trim($m['prefix'] ?? '');
+                    $name = trim($m['name'] ?? '');
+                    $memberNamesList[] = ($prefix !== '' ? $prefix . ' ' : '') . $name;
+                } else {
+                    $mStr = trim((string)$m);
+                    if ($mStr !== '') {
+                        $memberNamesList[] = $mStr;
+                    }
+                }
+            }
+
+            // รายชื่อครูผู้ควบคุม
+            $advisorData = json_decode($reg['reg_advisors'], true) ?? [];
+            $advisorNamesList = [];
+            foreach ($advisorData as $a) {
+                if (is_array($a)) {
+                    $prefix = trim($a['prefix'] ?? '');
+                    $name = trim($a['name'] ?? '');
+                    $advisorNamesList[] = ($prefix !== '' ? $prefix . ' ' : '') . $name;
+                } else {
+                    $aStr = trim((string)$a);
+                    if ($aStr !== '') {
+                        $advisorNamesList[] = $aStr;
+                    }
+                }
+            }
+
+            $memberCount = count($memberNamesList);
+            $advisorCount = count($advisorNamesList);
+            $teamRowCount = max($memberCount, $advisorCount, 1);
+
+            $startTeamRow = $rowIdx2;
+            $endTeamRow = $startTeamRow + $teamRowCount - 1;
+
+            $schoolText = $reg['reg_school_name'];
+            if (!empty($reg['reg_school_province']) && strpos($schoolText, $reg['reg_school_province']) === false) {
+                $schoolText .= ' (' . $reg['reg_school_province'] . ')';
+            }
+
+            for ($r = 0; $r < $teamRowCount; $r++) {
+                $currRow = $startTeamRow + $r;
+
+                // ช่องผู้เข้าแข่งขัน และช่องลงชื่อ
+                if ($r < $memberCount) {
+                    $sheet2->setCellValue('D' . $currRow, ($r + 1) . '.' . $memberNamesList[$r]);
+                }
+                $sheet2->setCellValue('E' . $currRow, '');
+
+                // ช่องครูผู้ควบคุม และช่องลงชื่อ
+                if ($r < $advisorCount) {
+                    $sheet2->setCellValue('F' . $currRow, ($r + 1) . '.' . $advisorNamesList[$r]);
+                }
+                $sheet2->setCellValue('G' . $currRow, '');
+            }
+
+            // ผสานเซลล์แนวตั้งสำหรับข้อมูลทีม (ลำดับ, ชื่อทีม, โรงเรียน, หมายเหตุ)
+            if ($teamRowCount > 1) {
+                $sheet2->mergeCells("A{$startTeamRow}:A{$endTeamRow}");
+                $sheet2->mergeCells("B{$startTeamRow}:B{$endTeamRow}");
+                $sheet2->mergeCells("C{$startTeamRow}:C{$endTeamRow}");
+                $sheet2->mergeCells("H{$startTeamRow}:H{$endTeamRow}");
+            }
+
+            $sheet2->setCellValue("A{$startTeamRow}", $teamNo++);
+            $sheet2->setCellValue("B{$startTeamRow}", $reg['reg_team_name'] ?: '-');
+            $sheet2->setCellValue("C{$startTeamRow}", $schoolText);
+            $sheet2->setCellValue("H{$startTeamRow}", '');
+
+            $rowIdx2 = $endTeamRow + 1;
+        }
+
+        $lastRowSheet2 = max($rowIdx2 - 1, 7);
+
+        // ตั้งค่าฟอนต์ TH Sarabun New ทั้ง Sheet 2 และกำหนดขนาดตัวอักษรเนื้อหา (13pt)
+        $sheet2->getStyle("A1:H{$lastRowSheet2}")->getFont()->setName('TH Sarabun New');
+        $sheet2->getStyle("A8:H{$lastRowSheet2}")->getFont()->setSize(13);
+
+        // จัด Alignment เซลล์ตาราง Sheet 2
+        $sheet2->getStyle("A7:C{$lastRowSheet2}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet2->getStyle("A7:C{$lastRowSheet2}")->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+
+        $sheet2->getStyle("D7:D{$lastRowSheet2}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
+        $sheet2->getStyle("D7:D{$lastRowSheet2}")->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+
+        $sheet2->getStyle("E7:E{$lastRowSheet2}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet2->getStyle("E7:E{$lastRowSheet2}")->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+
+        $sheet2->getStyle("F7:F{$lastRowSheet2}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
+        $sheet2->getStyle("F7:F{$lastRowSheet2}")->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+
+        $sheet2->getStyle("G7:H{$lastRowSheet2}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet2->getStyle("G7:H{$lastRowSheet2}")->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+
+        $sheet2->getStyle("A7:H{$lastRowSheet2}")->getAlignment()->setWrapText(true);
+
+        // ใส่เส้นขอบตาราง Sheet 2
+        $tableBorders = [
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => Border::BORDER_THIN,
+                    'color' => ['rgb' => '000000'],
+                ],
+            ],
+        ];
+        $sheet2->getStyle("A7:H{$lastRowSheet2}")->applyFromArray($tableBorders);
+
+        // ปรับความกว้างคอลัมน์ Sheet 2 ให้พอดีกระดาษ A4
+        $sheet2->getColumnDimension('A')->setWidth(8);   // ลำดับ
+        $sheet2->getColumnDimension('B')->setWidth(20);  // ชื่อทีม
+        $sheet2->getColumnDimension('C')->setWidth(30);  // โรงเรียน
+        $sheet2->getColumnDimension('D')->setWidth(32);  // ผู้เข้าแข่งขัน
+        $sheet2->getColumnDimension('E')->setWidth(18);  // ลงชื่อ
+        $sheet2->getColumnDimension('F')->setWidth(32);  // ครูผู้ควบคุม
+        $sheet2->getColumnDimension('G')->setWidth(18);  // ลงชื่อ
+        $sheet2->getColumnDimension('H')->setWidth(14);  // หมายเหตุ
+
+        // กำหนดให้ Sheet 1 เป็น Sheet หลักเมื่อเปิดไฟล์
+        $spreadsheet->setActiveSheetIndex(0);
 
         $filename = "ScienceWeek_Registrations_" . date('Ymd_His') . ".xlsx";
 
@@ -1403,7 +1741,6 @@ class ScienceWeek extends BaseController
         $writer->save('php://output');
         exit;
     }
-
 
     /**
      * competition index with role-based filter
@@ -2254,6 +2591,40 @@ class ScienceWeek extends BaseController
     }
 
     /**
+     * สลับสถานะการเปิด/ปิด ประกาศผลการแข่งขันเฉพาะรายการ (Per-Competition Toggle)
+     */
+    public function toggleCompPublish($id)
+    {
+        $access = $this->checkAccess();
+        if ($access !== true)
+            return $this->response->setStatusCode(403)->setJSON(['status' => 'error', 'message' => 'Unauthorized']);
+
+        $comp = $this->compModel->find($id);
+        if (!$comp) {
+            return $this->response->setJSON(['status' => 'error', 'message' => 'ไม่พบข้อมูลรายการแข่งขันนี้']);
+        }
+
+        if (!$this->canAccessCompetition($comp['comp_name'])) {
+            return $this->response->setStatusCode(403)->setJSON(['status' => 'error', 'message' => 'คุณไม่มีสิทธิ์จัดการรายการแข่งขันนี้']);
+        }
+
+        $currentStatus = isset($comp['comp_publish_results']) ? (int)$comp['comp_publish_results'] : 1;
+        $newStatus = ($currentStatus === 1) ? 0 : 1;
+
+        if ($this->compModel->update($id, ['comp_publish_results' => $newStatus])) {
+            $msg = ($newStatus === 1) ? "เปิดการประกาศผลรางวัลสำหรับ \"{$comp['comp_name']}\" แล้ว" : "ปิดการประกาศผลรางวัลสำหรับ \"{$comp['comp_name']}\" แล้ว";
+            return $this->response->setJSON([
+                'status' => 'success',
+                'message' => $msg,
+                'new_status' => $newStatus,
+                'comp_name' => $comp['comp_name']
+            ]);
+        }
+
+        return $this->response->setJSON(['status' => 'error', 'message' => 'ไม่สามารถบันทึกข้อมูลได้']);
+    }
+
+    /**
      * หน้าแสดงผลการประกวด/แข่งขัน และรางวัลสาธารณะ
      */
     public function publicResults()
@@ -2262,36 +2633,68 @@ class ScienceWeek extends BaseController
         $compType = $this->request->getGet('competition_type');
         $searchTerm = $this->request->getGet('search');
 
-        $query = $this->regModel->where('reg_year', $activeYear)->whereIn('reg_status', ['approved', 'approved_reserve']); // Only show approved/valid teams of active year
-
-        if (!empty($searchTerm)) {
-            $query = $query->groupStart()
-                ->like('reg_school_name', trim($searchTerm))
-                ->orLike('reg_team_name', trim($searchTerm))
-                ->orLike('reg_members', trim($searchTerm))
-                ->groupEnd();
-        }
-
-        if (!empty($compType)) {
-            $query = $query->where('reg_competition_type', $compType);
-        }
-
-        // Sort by competition type first, then rank presence/value, then score descending
-        // Award-winning teams first
-        $results = $query->orderBy('reg_competition_type', 'ASC')
-                         ->orderBy('CASE WHEN reg_rank IS NULL OR reg_rank = \'\' THEN 1 ELSE 0 END', 'ASC')
-                         ->orderBy('reg_score', 'DESC')
-                         ->orderBy('reg_id', 'ASC')
-                         ->findAll();
-
         $settingsModel = new \App\Models\SettingsModel();
-        $isPublished = $settingsModel->getVal('science_week_publish_results') === '1';
+        $isPublishedGlobal = $settingsModel->getVal('science_week_publish_results') === '1';
+
+        $allComps = $this->compModel->where('comp_year', $activeYear)->orderBy('comp_id', 'ASC')->findAll();
+
+        $publishedCompNames = [];
+        foreach ($allComps as $c) {
+            $pubStatus = isset($c['comp_publish_results']) ? (int)$c['comp_publish_results'] : 1;
+            if ($pubStatus === 1) {
+                $publishedCompNames[] = $c['comp_name'];
+            }
+        }
+
+        $isPublished = $isPublishedGlobal && !empty($publishedCompNames);
+
+        $results = [];
+        if ($isPublished) {
+            // Require selecting competition OR search keyword first
+            if (!empty($compType) || !empty($searchTerm)) {
+                $query = $this->regModel->where('reg_year', $activeYear)
+                                       ->whereIn('reg_status', ['approved', 'approved_reserve'])
+                                       ->whereIn('reg_competition_type', $publishedCompNames);
+
+                if (!empty($searchTerm)) {
+                    $query = $query->groupStart()
+                        ->like('reg_school_name', trim($searchTerm))
+                        ->orLike('reg_team_name', trim($searchTerm))
+                        ->orLike('reg_members', trim($searchTerm))
+                        ->groupEnd();
+                }
+
+                if (!empty($compType)) {
+                    $query = $query->where('reg_competition_type', $compType);
+                }
+
+                $rankOrderSql = "CASE 
+                    WHEN reg_rank = 'รางวัลชนะเลิศ' THEN 1
+                    WHEN reg_rank = 'รางวัลรองชนะเลิศอันดับ 1' THEN 2
+                    WHEN reg_rank = 'รางวัลรองชนะเลิศอันดับ 2' THEN 3
+                    WHEN reg_rank = 'รางวัลชมเชย' THEN 4
+                    WHEN reg_rank LIKE '%เหรียญทอง%' AND reg_rank NOT LIKE '%เหรียญทองแดง%' THEN 5
+                    WHEN reg_rank LIKE '%เหรียญเงิน%' THEN 6
+                    WHEN reg_rank LIKE '%เหรียญทองแดง%' THEN 7
+                    WHEN reg_rank IS NOT NULL AND reg_rank != '' THEN 8
+                    ELSE 9
+                END";
+
+                $results = $query->orderBy('reg_competition_type', 'ASC')
+                                 ->orderBy($rankOrderSql, 'ASC')
+                                 ->orderBy('reg_score', 'DESC')
+                                 ->orderBy('reg_id', 'ASC')
+                                 ->findAll();
+            }
+        }
+
+        $publishedCompsList = array_values(array_filter($allComps, fn($c) => in_array($c['comp_name'], $publishedCompNames)));
 
         $data['title'] = 'ประกาศผลรางวัลการแข่งขัน | งานสัปดาห์วิทยาศาสตร์';
         $data['results'] = $results;
         $data['search'] = $searchTerm;
         $data['compType_active'] = $compType;
-        $data['competitions'] = $this->compModel->where('comp_year', $activeYear)->orderBy('comp_id', 'ASC')->findAll();
+        $data['competitions'] = $publishedCompsList;
         $data['publish_results'] = $isPublished;
 
         return view('science_week/results', $data);
@@ -2371,6 +2774,10 @@ class ScienceWeek extends BaseController
         $access = $this->checkAccess();
         if ($access !== true)
             return $this->response->setStatusCode(403)->setJSON(['status' => 'error', 'message' => 'Unauthorized']);
+
+        if ($this->request->getMethod() === 'get') {
+            return redirect()->to(base_url('science-week/staff/ranking'));
+        }
 
         $settingsModel = new \App\Models\SettingsModel();
         $current = $settingsModel->where('s_key', 'science_week_publish_results')->first();
@@ -2664,20 +3071,20 @@ class ScienceWeek extends BaseController
                     // Get selected name from query parameter
                     $selectedName = $this->request->getGet('name');
                     if (!empty($selectedName)) {
-                        $recipientName = trim($selectedName);
+                        $recipientName = $this->formatThaiName($selectedName);
                     } else {
                         if ($type === 'trainer') {
                             $advisors = json_decode($reg['reg_advisors'], true) ?: [];
-                            $recipientName = !empty($advisors) ? $advisors[0] : '';
+                            $recipientName = !empty($advisors) ? $this->formatThaiName($advisors[0]) : '';
                         } else {
                             $membersRaw = json_decode($reg['reg_members'], true) ?: [];
                             $firstMember = !empty($membersRaw) ? $membersRaw[0] : '';
                             if (is_array($firstMember)) {
                                 $prefix = trim($firstMember['prefix'] ?? '');
                                 $name = trim($firstMember['name'] ?? '');
-                                $recipientName = ($prefix !== '' ? $prefix . ' ' : '') . $name;
+                                $recipientName = $this->formatThaiName($prefix . $name);
                             } else {
-                                $recipientName = $firstMember;
+                                $recipientName = $this->formatThaiName($firstMember);
                             }
                         }
                     }
@@ -2732,6 +3139,7 @@ class ScienceWeek extends BaseController
         }
 
         // 3. Load Image Resource (GD)
+        $recipientName = $this->formatThaiName($recipientName);
         $filePath = FCPATH . $bgImagePath;
         $info = getimagesize($filePath);
         $mime = $info['mime'] ?? '';
@@ -2887,6 +3295,17 @@ class ScienceWeek extends BaseController
             ->setBody($imageData);
     }
 
+    /**
+     * จัดรูปแบบชื่อภาษาไทย ให้คำนำหน้ากับชื่อติดกัน (ไม่มีเว้นวรรคระหว่างคำนำหน้าและชื่อ)
+     */
+    private function formatThaiName($name)
+    {
+        if (empty($name) || !is_string($name)) return $name;
+        $name = trim($name);
+        $pattern = '/^(เด็กชาย|เด็กหญิง|นาย|นางสาว|นาง|ด\.ช\.|ด\.ญ\.|ดร\.|ผศ\.|รศ\.|ครู|อาจารย์|ว่าที่ร\.ต\.|ว่าที่ ร\.ต\.|ว่าที่ร้อยตรี)\s+/u';
+        return preg_replace($pattern, '$1', $name);
+    }
+
     private function hexToRgb($hex)
     {
         $hex = str_replace('#', '', $hex);
@@ -3015,12 +3434,16 @@ class ScienceWeek extends BaseController
                 if (is_array($m)) {
                     $prefix = trim($m['prefix'] ?? '');
                     $name = trim($m['name'] ?? '');
-                    $members[] = ($prefix !== '' ? $prefix . ' ' : '') . $name;
+                    $members[] = $this->formatThaiName($prefix . $name);
                 } else {
-                    $members[] = $m;
+                    $members[] = $this->formatThaiName($m);
                 }
             }
-            $advisors = json_decode($reg['reg_advisors'], true) ?: [];
+            $rawAdvisors = json_decode($reg['reg_advisors'], true) ?: [];
+            $advisors = [];
+            foreach ($rawAdvisors as $a) {
+                $advisors[] = $this->formatThaiName($a);
+            }
         } else {
             $db = \Config\Database::connect();
             $eval = $db->table('Tb_ScienceWeek_Evaluations')->where('eval_code', $code)->get()->getRowArray();

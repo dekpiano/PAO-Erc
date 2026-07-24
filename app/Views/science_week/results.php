@@ -131,7 +131,7 @@
                     <!-- Filter Competition -->
                     <div>
                         <select name="competition_type" class="w-full px-4 py-4 bg-slate-900 border border-indigo-500/30 text-white rounded-2xl font-medium outline-none cursor-pointer neon-input">
-                            <option value="" class="bg-slate-900 text-white">-- การแข่งขันทั้งหมด --</option>
+                            <option value="" class="bg-slate-900 text-white">-- กรุณาเลือกรายการแข่งขัน --</option>
                             <?php if (!empty($competitions)): ?>
                                 <?php foreach ($competitions as $comp): ?>
                                     <option value="<?= esc($comp['comp_name']) ?>" <?= $compType_active == $comp['comp_name'] ? 'selected' : '' ?> class="bg-slate-900 text-white"><?= esc($comp['comp_name']) ?></option>
@@ -143,7 +143,7 @@
                     <!-- Submit & Clear Buttons -->
                     <div class="flex gap-2">
                         <button type="submit" class="flex-1 py-4 rounded-2xl text-white font-bold neon-btn-search flex items-center justify-center gap-2">
-                            <i data-lucide="filter" class="w-5 h-5"></i> กรองผล
+                            <i data-lucide="filter" class="w-5 h-5"></i> แสดงผลการแข่งขัน
                         </button>
                         <?php if(!empty($search) || !empty($compType_active)): ?>
                             <a href="<?= base_url('science-week/results') ?>" class="p-4 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-300 rounded-2xl transition-all flex items-center justify-center" title="ล้างฟิลเตอร์">
@@ -157,11 +157,21 @@
             <!-- Result Section -->
             <div class="space-y-10">
                 <?php if (empty($results)): ?>
-                    <div class="glass-sci-card rounded-3xl p-12 text-center text-slate-400 border border-dashed border-indigo-500/20">
-                        <i data-lucide="award" class="w-16 h-16 mx-auto text-indigo-400/40 mb-4 animate-pulse"></i>
-                        <p class="font-bold text-lg mb-1 text-white">ยังไม่มีประกาศผลการแข่งขันในส่วนนี้</p>
-                        <p class="text-xs text-slate-450">กรุณาเลือกประเภทการแข่งขันอื่นๆ หรือลองค้นหาด้วยคีย์เวิร์ดใหม่อีกครั้ง</p>
-                    </div>
+                    <?php if (empty($compType_active) && empty($search)): ?>
+                        <div class="glass-sci-card rounded-3xl p-10 sm:p-14 text-center text-slate-300 border border-indigo-500/30">
+                            <div class="w-16 h-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mx-auto mb-4 text-indigo-400 shadow-[0_0_20px_rgba(99,102,241,0.2)]">
+                                <i data-lucide="trophy" class="w-8 h-8"></i>
+                            </div>
+                            <h3 class="font-black text-xl mb-2 text-white">กรุณาเลือกรายการแข่งขัน</h3>
+                            <p class="text-xs sm:text-sm text-slate-400 max-w-md mx-auto font-medium">โปรดเลือกรายการแข่งขันจากตัวกรองด้านบน หรือพิมพ์ค้นหาเพื่อดูประกาศผลการแข่งขันและอันดับรางวัล</p>
+                        </div>
+                    <?php else: ?>
+                        <div class="glass-sci-card rounded-3xl p-12 text-center text-slate-400 border border-dashed border-indigo-500/20">
+                            <i data-lucide="award" class="w-16 h-16 mx-auto text-indigo-400/40 mb-4 animate-pulse"></i>
+                            <p class="font-bold text-lg mb-1 text-white">ยังไม่มีประกาศผลการแข่งขันในรายการนี้</p>
+                            <p class="text-xs text-slate-450">กรุณาเลือกประเภทการแข่งขันอื่นๆ หรือลองค้นหาด้วยคีย์เวิร์ดใหม่อีกครั้ง</p>
+                        </div>
+                    <?php endif; ?>
                 <?php else: ?>
                     <?php
                     // Group results by competition type & level

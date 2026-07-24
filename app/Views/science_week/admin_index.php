@@ -444,6 +444,40 @@ tr:target {
 <script>
     // Embed registrations dataset
     let allRegistrations = <?= json_encode($registrations) ?>;
+    const compLevelMap = <?= json_encode($comp_level_map ?? []) ?>;
+    const allAvailableLevels = <?= json_encode($all_available_levels ?? []) ?>;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const compSelect = document.querySelector('form select[name="competition_type"]');
+        const levelSelect = document.querySelector('form select[name="level"]');
+
+        if (compSelect && levelSelect) {
+            compSelect.addEventListener('change', function() {
+                const selectedComp = this.value;
+                const currentLevel = levelSelect.value;
+                
+                let targetLevels = [];
+                if (selectedComp && compLevelMap[selectedComp]) {
+                    targetLevels = compLevelMap[selectedComp];
+                } else {
+                    targetLevels = allAvailableLevels;
+                }
+
+                levelSelect.innerHTML = '<option value="" class="bg-slate-950 text-slate-350 dark:bg-slate-900 dark:text-slate-200">-- ระดับชั้นแข่งขันทั้งหมด --</option>';
+                
+                targetLevels.forEach(lvl => {
+                    const opt = document.createElement('option');
+                    opt.value = lvl;
+                    opt.textContent = lvl;
+                    opt.className = 'bg-slate-950 text-slate-350 dark:bg-slate-900 dark:text-slate-200';
+                    if (lvl === currentLevel) {
+                        opt.selected = true;
+                    }
+                    levelSelect.appendChild(opt);
+                });
+            });
+        }
+    });
 
     function viewRegDetails(id) {
         const reg = allRegistrations.find(r => parseInt(r.reg_id) === parseInt(id));

@@ -30,6 +30,7 @@ class ScienceWeekCompetitionModel extends Model
         'comp_limit',
         'comp_member_limit',
         'comp_status',
+        'comp_publish_results',
         'comp_open_time',
         'comp_close_time',
         'comp_announce_time'
