@@ -1,6 +1,7 @@
 <?= $this->extend('science_week/layout/main') ?>
 
 <?= $this->section('content') ?>
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <style>
     .page-container {
         background: transparent;
@@ -48,6 +49,81 @@
     }
     .rating-btn:hover {
         transform: scale(1.1);
+    }
+
+    /* Select2 Dark Neon Custom Styling */
+    .select2-container {
+        width: 100% !important;
+    }
+    .select2-container--default .select2-selection--single {
+        background: rgba(8, 12, 24, 0.7) !important;
+        border: 1px solid rgba(99, 102, 241, 0.3) !important;
+        height: 48px !important;
+        border-radius: 1rem !important;
+        padding-left: 1rem !important;
+        display: flex !important;
+        align-items: center !important;
+        transition: all 0.4s ease !important;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        color: #ffffff !important;
+        font-weight: 500 !important;
+        font-size: 0.875rem !important;
+        padding-left: 0px !important;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__rendered .select2-selection__placeholder {
+        color: #64748b !important;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 48px !important;
+        right: 12px !important;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__arrow b {
+        border-color: #818cf8 transparent transparent transparent !important;
+        border-width: 6px 6px 0 6px !important;
+    }
+    .select2-container--default.select2-container--open .select2-selection--single .select2-selection__arrow b {
+        border-color: transparent transparent #818cf8 transparent !important;
+        border-width: 0 6px 6px 6px !important;
+    }
+    .select2-container--default.select2-container--open .select2-selection--single {
+        border-color: #6366f1 !important;
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.25) !important;
+    }
+    .select2-dropdown {
+        background: rgba(15, 23, 42, 0.95) !important;
+        backdrop-filter: blur(12px) !important;
+        -webkit-backdrop-filter: blur(12px) !important;
+        border: 1px solid rgba(99, 102, 241, 0.4) !important;
+        border-radius: 1rem !important;
+        overflow: hidden !important;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5) !important;
+        z-index: 9999 !important;
+    }
+    .select2-container--default .select2-search--dropdown .select2-search__field {
+        background: rgba(8, 12, 24, 0.9) !important;
+        border: 1px solid rgba(99, 102, 241, 0.3) !important;
+        color: white !important;
+        border-radius: 8px !important;
+        padding: 8px 12px !important;
+        outline: none !important;
+    }
+    .select2-container--default .select2-search--dropdown .select2-search__field:focus {
+        border-color: #6366f1 !important;
+    }
+    .select2-container--default .select2-results__option--highlighted[aria-selected] {
+        background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
+        color: white !important;
+    }
+    .select2-container--default .select2-results__option[aria-selected=true] {
+        background-color: rgba(99, 102, 241, 0.2) !important;
+        color: #a5b4fc !important;
+    }
+    .select2-results__option {
+        background-color: transparent !important;
+        padding: 10px 16px !important;
+        font-size: 14px !important;
+        color: #cbd5e1 !important;
     }
 </style>
 
@@ -193,7 +269,25 @@
                 <!-- 1.5 จังหวัดที่อาศัยอยู่ -->
                 <div class="space-y-2">
                     <label for="province" class="block text-xs font-bold text-slate-200">1.5 อาศัยอยู่ ณ จังหวัด *</label>
-                    <input type="text" name="province" id="province" required placeholder="ระบุชื่อจังหวัดที่อาศัยอยู่ เช่น นครสวรรค์" class="neon-input w-full px-4 py-3 rounded-2xl text-xs sm:text-sm">
+                    <select name="province" id="province" required class="w-full neon-input rounded-2xl text-xs sm:text-sm">
+                        <option value="" disabled>-- เลือกจังหวัด --</option>
+                        <?php
+                        $provinces = [
+                            "กรุงเทพมหานคร", "กระบี่", "กาญจนบุรี", "กาฬสินธุ์", "กำแพงเพชร", "ขอนแก่น", "จันทบุรี", "ฉะเชิงเทรา",
+                            "ชลบุรี", "ชัยนาท", "ชัยภูมิ", "ชุมพร", "เชียงราย", "เชียงใหม่", "ตรัง", "ตราด", "ตาก", "นครนายก",
+                            "นครปฐม", "นครพนม", "นครราชสีมา", "นครศรีธรรมราช", "นครสวรรค์", "นนทบุรี", "นราธิวาส", "น่าน",
+                            "บึงกาฬ", "บุรีรัมย์", "ปทุมธานี", "ประจวบคีรีขันธ์", "ปราจีนบุรี", "ปัตตานี", "พระนครศรีอยุธยา", "พะเยา",
+                            "พังงา", "พัทลุง", "พิจิตร", "พิษณุโลก", "เพชรบุรี", "เพชรบูรณ์", "แพร่", "ภูเก็ต", "มหาสารคาม",
+                            "มุกดาหาร", "แม่ฮ่องสอน", "ยะลา", "ยโสธร", "ร้อยเอ็ด", "ระนอง", "ระยอง", "ราชบุรี", "ลพบุรี",
+                            "ลำปาง", "ลำพูน", "เลย", "ศรีสะเกษ", "สกลนคร", "สงขลา", "สตูล", "สมุทรปราการ", "สมุทรสงคราม",
+                            "สมุทรสาคร", "สระแก้ว", "สระบุรี", "สิงห์บุรี", "สุโขทัย", "สุพรรณบุรี", "สุราษฎร์ธานี", "สุรินทร์",
+                            "หนองคาย", "หนองบัวลำภู", "อ่างทอง", "อุดรธานี", "อุทัยธานี", "อุตรดิตถ์", "อุบลราชธานี", "อำนาจเจริญ"
+                        ];
+                        foreach ($provinces as $p):
+                        ?>
+                            <option value="<?= esc($p) ?>" <?= esc($p) === 'นครสวรรค์' ? 'selected' : '' ?>><?= esc($p) ?></option>
+                        <?php endforeach; ?>
+                    </select>
                 </div>
             </div>
 
@@ -238,7 +332,17 @@
     </div>
 </div>
 
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
+    $(document).ready(function() {
+        $('#province').select2({
+            placeholder: "-- เลือกจังหวัด --",
+            allowClear: false,
+            width: '100%'
+        });
+    });
+
     // Particles Background
     const canvas = document.getElementById('particles-canvas');
     if (canvas) {

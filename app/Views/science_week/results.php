@@ -187,15 +187,27 @@
                     
                     <?php foreach ($groupedAll as $compKey => $compRegsAll): ?>
                         <?php
+                        $formatRank = function($rank) {
+                            $r = trim($rank ?? '');
+                            if (empty($r)) {
+                                return 'เข้าร่วมการแข่งขัน';
+                            }
+                            if (mb_strpos($r, 'รางวัล') !== 0 && mb_strpos($r, 'เข้าร่วม') !== 0) {
+                                return 'รางวัล' . $r;
+                            }
+                            return $r;
+                        };
+
                         $topRanks = ['รางวัลชนะเลิศ', 'รางวัลรองชนะเลิศอันดับ 1', 'รางวัลรองชนะเลิศอันดับ 2'];
                         $topRegs = [];
                         $otherRegs = [];
                         
                         foreach ($compRegsAll as $reg) {
-                            if (in_array($reg['reg_rank'], $topRanks)) {
+                            $formattedRank = $formatRank($reg['reg_rank'] ?? '');
+                            $reg['reg_rank'] = $formattedRank;
+                            if (in_array($formattedRank, $topRanks)) {
                                 $topRegs[] = $reg;
                             } else {
-                                $reg['reg_rank'] = $reg['reg_rank'] ?: 'รางวัลชมเชย';
                                 $otherRegs[] = $reg;
                             }
                         }
@@ -342,10 +354,10 @@
                                 <!-- Row 4 in Mobile Cards -->
                                 <?php if (!empty($otherRegs)): ?>
                                     <div class="glass-sci-card rounded-3xl p-5 border border-indigo-500/20 bg-slate-950/40 text-center space-y-3 row-anim" style="animation-delay: <?= $delay ?>ms">
-                                        <p class="text-xs text-slate-400 font-bold">รางวัลชมเชยและผู้เข้าร่วมการแข่งขันในรายการนี้</p>
+                                        <p class="text-xs text-slate-400 font-bold">รางวัลอื่นๆ และผู้เข้าร่วมการแข่งขันในรายการนี้</p>
                                         <button type="button" onclick="openOtherAwardsModal('<?= esc($compKey, 'js') ?>', '<?= esc(json_encode($otherRegs), 'js') ?>')" class="w-full inline-flex items-center justify-center gap-2 px-4 py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs transition-all shadow-md cursor-pointer">
                                             <i data-lucide="search" class="w-4 h-4 text-white"></i>
-                                            <span>ค้นหารายชื่อรางวัลชมเชย (<?= count($otherRegs) ?> รายการ)</span>
+                                            <span>ค้นหารายชื่อรางวัลเพิ่มเติม / ผู้เข้าร่วม (<?= count($otherRegs) ?> รายการ)</span>
                                         </button>
                                     </div>
                                 <?php endif; ?>
@@ -511,6 +523,12 @@
                             const schoolInfo = item.reg_school_province ? `${item.reg_school_name} (จ.${item.reg_school_province})` : item.reg_school_name;
                             const teamName = item.reg_team_name ? item.reg_team_name : 'ทั่วไป (บุคคลเดี่ยว)';
                             
+                            let rawR = (item.reg_rank && item.reg_rank.trim() !== '') ? item.reg_rank.trim() : 'เข้าร่วมการแข่งขัน';
+                            if (!rawR.startsWith('รางวัล') && !rawR.startsWith('เข้าร่วม')) {
+                                rawR = 'รางวัล' + rawR;
+                            }
+                            const rankText = rawR;
+                            
                             html += `
                                 <div class="p-3.5 bg-slate-950/60 rounded-2xl border border-slate-800/80 space-y-2 text-xs">
                                     <div class="flex justify-between items-start gap-2">
@@ -518,7 +536,7 @@
                                             <h4 class="font-extrabold text-white text-sm">${teamName}</h4>
                                             <p class="text-slate-350 font-medium text-[11px] mt-0.5">${schoolInfo}</p>
                                         </div>
-                                        <span class="px-2.5 py-1 bg-slate-800 text-slate-300 border border-slate-700/50 rounded-lg font-bold text-[9px] shrink-0 uppercase">${item.reg_rank}</span>
+                                        <span class="px-2.5 py-1 bg-slate-800 text-slate-300 border border-slate-700/50 rounded-lg font-bold text-[9px] shrink-0 uppercase">${rankText}</span>
                                     </div>
                                     <div class="flex justify-end pt-1">
                                         <a href="${certUrl}" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-500/10 hover:bg-indigo-600 hover:text-white text-indigo-300 transition-colors font-bold text-[10px]">

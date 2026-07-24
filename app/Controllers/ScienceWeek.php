@@ -136,7 +136,7 @@ class ScienceWeek extends BaseController
                 $db->query("ALTER TABLE Tb_ScienceWeek_Evaluations ADD COLUMN eval_education_level VARCHAR(255) NULL DEFAULT NULL AFTER eval_occupation");
             }
         }
-        
+
         if (!$db->tableExists('Tb_ScienceWeek_Announcements')) {
             $db->query("CREATE TABLE Tb_ScienceWeek_Announcements (
                 ann_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -154,7 +154,7 @@ class ScienceWeek extends BaseController
     private function getActiveYear(): int
     {
         $settingsModel = new \App\Models\SettingsModel();
-        return (int)($settingsModel->getVal('science_week_active_year') ?: 2569);
+        return (int) ($settingsModel->getVal('science_week_active_year') ?: 2569);
     }
 
     /**
@@ -165,7 +165,7 @@ class ScienceWeek extends BaseController
         $session = session();
         $selectedYear = $this->request->getGet('year');
         if ($selectedYear !== null && is_numeric($selectedYear)) {
-            $selectedYear = (int)$selectedYear;
+            $selectedYear = (int) $selectedYear;
             $session->set('science_week_selected_year', $selectedYear);
         } else {
             $selectedYear = $session->get('science_week_selected_year');
@@ -176,7 +176,7 @@ class ScienceWeek extends BaseController
             $session->set('science_week_selected_year', $selectedYear);
         }
 
-        return (int)$selectedYear;
+        return (int) $selectedYear;
     }
 
     /**
@@ -222,10 +222,10 @@ class ScienceWeek extends BaseController
         ", [$activeYear])->getResultArray();
 
         $announcements = $db->table('Tb_ScienceWeek_Announcements')
-                            ->where('ann_year', $activeYear)
-                            ->orderBy('ann_created_at', 'DESC')
-                            ->get()
-                            ->getResultArray();
+            ->where('ann_year', $activeYear)
+            ->orderBy('ann_created_at', 'DESC')
+            ->get()
+            ->getResultArray();
 
         $data['title'] = 'งานสัปดาห์วิทยาศาสตร์ 2026 - กองการศึกษา อบจ.นครสวรรค์ & โรงเรียนสวนกุหลาบวิทยาลัย (จิรประวัติ) นครสวรรค์ ';
         $data['countdown_date'] = $targetDate;
@@ -329,7 +329,7 @@ class ScienceWeek extends BaseController
         $activeYear = $this->getActiveYear();
         $compType = $this->request->getPost('competition_type');
         $comp = $this->compModel->where('comp_name', $compType)->where('comp_year', $activeYear)->first();
-        
+
         // Quota Limit Check
         $selectedLevel = $this->request->getPost('reg_level');
         if ($comp && !empty($comp['comp_level_limits'])) {
@@ -342,7 +342,7 @@ class ScienceWeek extends BaseController
                 $foundLevelLimit = null;
                 foreach ($levelLimits as $lvl) {
                     if ($lvl['level'] === $selectedLevel) {
-                        $foundLevelLimit = (int)$lvl['limit'];
+                        $foundLevelLimit = (int) $lvl['limit'];
                         break;
                     }
                 }
@@ -371,12 +371,12 @@ class ScienceWeek extends BaseController
 
         $rules = [
             'competition_type' => 'required',
-            'school_name'      => 'required|min_length[3]',
-            'school_province'  => 'required',
-            'member_names'     => 'required',
-            'advisor_names'    => 'required',
-            'contact_phone'    => 'required|min_length[9]|max_length[15]',
-            'contact_email'    => 'permit_empty|valid_email'
+            'school_name' => 'required|min_length[3]',
+            'school_province' => 'required',
+            'member_names' => 'required',
+            'advisor_names' => 'required',
+            'contact_phone' => 'required|min_length[9]|max_length[15]',
+            'contact_email' => 'permit_empty|valid_email'
         ];
 
         if (!$this->validate($rules)) {
@@ -404,7 +404,7 @@ class ScienceWeek extends BaseController
             if ($trimmedName !== '') {
                 $prefix = trim($memberPrefixesRaw[$idx] ?? '');
                 $mFields = $memberCustomFieldsRaw[$idx] ?? [];
-                
+
                 if (!empty($mFields)) {
                     $members[] = [
                         'prefix' => $prefix,
@@ -455,7 +455,7 @@ class ScienceWeek extends BaseController
                 $foundLevelLimit = null;
                 foreach ($levelLimits as $lvl) {
                     if ($lvl['level'] === $selectedLevel) {
-                        $foundLevelLimit = (int)$lvl['limit'];
+                        $foundLevelLimit = (int) $lvl['limit'];
                         break;
                     }
                 }
@@ -585,14 +585,14 @@ class ScienceWeek extends BaseController
         }
 
         $roles = session()->get('u_role') ?? '';
-        
+
         $hasFullAccess = (strpos($roles, 'superadmin') !== false || strpos($roles, 'admin') !== false || (strpos($roles, 'science_week') !== false && strpos($roles, 'science_week_student_staff') === false));
         $hasStudentStaffOnly = (strpos($roles, 'science_week_student_staff') !== false);
-        
+
         if ($allowStudentStaffOnly && ($hasFullAccess || $hasStudentStaffOnly)) {
             return true;
         }
-        
+
         if (!$allowStudentStaffOnly && $hasFullAccess) {
             return true;
         }
@@ -649,7 +649,7 @@ class ScienceWeek extends BaseController
         $isExistingComp = $db->table('Tb_ScienceWeek_Competitions')
             ->where('comp_name', $compName)
             ->countAllResults() > 0;
-            
+
         if (!$isExistingComp) {
             return true;
         }
@@ -670,19 +670,20 @@ class ScienceWeek extends BaseController
     public function adminAnnouncements()
     {
         $access = $this->checkAccess();
-        if ($access !== true) return $access;
+        if ($access !== true)
+            return $access;
         if (!$this->isFullAdmin()) {
             return redirect()->to(base_url('science-week/staff'))->with('error', 'เฉพาะผู้ดูแลระบบ (Admin) เท่านั้นที่สามารถจัดการไฟล์ประกาศได้');
         }
 
         $selectedYear = $this->getSelectedYear();
         $db = \Config\Database::connect();
-        
+
         $announcements = $db->table('Tb_ScienceWeek_Announcements')
-                            ->where('ann_year', $selectedYear)
-                            ->orderBy('ann_created_at', 'DESC')
-                            ->get()
-                            ->getResultArray();
+            ->where('ann_year', $selectedYear)
+            ->orderBy('ann_created_at', 'DESC')
+            ->get()
+            ->getResultArray();
 
         $data = [
             'title' => "จัดการไฟล์ประกาศ | งานสัปดาห์วิทยาศาสตร์",
@@ -697,8 +698,10 @@ class ScienceWeek extends BaseController
     public function adminAnnouncementStore()
     {
         $access = $this->checkAccess();
-        if ($access !== true) return $this->response->setJSON(['status' => 'error', 'message' => 'Unauthorized']);
-        if (!$this->isFullAdmin()) return $this->response->setJSON(['status' => 'error', 'message' => 'ไม่มีสิทธิ์เข้าถึง']);
+        if ($access !== true)
+            return $this->response->setJSON(['status' => 'error', 'message' => 'Unauthorized']);
+        if (!$this->isFullAdmin())
+            return $this->response->setJSON(['status' => 'error', 'message' => 'ไม่มีสิทธิ์เข้าถึง']);
 
         $rules = [
             'ann_title' => 'required',
@@ -711,14 +714,14 @@ class ScienceWeek extends BaseController
 
         $title = $this->request->getPost('ann_title');
         $file = $this->request->getFile('ann_file');
-        
+
         if ($file && $file->isValid() && !$file->hasMoved()) {
             if (!is_dir(FCPATH . 'uploads/science_week/announcements')) {
                 mkdir(FCPATH . 'uploads/science_week/announcements', 0777, true);
             }
             $newName = $file->getRandomName();
             $file->move(FCPATH . 'uploads/science_week/announcements', $newName);
-            
+
             $db = \Config\Database::connect();
             $db->table('Tb_ScienceWeek_Announcements')->insert([
                 'ann_year' => $this->getSelectedYear(),
@@ -726,7 +729,7 @@ class ScienceWeek extends BaseController
                 'ann_file' => 'uploads/science_week/announcements/' . $newName,
                 'ann_created_at' => date('Y-m-d H:i:s')
             ]);
-            
+
             return $this->response->setJSON(['status' => 'success', 'message' => 'อัปโหลดไฟล์ประกาศสำเร็จ']);
         }
 
@@ -736,12 +739,14 @@ class ScienceWeek extends BaseController
     public function adminAnnouncementDelete($id)
     {
         $access = $this->checkAccess();
-        if ($access !== true) return $this->response->setJSON(['status' => 'error', 'message' => 'Unauthorized']);
-        if (!$this->isFullAdmin()) return $this->response->setJSON(['status' => 'error', 'message' => 'ไม่มีสิทธิ์เข้าถึง']);
+        if ($access !== true)
+            return $this->response->setJSON(['status' => 'error', 'message' => 'Unauthorized']);
+        if (!$this->isFullAdmin())
+            return $this->response->setJSON(['status' => 'error', 'message' => 'ไม่มีสิทธิ์เข้าถึง']);
 
         $db = \Config\Database::connect();
         $ann = $db->table('Tb_ScienceWeek_Announcements')->where('ann_id', $id)->get()->getRowArray();
-        
+
         if ($ann) {
             if (file_exists(FCPATH . $ann['ann_file'])) {
                 unlink(FCPATH . $ann['ann_file']);
@@ -749,7 +754,7 @@ class ScienceWeek extends BaseController
             $db->table('Tb_ScienceWeek_Announcements')->where('ann_id', $id)->delete();
             return $this->response->setJSON(['status' => 'success', 'message' => 'ลบไฟล์ประกาศสำเร็จ']);
         }
-        
+
         return $this->response->setJSON(['status' => 'error', 'message' => 'ไม่พบไฟล์ประกาศ']);
     }
 
@@ -759,7 +764,8 @@ class ScienceWeek extends BaseController
     public function checkinView($reg_code)
     {
         $access = $this->checkAccess();
-        if ($access !== true) return $access;
+        if ($access !== true)
+            return $access;
 
         $reg = $this->regModel->where('reg_code', $reg_code)->first();
         if (!$reg) {
@@ -776,7 +782,8 @@ class ScienceWeek extends BaseController
     public function checkinProcess($reg_code)
     {
         $access = $this->checkAccess();
-        if ($access !== true) return $this->response->setJSON(['status' => 'error', 'message' => 'Unauthorized']);
+        if ($access !== true)
+            return $this->response->setJSON(['status' => 'error', 'message' => 'Unauthorized']);
 
         $reg = $this->regModel->where('reg_code', $reg_code)->first();
         if (!$reg) {
@@ -786,7 +793,7 @@ class ScienceWeek extends BaseController
         // สามารถทำ Toggle ได้ (ถ้าเช็คอินแล้วให้ยกเลิก / ถ้ายกเลิกแล้วให้เช็คอิน)
         // หรือจะรับค่าเป็นพารามิเตอร์ post ก็ได้ ในที่นี้จะรับ action หรือแค่ toggle
         $action = $this->request->getPost('action');
-        
+
         $newStatus = ($action === 'cancel') ? 0 : 1;
         $newTime = ($action === 'cancel') ? null : date('Y-m-d H:i:s');
 
@@ -869,16 +876,16 @@ class ScienceWeek extends BaseController
         $db = \Config\Database::connect();
         foreach ($allComps as $c) {
             $levels = [];
-            
+
             // ตรวจสอบว่ากิจกรรมนี้มีการกำหนดระดับชั้นและโควตาเฉพาะระดับชั้นไว้หรือไม่ (จาก comp_level_limits หรือ comp_level)
             $levelLimits = !empty($c['comp_level_limits']) ? (json_decode($c['comp_level_limits'], true) ?: []) : [];
-            
+
             if (!empty($levelLimits)) {
                 // หากมีการกำหนด Level Limit แยกห้อง/ระดับชั้น
                 foreach ($levelLimits as $lvl) {
                     $lvlName = $lvl['level'];
-                    $lvlLimit = (int)$lvl['limit'];
-                    
+                    $lvlLimit = (int) $lvl['limit'];
+
                     $totalReg = $db->table('Tb_ScienceWeek_Registrations')
                         ->where('reg_year', $selectedYear)
                         ->where('reg_competition_type', $c['comp_name'])
@@ -898,7 +905,7 @@ class ScienceWeek extends BaseController
                         ->where('reg_level', $lvlName)
                         ->where('reg_status', 'pending')
                         ->countAllResults();
-                        
+
                     $levels[] = [
                         'level_name' => $lvlName,
                         'total' => $totalReg,
@@ -1120,10 +1127,10 @@ class ScienceWeek extends BaseController
         $registrations = [];
         if (!empty($searchTerm) || !empty($compType) || !empty($level)) {
             $registrations = $query->orderBy('reg_competition_type', 'ASC')
-                                   ->orderBy($rankOrderSql, 'ASC')
-                                   ->orderBy('reg_score', 'DESC')
-                                   ->orderBy('reg_id', 'ASC')
-                                   ->findAll();
+                ->orderBy($rankOrderSql, 'ASC')
+                ->orderBy('reg_score', 'DESC')
+                ->orderBy('reg_id', 'ASC')
+                ->findAll();
         }
         $data['registrations'] = $registrations;
 
@@ -1225,13 +1232,13 @@ class ScienceWeek extends BaseController
         }
 
         $rules = [
-            'school_name'      => 'required|min_length[3]',
-            'school_province'  => 'required',
-            'member_names'     => 'required',
-            'advisor_names'    => 'required',
-            'contact_phone'    => 'required|min_length[9]|max_length[15]',
-            'contact_email'    => 'permit_empty|valid_email',
-            'status'           => 'required|in_list[pending,approved,rejected]'
+            'school_name' => 'required|min_length[3]',
+            'school_province' => 'required',
+            'member_names' => 'required',
+            'advisor_names' => 'required',
+            'contact_phone' => 'required|min_length[9]|max_length[15]',
+            'contact_email' => 'permit_empty|valid_email',
+            'status' => 'required|in_list[pending,approved,rejected]'
         ];
 
         if (!$this->validate($rules)) {
@@ -1252,7 +1259,7 @@ class ScienceWeek extends BaseController
             if ($trimmedName !== '') {
                 $prefix = trim($memberPrefixesRaw[$idx] ?? '');
                 $mFields = $memberCustomFieldsRaw[$idx] ?? [];
-                
+
                 if (!empty($mFields)) {
                     $members[] = [
                         'prefix' => $prefix,
@@ -1312,13 +1319,13 @@ class ScienceWeek extends BaseController
                         }
                         $newName = $file->getRandomName();
                         $file->move(FCPATH . 'uploads/science_week/custom_files', $newName);
-                        
+
                         // Delete old file if exists
                         $oldFile = $customFieldsAnswers[$label] ?? null;
                         if ($oldFile && file_exists(FCPATH . $oldFile)) {
                             @unlink(FCPATH . $oldFile);
                         }
-                        
+
                         $customFieldsAnswers[$label] = 'uploads/science_week/custom_files/' . $newName;
                     }
                     // If no new file is uploaded, keep the old file path. If it's required and nothing is there:
@@ -1616,7 +1623,7 @@ class ScienceWeek extends BaseController
                     $name = trim($m['name'] ?? '');
                     $memberNamesList[] = ($prefix !== '' ? $prefix . ' ' : '') . $name;
                 } else {
-                    $mStr = trim((string)$m);
+                    $mStr = trim((string) $m);
                     if ($mStr !== '') {
                         $memberNamesList[] = $mStr;
                     }
@@ -1632,7 +1639,7 @@ class ScienceWeek extends BaseController
                     $name = trim($a['name'] ?? '');
                     $advisorNamesList[] = ($prefix !== '' ? $prefix . ' ' : '') . $name;
                 } else {
-                    $aStr = trim((string)$a);
+                    $aStr = trim((string) $a);
                     if ($aStr !== '') {
                         $advisorNamesList[] = $aStr;
                     }
@@ -1761,10 +1768,10 @@ class ScienceWeek extends BaseController
             $allComps = array_values(array_filter($allComps, fn($c) => in_array($c['comp_name'], $allowedComps)));
         }
 
-        $data['title']         = 'จัดการประเภทการแข่งขัน | งานสัปดาห์วิทยาศาสตร์';
-        $data['competitions']  = $allComps;
-        $data['is_admin']      = $this->isFullAdmin();
-        $data['fullname']      = session()->get('u_fullname');
+        $data['title'] = 'จัดการประเภทการแข่งขัน | งานสัปดาห์วิทยาศาสตร์';
+        $data['competitions'] = $allComps;
+        $data['is_admin'] = $this->isFullAdmin();
+        $data['fullname'] = session()->get('u_fullname');
         $data['selected_year'] = $selectedYear;
 
         return view('science_week/competitions_index', $data);
@@ -1847,7 +1854,7 @@ class ScienceWeek extends BaseController
             $newName = $bannerFile->getRandomName();
             $tempPath = $bannerFile->getTempName();
             $targetFullPath = FCPATH . 'uploads/science_week/banners/' . $newName;
-            
+
             // Resize and compress the banner image
             if (!$this->resizeImage($tempPath, $targetFullPath, 1000, 80)) {
                 $bannerFile->move(FCPATH . 'uploads/science_week/banners', $newName);
@@ -1897,7 +1904,7 @@ class ScienceWeek extends BaseController
                 if (!empty($lvl['level'])) {
                     $cleanedLevels[] = [
                         'level' => trim($lvl['level']),
-                        'limit' => isset($lvl['limit']) && trim($lvl['limit']) !== '' ? (int)$lvl['limit'] : 0
+                        'limit' => isset($lvl['limit']) && trim($lvl['limit']) !== '' ? (int) $lvl['limit'] : 0
                     ];
                 }
             }
@@ -2067,7 +2074,7 @@ class ScienceWeek extends BaseController
             $newName = $bannerFile->getRandomName();
             $tempPath = $bannerFile->getTempName();
             $targetFullPath = FCPATH . 'uploads/science_week/banners/' . $newName;
-            
+
             // Resize and compress the banner image
             if (!$this->resizeImage($tempPath, $targetFullPath, 1000, 80)) {
                 $bannerFile->move(FCPATH . 'uploads/science_week/banners', $newName);
@@ -2117,7 +2124,7 @@ class ScienceWeek extends BaseController
                 if (!empty($lvl['level'])) {
                     $cleanedLevels[] = [
                         'level' => trim($lvl['level']),
-                        'limit' => isset($lvl['limit']) && trim($lvl['limit']) !== '' ? (int)$lvl['limit'] : 0
+                        'limit' => isset($lvl['limit']) && trim($lvl['limit']) !== '' ? (int) $lvl['limit'] : 0
                     ];
                 }
             }
@@ -2154,8 +2161,8 @@ class ScienceWeek extends BaseController
                 // Update Tb_ScienceWeek_Registrations reference
                 $db = \Config\Database::connect();
                 $db->table('Tb_ScienceWeek_Registrations')
-                   ->where('reg_competition_type', $oldName)
-                   ->update(['reg_competition_type' => $newName]);
+                    ->where('reg_competition_type', $oldName)
+                    ->update(['reg_competition_type' => $newName]);
 
                 // Update Tb_Users.u_science_week_competitions (allowed competitions) reference
                 $userModel = new \App\Models\UserModel();
@@ -2267,7 +2274,7 @@ class ScienceWeek extends BaseController
         $evalQuestionCount = count($evalConfig['questions'] ?? []);
 
         // Cert Config Statuses
-        $checkCertConfig = function($key) use ($settingsModel) {
+        $checkCertConfig = function ($key) use ($settingsModel) {
             $configJson = $settingsModel->getVal($key);
             if ($configJson) {
                 $config = json_decode($configJson, true);
@@ -2285,7 +2292,7 @@ class ScienceWeek extends BaseController
         $data['active_year'] = $activeYear;
         $data['registration_open'] = $settingsModel->getVal('science_week_registration_open') !== '0';
         $data['year_stats'] = $yearStats;
-        $data['evaluation_claim_limit'] = (int)($settingsModel->getVal('science_week_evaluation_claim_limit') ?: 20);
+        $data['evaluation_claim_limit'] = (int) ($settingsModel->getVal('science_week_evaluation_claim_limit') ?: 20);
         $data['evaluation_open'] = $settingsModel->getVal('science_week_evaluation_open') !== '0';
         $data['approved_list_open'] = $settingsModel->getVal('science_week_approved_list_open') !== '0';
         $data['fullname'] = session()->get('u_fullname');
@@ -2336,7 +2343,7 @@ class ScienceWeek extends BaseController
             $existingYear = $settingsModel->where('s_key', 'science_week_active_year')->first();
             $dataYear = [
                 's_key' => 'science_week_active_year',
-                's_value' => (int)$activeYear,
+                's_value' => (int) $activeYear,
                 's_description' => 'ปีการศึกษาปัจจุบันที่เปิดใช้งานและรับสมัครงานวันวิทยาศาสตร์'
             ];
             if ($existingYear) {
@@ -2365,7 +2372,7 @@ class ScienceWeek extends BaseController
             $existingLimit = $settingsModel->where('s_key', 'science_week_evaluation_claim_limit')->first();
             $dataLimit = [
                 's_key' => 'science_week_evaluation_claim_limit',
-                's_value' => (int)$claimLimit,
+                's_value' => (int) $claimLimit,
                 's_description' => 'จำนวนรายชื่อที่สามารถเคลมเกียรติบัตรการเข้าร่วมจากการประเมินได้สูงสุดต่อครั้ง'
             ];
             if ($existingLimit) {
@@ -2608,7 +2615,7 @@ class ScienceWeek extends BaseController
             return $this->response->setStatusCode(403)->setJSON(['status' => 'error', 'message' => 'คุณไม่มีสิทธิ์จัดการรายการแข่งขันนี้']);
         }
 
-        $currentStatus = isset($comp['comp_publish_results']) ? (int)$comp['comp_publish_results'] : 1;
+        $currentStatus = isset($comp['comp_publish_results']) ? (int) $comp['comp_publish_results'] : 1;
         $newStatus = ($currentStatus === 1) ? 0 : 1;
 
         if ($this->compModel->update($id, ['comp_publish_results' => $newStatus])) {
@@ -2640,7 +2647,7 @@ class ScienceWeek extends BaseController
 
         $publishedCompNames = [];
         foreach ($allComps as $c) {
-            $pubStatus = isset($c['comp_publish_results']) ? (int)$c['comp_publish_results'] : 1;
+            $pubStatus = isset($c['comp_publish_results']) ? (int) $c['comp_publish_results'] : 1;
             if ($pubStatus === 1) {
                 $publishedCompNames[] = $c['comp_name'];
             }
@@ -2653,8 +2660,8 @@ class ScienceWeek extends BaseController
             // Require selecting competition OR search keyword first
             if (!empty($compType) || !empty($searchTerm)) {
                 $query = $this->regModel->where('reg_year', $activeYear)
-                                       ->whereIn('reg_status', ['approved', 'approved_reserve'])
-                                       ->whereIn('reg_competition_type', $publishedCompNames);
+                    ->whereIn('reg_status', ['approved', 'approved_reserve'])
+                    ->whereIn('reg_competition_type', $publishedCompNames);
 
                 if (!empty($searchTerm)) {
                     $query = $query->groupStart()
@@ -2681,10 +2688,10 @@ class ScienceWeek extends BaseController
                 END";
 
                 $results = $query->orderBy('reg_competition_type', 'ASC')
-                                 ->orderBy($rankOrderSql, 'ASC')
-                                 ->orderBy('reg_score', 'DESC')
-                                 ->orderBy('reg_id', 'ASC')
-                                 ->findAll();
+                    ->orderBy($rankOrderSql, 'ASC')
+                    ->orderBy('reg_score', 'DESC')
+                    ->orderBy('reg_id', 'ASC')
+                    ->findAll();
             }
         }
 
@@ -2716,9 +2723,9 @@ class ScienceWeek extends BaseController
             $query = $query->where('reg_competition_type', $compType);
 
             $registrations = $query->orderBy('reg_competition_type', 'ASC')
-                                   ->orderBy('reg_level', 'ASC')
-                                   ->orderBy('reg_id', 'ASC')
-                                   ->findAll();
+                ->orderBy('reg_level', 'ASC')
+                ->orderBy('reg_id', 'ASC')
+                ->findAll();
         }
 
         $settingsModel = new \App\Models\SettingsModel();
@@ -2754,7 +2761,7 @@ class ScienceWeek extends BaseController
                 ->orLike('reg_code', $trimmedSearch)
                 ->orLike('reg_contact_phone', $trimmedSearch)
                 ->groupEnd();
-            
+
             $registrations = $query->orderBy('reg_id', 'DESC')->findAll();
         }
 
@@ -2781,7 +2788,7 @@ class ScienceWeek extends BaseController
 
         $settingsModel = new \App\Models\SettingsModel();
         $current = $settingsModel->where('s_key', 'science_week_publish_results')->first();
-        
+
         $newValue = ($current && $current['s_value'] === '1') ? '0' : '1';
         $dataSave = [
             's_key' => 'science_week_publish_results',
@@ -2843,7 +2850,7 @@ class ScienceWeek extends BaseController
 
         $settingsModel = new \App\Models\SettingsModel();
         $configKey = "science_week_cert_{$type}_config";
-        
+
         $currentConfigJson = $settingsModel->getVal($configKey);
         $config = $currentConfigJson ? json_decode($currentConfigJson, true) : [];
 
@@ -2853,17 +2860,17 @@ class ScienceWeek extends BaseController
             $uploadedFilename = basename($uploadedFilename);
             $tempPath = WRITEPATH . 'uploads/temp_certs/' . $uploadedFilename;
             $targetDir = FCPATH . 'uploads/science_week/templates';
-            
+
             if (file_exists($tempPath)) {
                 if (!is_dir($targetDir)) {
                     mkdir($targetDir, 0755, true);
                 }
-                
+
                 // Delete old template if exists
                 if (!empty($config['bg_image']) && file_exists(FCPATH . $config['bg_image'])) {
                     @unlink(FCPATH . $config['bg_image']);
                 }
-                
+
                 rename($tempPath, $targetDir . '/' . $uploadedFilename);
                 $config['bg_image'] = 'uploads/science_week/templates/' . $uploadedFilename;
             }
@@ -2875,7 +2882,7 @@ class ScienceWeek extends BaseController
                 }
                 $newName = $bgImage->getRandomName();
                 $bgImage->move(FCPATH . 'uploads/science_week/templates', $newName);
-                
+
                 // Delete old template if exists
                 if (!empty($config['bg_image']) && file_exists(FCPATH . $config['bg_image'])) {
                     @unlink(FCPATH . $config['bg_image']);
@@ -2901,7 +2908,7 @@ class ScienceWeek extends BaseController
         }
 
         $s_description = "การตั้งค่าเกียรติบัตรประเภท {$type} (พิกัด ขนาดอักษร สีตัวหนังสือ ภาพพื้นหลัง)";
-        
+
         $db = \Config\Database::connect();
         $exists = $db->table('Tb_Settings')->where('s_key', $configKey)->get()->getRowArray();
 
@@ -2934,8 +2941,8 @@ class ScienceWeek extends BaseController
         }
 
         $fileId = $this->request->getPost('file_id');
-        $chunkIndex = (int)$this->request->getPost('chunk_index');
-        $totalChunks = (int)$this->request->getPost('total_chunks');
+        $chunkIndex = (int) $this->request->getPost('chunk_index');
+        $totalChunks = (int) $this->request->getPost('total_chunks');
         $filename = $this->request->getPost('filename');
         $file = $this->request->getFile('chunk');
 
@@ -2966,7 +2973,7 @@ class ScienceWeek extends BaseController
         }
 
         // บันทึก chunk
-        $file->move($tempDir, (string)$chunkIndex);
+        $file->move($tempDir, (string) $chunkIndex);
 
         // ตรวจสอบว่า chunks ครบหรือยัง
         $chunksReceived = count(glob($tempDir . '*'));
@@ -3096,18 +3103,23 @@ class ScienceWeek extends BaseController
 
                     $levelName = $reg['reg_level'] ?? '';
                     $compName = $reg['reg_competition_type'];
-                    
+
+                    $rawRank = trim($reg['reg_rank'] ?? '');
+                    $isParticipantOnly = empty($rawRank) || mb_strpos($rawRank, 'เข้าร่วม') === 0;
+
                     if ($type === 'trainer') {
-                        if (!empty($reg['reg_rank'])) {
-                            $rankName = "ผู้ควบคุมทีม ที่ได้รับ" . $reg['reg_rank'];
+                        if (!$isParticipantOnly) {
+                            $formattedR = (mb_strpos($rawRank, 'รางวัล') !== 0) ? 'รางวัล' . $rawRank : $rawRank;
+                            $rankName = "ผู้ควบคุมทีม ที่ได้รับ" . $formattedR;
                         } else {
-                            $rankName = "ผู้ควบคุมทีม ที่เข้าร่วมการแข่งขัน";
+                            $rankName = "ผู้ควบคุมทีม ได้เข้าร่วม";
                         }
                     } else {
-                        if (!empty($reg['reg_rank'])) {
-                            $rankName = "ได้รับ" . $reg['reg_rank'];
+                        if (!$isParticipantOnly) {
+                            $formattedR = (mb_strpos($rawRank, 'รางวัล') !== 0) ? 'รางวัล' . $rawRank : $rawRank;
+                            $rankName = "ได้รับ" . $formattedR;
                         } else {
-                            $rankName = "ได้เข้าร่วมการประกวดและแข่งขัน";
+                            $rankName = "ได้เข้าร่วม";
                         }
                     }
                 }
@@ -3132,9 +3144,9 @@ class ScienceWeek extends BaseController
                     $recipientName = $eval['eval_name'];
                 }
 
-                $dateText = "ให้ไว้ ณ วันที่ " . date('d', strtotime($eval['eval_created_at'])) . " " . 
-                            ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'][date('n', strtotime($eval['eval_created_at']))-1] . " พ.ศ. " . 
-                            (date('Y', strtotime($eval['eval_created_at'])) + 543);
+                $dateText = "ให้ไว้ ณ วันที่ " . date('d', strtotime($eval['eval_created_at'])) . " " .
+                    ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'][date('n', strtotime($eval['eval_created_at'])) - 1] . " พ.ศ. " .
+                    (date('Y', strtotime($eval['eval_created_at'])) + 543);
             }
         }
 
@@ -3192,7 +3204,7 @@ class ScienceWeek extends BaseController
         }
 
         // Helper closure to recursively construct concatenated texts
-        $getFieldText = function($fieldKey) use (&$getFieldText, $drawFields, $config) {
+        $getFieldText = function ($fieldKey) use (&$getFieldText, $drawFields, $config) {
             $text = $drawFields[$fieldKey] ?? '';
             foreach ($drawFields as $f => $val) {
                 $parentVal = $config["parent_{$f}"] ?? 'none';
@@ -3235,8 +3247,8 @@ class ScienceWeek extends BaseController
             $text = $this->adjustThaiText($text);
 
             $weight = $config["weight_{$field}"] ?? 'bold';
-            $currentFontPath = ($weight === 'regular') 
-                ? FCPATH . 'assets/fonts/Niramit-Regular.ttf' 
+            $currentFontPath = ($weight === 'regular')
+                ? FCPATH . 'assets/fonts/Niramit-Regular.ttf'
                 : FCPATH . 'assets/fonts/Niramit-Bold.ttf';
             if (!file_exists($currentFontPath)) {
                 $currentFontPath = $fontPath;
@@ -3244,7 +3256,7 @@ class ScienceWeek extends BaseController
 
             // Calculate text offset for precise alignment
             $bbox = imagettfbbox($fontSize, 0, $currentFontPath, $text);
-            
+
             if ($align === 'center') {
                 $drawX = $x - ($bbox[2] + $bbox[0]) / 2;
             } elseif ($align === 'right') {
@@ -3262,7 +3274,7 @@ class ScienceWeek extends BaseController
                 for ($dx = -1; $dx <= 1; $dx++) {
                     for ($dy = -1; $dy <= 1; $dy++) {
                         if ($dx !== 0 || $dy !== 0) {
-                            imagettftext($image, (int)$fontSize, 0, (int)($drawX + $dx), (int)($drawY + $dy), $colorAlloc, $currentFontPath, $text);
+                            imagettftext($image, (int) $fontSize, 0, (int) ($drawX + $dx), (int) ($drawY + $dy), $colorAlloc, $currentFontPath, $text);
                         }
                     }
                 }
@@ -3271,14 +3283,14 @@ class ScienceWeek extends BaseController
                 for ($dx = -2; $dx <= 2; $dx++) {
                     for ($dy = -2; $dy <= 2; $dy++) {
                         if ($dx !== 0 || $dy !== 0) {
-                            imagettftext($image, (int)$fontSize, 0, (int)($drawX + $dx), (int)($drawY + $dy), $colorAlloc, $currentFontPath, $text);
+                            imagettftext($image, (int) $fontSize, 0, (int) ($drawX + $dx), (int) ($drawY + $dy), $colorAlloc, $currentFontPath, $text);
                         }
                     }
                 }
             }
 
             // Draw the main text on top
-            imagettftext($image, (int)$fontSize, 0, (int)$drawX, (int)$drawY, $colorAlloc, $currentFontPath, $text);
+            imagettftext($image, (int) $fontSize, 0, (int) $drawX, (int) $drawY, $colorAlloc, $currentFontPath, $text);
         }
 
         // 4. Output Image as PNG stream for download
@@ -3300,7 +3312,8 @@ class ScienceWeek extends BaseController
      */
     private function formatThaiName($name)
     {
-        if (empty($name) || !is_string($name)) return $name;
+        if (empty($name) || !is_string($name))
+            return $name;
         $name = trim($name);
         $pattern = '/^(เด็กชาย|เด็กหญิง|นาย|นางสาว|นาง|ด\.ช\.|ด\.ญ\.|ดร\.|ผศ\.|รศ\.|ครู|อาจารย์|ว่าที่ร\.ต\.|ว่าที่ ร\.ต\.|ว่าที่ร้อยตรี)\s+/u';
         return preg_replace($pattern, '$1', $name);
@@ -3322,92 +3335,12 @@ class ScienceWeek extends BaseController
     }
 
     /**
-     * Adjust Thai text vowels and tone marks to correct floating/overlapping positions in standard TrueType fonts
+     * Adjust Thai text vowels and tone marks for rendering
      */
     private function adjustThaiText($str)
     {
-        if (empty($str)) return $str;
-
-        // Tall consonants: ป, ฝ, ฟ, ฬ
-        $tallConsonants = '([ปฝฟฬ])';
-        // Normal consonants
-        $normalConsonants = '([ก-ฆง-ชซ-ณด-ตถ-ผพภ-ยร-ลว-ฮ])';
-        
-        // Upper vowels: ั (U+0E31), ิ (U+0E34), ี (U+0E35), ึ (U+0E36), ื (U+0E37), ็ (U+0E47), ํ (U+0E4D)
-        $upperVowels = '([ัิีึื็ํ])';
-        // Tone marks & Karanth: ่ (U+0E48), ้ (U+0E49), ๊ (U+0E4A), ๋ (U+0E4B), ์ (U+0E4C)
-        $toneMarks = '([่้๊๋์])';
-
-        // Shifted-left upper vowels (over tall consonants)
-        $shiftedUpperVowels = [
-            'ั' => "\u{F710}",
-            'ิ' => "\u{F705}",
-            'ี' => "\u{F706}",
-            'ึ' => "\u{F707}",
-            'ื' => "\u{F708}",
-            '็' => "\u{F712}",
-            'ํ' => "\u{F711}"
-        ];
-
-        // Shifted-left tone marks directly over tall consonants
-        $shiftedTonesDirect = [
-            '่' => "\u{F70A}",
-            '้' => "\u{F70B}",
-            '๊' => "\u{F70C}",
-            '๋' => "\u{F70D}",
-            '์' => "\u{F70E}"
-        ];
-
-        // High level-2 tone marks over normal consonants + upper vowels
-        $highTones = [
-            '่' => "\u{F713}",
-            '้' => "\u{F714}",
-            '๊' => "\u{F715}",
-            '๋' => "\u{F716}",
-            '์' => "\u{F717}"
-        ];
-
-        // Shifted-left + high level-2 tone marks over tall consonants + upper vowels
-        $shiftedHighTones = [
-            '่' => "\u{F718}",
-            '้' => "\u{F719}",
-            '๊' => "\u{F71A}",
-            '๋' => "\u{F71A}",
-            '์' => "\u{F71C}"
-        ];
-
-        // 1. Tall consonant + Upper vowel + Tone mark
-        $str = preg_replace_callback('/' . $tallConsonants . $upperVowels . $toneMarks . '/u', function($m) use ($shiftedUpperVowels, $shiftedHighTones) {
-            $consonant = $m[1];
-            $vowel = $shiftedUpperVowels[$m[2]] ?? $m[2];
-            $tone = $shiftedHighTones[$m[3]] ?? $m[3];
-            return $consonant . $vowel . $tone;
-        }, $str);
-
-        // 2. Normal consonant + Upper vowel + Tone mark
-        $str = preg_replace_callback('/' . $normalConsonants . $upperVowels . $toneMarks . '/u', function($m) use ($highTones) {
-            $consonant = $m[1];
-            $vowel = $m[2];
-            $tone = $highTones[$m[3]] ?? $m[3];
-            return $consonant . $vowel . $tone;
-        }, $str);
-
-        // 3. Tall consonant + Upper vowel
-        $str = preg_replace_callback('/' . $tallConsonants . $upperVowels . '/u', function($m) use ($shiftedUpperVowels) {
-            return $m[1] . ($shiftedUpperVowels[$m[2]] ?? $m[2]);
-        }, $str);
-
-        // 4. Tall consonant + Tone mark
-        $str = preg_replace_callback('/' . $tallConsonants . $toneMarks . '/u', function($m) use ($shiftedTonesDirect) {
-            return $m[1] . ($shiftedTonesDirect[$m[2]] ?? $m[2]);
-        }, $str);
-
-        // 5. Lower vowels ุ, ู under ญ or ฐ
-        $str = preg_replace_callback('/([ญฐ])([ุู])/u', function($m) {
-            $consonant = $m[1] === 'ญ' ? "\u{F70F}" : "\u{F700}";
-            return $consonant . $m[2];
-        }, $str);
-
+        if (empty($str))
+            return $str;
         return $str;
     }
 
@@ -3539,11 +3472,11 @@ class ScienceWeek extends BaseController
 
         // กฎการตรวจสอบข้อมูลทั่วไป (ส่วนที่ 1)
         $rules = [
-            'gender'          => 'required',
-            'age'             => 'required',
-            'occupation'      => 'required',
+            'gender' => 'required',
+            'age' => 'required',
+            'occupation' => 'required',
             'education_level' => 'required',
-            'province'        => 'required'
+            'province' => 'required'
         ];
 
         foreach ($config['questions'] as $q) {
@@ -3573,7 +3506,7 @@ class ScienceWeek extends BaseController
         $ratingsPost = $this->request->getPost('ratings') ?: [];
         $extractedRatings = [];
         foreach ($config['questions'] as $q) {
-            $extractedRatings[$q['key']] = (int)($ratingsPost[$q['key']] ?? 0);
+            $extractedRatings[$q['key']] = (int) ($ratingsPost[$q['key']] ?? 0);
         }
 
         $comments = trim($this->request->getPost('comments')) ?: '';
@@ -3594,19 +3527,19 @@ class ScienceWeek extends BaseController
         $evalCode = $this->evalModel->generateEvaluationCode();
 
         $dataInsert = [
-            'eval_year'            => $activeYear,
-            'eval_name'            => 'ผู้ประเมินทั่วไป',
-            'eval_students'        => null,
-            'eval_gender'          => $gender,
-            'eval_age'             => $age,
-            'eval_occupation'      => $occupation,
+            'eval_year' => $activeYear,
+            'eval_name' => 'ผู้ประเมินทั่วไป',
+            'eval_students' => null,
+            'eval_gender' => $gender,
+            'eval_age' => $age,
+            'eval_occupation' => $occupation,
             'eval_education_level' => $educationLevel,
-            'eval_school'          => null,
-            'eval_province'        => $provinceVal,
-            'eval_phone'           => null,
-            'eval_feedback'        => json_encode($feedbackData, JSON_UNESCAPED_UNICODE),
-            'eval_code'            => $evalCode,
-            'eval_created_at'      => date('Y-m-d H:i:s')
+            'eval_school' => null,
+            'eval_province' => $provinceVal,
+            'eval_phone' => null,
+            'eval_feedback' => json_encode($feedbackData, JSON_UNESCAPED_UNICODE),
+            'eval_code' => $evalCode,
+            'eval_created_at' => date('Y-m-d H:i:s')
         ];
 
         if ($this->evalModel->insert($dataInsert)) {
@@ -3634,7 +3567,7 @@ class ScienceWeek extends BaseController
         }
 
         $settingsModel = new \App\Models\SettingsModel();
-        $claimLimit = (int)($settingsModel->getVal('science_week_evaluation_claim_limit') ?: 20);
+        $claimLimit = (int) ($settingsModel->getVal('science_week_evaluation_claim_limit') ?: 20);
 
         $data['title'] = 'ข้อมูลผู้ลงชื่อเข้างาน / ผู้รับเกียรติบัตร | งานสัปดาห์วิทยาศาสตร์';
         $data['eval'] = $eval;
@@ -3682,7 +3615,7 @@ class ScienceWeek extends BaseController
         }
 
         $settingsModel = new \App\Models\SettingsModel();
-        $claimLimit = (int)($settingsModel->getVal('science_week_evaluation_claim_limit') ?: 20);
+        $claimLimit = (int) ($settingsModel->getVal('science_week_evaluation_claim_limit') ?: 20);
         if (count($studentNames) > $claimLimit) {
             return $this->response->setJSON([
                 'status' => 'error',
@@ -3691,9 +3624,9 @@ class ScienceWeek extends BaseController
         }
 
         $dataUpdate = [
-            'eval_name'     => $primaryName,
-            'eval_phone'    => !empty($phone) ? $phone : null,
-            'eval_school'   => !empty($school) ? $school : null,
+            'eval_name' => $primaryName,
+            'eval_phone' => !empty($phone) ? $phone : null,
+            'eval_school' => !empty($school) ? $school : null,
             'eval_students' => json_encode($studentNames, JSON_UNESCAPED_UNICODE)
         ];
 
@@ -3781,10 +3714,11 @@ class ScienceWeek extends BaseController
         $fields = [];
         if (is_array($fieldsPost)) {
             foreach ($fieldsPost as $f) {
-                if (empty($f['label'])) continue;
+                if (empty($f['label']))
+                    continue;
                 $key = trim($f['key'] ?: uniqid('field_'));
                 $key = preg_replace('/[^a-zA-Z0-9_]/', '', $key);
-                
+
                 $fields[] = [
                     'key' => $key,
                     'label' => trim($f['label']),
@@ -3801,7 +3735,8 @@ class ScienceWeek extends BaseController
         if (is_array($questionsPost)) {
             $idx = 1;
             foreach ($questionsPost as $q) {
-                if (empty($q['label'])) continue;
+                if (empty($q['label']))
+                    continue;
                 $key = trim($q['key'] ?: 'q' . $idx++);
                 $key = preg_replace('/[^a-zA-Z0-9_]/', '', $key);
 
@@ -3918,7 +3853,7 @@ class ScienceWeek extends BaseController
         }
 
         $fullname = $studentNames[0];
-        
+
         $fieldsPost = $this->request->getPost('fields') ?: [];
         $extractedFields = [];
         foreach ($config['fields'] as $field) {
@@ -3928,7 +3863,7 @@ class ScienceWeek extends BaseController
         $ratingsPost = $this->request->getPost('ratings') ?: [];
         $extractedRatings = [];
         foreach ($config['questions'] as $q) {
-            $extractedRatings[$q['key']] = (int)($ratingsPost[$q['key']] ?? 0);
+            $extractedRatings[$q['key']] = (int) ($ratingsPost[$q['key']] ?? 0);
         }
 
         $comments = trim($this->request->getPost('comments')) ?: '';
@@ -3976,16 +3911,16 @@ class ScienceWeek extends BaseController
         $educationLevel = $extractedFields['education_level'] ?? null;
 
         $dataUpdate = [
-            'eval_name'            => $fullname,
-            'eval_students'        => json_encode($studentNames, JSON_UNESCAPED_UNICODE),
-            'eval_gender'          => $gender,
-            'eval_age'             => $age,
-            'eval_occupation'      => $occupation,
+            'eval_name' => $fullname,
+            'eval_students' => json_encode($studentNames, JSON_UNESCAPED_UNICODE),
+            'eval_gender' => $gender,
+            'eval_age' => $age,
+            'eval_occupation' => $occupation,
             'eval_education_level' => $educationLevel,
-            'eval_school'          => $schoolVal,
-            'eval_province'        => $provinceVal,
-            'eval_phone'           => $phoneVal,
-            'eval_feedback'        => json_encode($feedbackData, JSON_UNESCAPED_UNICODE)
+            'eval_school' => $schoolVal,
+            'eval_province' => $provinceVal,
+            'eval_phone' => $phoneVal,
+            'eval_feedback' => json_encode($feedbackData, JSON_UNESCAPED_UNICODE)
         ];
 
         if ($this->evalModel->update($id, $dataUpdate)) {
@@ -4080,8 +4015,8 @@ class ScienceWeek extends BaseController
             $mergedRoles = array_filter(array_unique(array_merge($existingRoles, $newRoles)));
 
             $dataUpdate = [
-                'u_role'                    => implode(',', $mergedRoles),
-                'u_status'                  => 'active',
+                'u_role' => implode(',', $mergedRoles),
+                'u_status' => 'active',
                 'u_science_week_competitions' => $competitionsJson,
             ];
 
@@ -4096,7 +4031,7 @@ class ScienceWeek extends BaseController
         $baseUsername = preg_replace('/[^a-zA-Z0-9_\-]/', '', $emailParts[0]);
         $username = $baseUsername;
         $counter = 1;
-        
+
         while ($userModel->where('u_username', $username)->first()) {
             $username = $baseUsername . $counter;
             $counter++;
@@ -4106,14 +4041,14 @@ class ScienceWeek extends BaseController
         $randomPassword = bin2hex(random_bytes(16));
 
         $dataInsert = [
-            'u_username'                  => $username,
-            'u_email'                     => $email,
-            'u_fullname'                  => $fullname,
-            'u_position'                  => null,
-            'u_password'                  => password_hash($randomPassword, PASSWORD_DEFAULT),
-            'u_role'                      => $role,
-            'u_status'                    => 'active',
-            'u_sort'                      => 99,
+            'u_username' => $username,
+            'u_email' => $email,
+            'u_fullname' => $fullname,
+            'u_position' => null,
+            'u_password' => password_hash($randomPassword, PASSWORD_DEFAULT),
+            'u_role' => $role,
+            'u_status' => 'active',
+            'u_sort' => 99,
             'u_science_week_competitions' => $competitionsJson,
         ];
 
@@ -4162,9 +4097,9 @@ class ScienceWeek extends BaseController
         }
 
         $dataUpdate = [
-            'u_email'                     => $email,
-            'u_fullname'                  => $fullname,
-            'u_role'                      => $role,
+            'u_email' => $email,
+            'u_fullname' => $fullname,
+            'u_role' => $role,
             'u_science_week_competitions' => $competitionsJson,
         ];
 
@@ -4174,7 +4109,7 @@ class ScienceWeek extends BaseController
             $baseUsername = preg_replace('/[^a-zA-Z0-9_\-]/', '', $emailParts[0]);
             $username = $baseUsername;
             $counter = 1;
-            
+
             while ($userModel->where('u_username', $username)->where('u_id !=', $id)->first()) {
                 $username = $baseUsername . $counter;
                 $counter++;
@@ -4234,7 +4169,7 @@ class ScienceWeek extends BaseController
     private function resizeImage($sourcePath, $targetPath, $maxWidth = 1000, $quality = 85)
     {
         list($width, $height, $type) = getimagesize($sourcePath);
-        
+
         if ($width > $maxWidth) {
             $newWidth = $maxWidth;
             $newHeight = ($height / $width) * $newWidth;
@@ -4269,7 +4204,7 @@ class ScienceWeek extends BaseController
         }
 
         $dst = imagecreatetruecolor($newWidth, $newHeight);
-        
+
         if ($type == IMAGETYPE_PNG || $type == IMAGETYPE_WEBP) {
             imagealphablending($dst, false);
             imagesavealpha($dst, true);
@@ -4372,7 +4307,7 @@ class ScienceWeek extends BaseController
         $uniqueRolesQuery = $uniqueRolesQuery->distinct()
             ->get()
             ->getResultArray();
-        
+
         $assignedRoles = array_column($uniqueRolesQuery, 'staff_competition_type');
 
         $data['title'] = "จัดการรายชื่อนักเรียนช่วยงาน | อบจ.นครสวรรค์";
@@ -4522,7 +4457,7 @@ class ScienceWeek extends BaseController
         $sheet->setCellValue('A3', 'รายการแข่งขัน / ฝ่ายงาน : ' . $compText);
         $sheet->getStyle('A3')->getFont()->setBold(true)->setSize(16);
         $sheet->getStyle('A3')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
-        
+
         $startRow = 5;
 
         // Headers
@@ -4553,11 +4488,11 @@ class ScienceWeek extends BaseController
                 $sheet->setCellValue('C' . $rowNum, $st['staff_class']);
                 $sheet->setCellValue('D' . $rowNum, $st['staff_competition_type']);
                 $sheet->setCellValue('E' . $rowNum, '');
-                
+
                 $sheet->getStyle('A' . $rowNum)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
                 $sheet->getStyle('C' . $rowNum)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
                 $sheet->getStyle('E' . $rowNum)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
-                
+
                 $rowNum++;
             }
         }
@@ -4588,15 +4523,15 @@ class ScienceWeek extends BaseController
         $sheet->getColumnDimension('E')->setWidth(25);
 
         $filename = "student_staff_" . date('Ymd_His') . ".xlsx";
-        
+
         ob_end_clean(); // Clear any previous output buffers to avoid corrupt excel file
-        
+
         $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
-        
+
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         header('Content-Disposition: attachment;filename="' . $filename . '"');
         header('Cache-Control: max-age=0');
-        
+
         $writer->save('php://output');
         exit;
     }
@@ -4628,23 +4563,23 @@ class ScienceWeek extends BaseController
 
         $insertedCount = 0;
         foreach ($staffList as $row) {
-            $prefix    = trim($row['prefix'] ?? '');
+            $prefix = trim($row['prefix'] ?? '');
             $firstname = trim($row['firstname'] ?? '');
-            $lastname  = trim($row['lastname'] ?? '');
-            $class     = trim($row['class'] ?? '');
+            $lastname = trim($row['lastname'] ?? '');
+            $class = trim($row['class'] ?? '');
 
             if ($prefix === '' || $firstname === '' || $lastname === '' || $class === '') {
                 continue; // skip incomplete rows
             }
 
             $dataInsert = [
-                'staff_year'             => $selectedYear,
+                'staff_year' => $selectedYear,
                 'staff_competition_type' => $compType,
-                'staff_prefix'           => $prefix,
-                'staff_firstname'        => $firstname,
-                'staff_lastname'         => $lastname,
-                'staff_class'            => $class,
-                'staff_created_by'       => $userId
+                'staff_prefix' => $prefix,
+                'staff_firstname' => $firstname,
+                'staff_lastname' => $lastname,
+                'staff_class' => $class,
+                'staff_created_by' => $userId
             ];
             $staffModel->insert($dataInsert);
             $insertedCount++;
@@ -4693,10 +4628,10 @@ class ScienceWeek extends BaseController
 
         $dataUpdate = [
             'staff_competition_type' => $newCompType,
-            'staff_prefix'           => trim($row['prefix']),
-            'staff_firstname'        => trim($row['firstname']),
-            'staff_lastname'         => trim($row['lastname']),
-            'staff_class'            => trim($row['class'])
+            'staff_prefix' => trim($row['prefix']),
+            'staff_firstname' => trim($row['firstname']),
+            'staff_lastname' => trim($row['lastname']),
+            'staff_class' => trim($row['class'])
         ];
 
         if ($staffModel->update($id, $dataUpdate)) {
@@ -4756,7 +4691,7 @@ class ScienceWeek extends BaseController
         }
 
         $results = $query->findAll();
-        
+
         if (empty($results)) {
             return $this->response->setJSON(['status' => 'empty', 'message' => 'ไม่พบรายชื่อนักเรียนช่วยงานในระบบ']);
         }
