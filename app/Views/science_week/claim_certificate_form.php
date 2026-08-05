@@ -336,6 +336,7 @@
                 color: getSwalColors().text,
                 confirmButtonColor: '#ef4444',
                 customClass: { popup: 'glass-card rounded-[2rem]' }
+            });
         });
     }
 

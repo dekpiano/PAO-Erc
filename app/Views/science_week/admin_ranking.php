@@ -10,8 +10,17 @@
         <p class="text-[10px] sm:text-xs text-slate-500 mt-1 font-medium">บันทึกผลคะแนนดิบและระดับเหรียญรางวัล/เกียรติยศสำหรับผู้สมัครที่ผ่านเข้ารอบ</p>
     </div>
     
-    <!-- Toggle Publish Buttons -->
+    <!-- Action Buttons -->
     <div class="flex flex-wrap gap-2 shrink-0 w-full md:w-auto">
+        <?php 
+            $exportQueryParams = $_GET ?? [];
+            $exportUrl = base_url('science-week/staff/export-ranking') . (!empty($exportQueryParams) ? '?' . http_build_query($exportQueryParams) : '');
+        ?>
+        <a href="<?= $exportUrl ?>" class="w-full md:w-auto px-4 py-3 rounded-2xl font-bold text-xs sm:text-sm bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 transition-all duration-300 flex items-center justify-center gap-2 shadow-md cursor-pointer">
+            <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-500"></i>
+            <span>ส่งออก Excel (แยก Sheet / A4)</span>
+        </a>
+
         <button id="manage-comps-publish-btn" onclick="openCompPublishModal()" class="w-full md:w-auto px-4 py-3 rounded-2xl font-bold text-xs sm:text-sm bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 text-indigo-600 dark:text-indigo-400 transition-all duration-300 flex items-center justify-center gap-2 shadow-md cursor-pointer">
             <i data-lucide="sliders" class="w-4 h-4 text-indigo-500"></i>
             <span>เปิด-ปิดประกาศผลแยกรายการ</span>

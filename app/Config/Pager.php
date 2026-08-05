@@ -25,6 +25,7 @@ class Pager extends BaseConfig
         'default_simple' => 'CodeIgniter\Pager\Views\default_simple',
         'default_head'   => 'CodeIgniter\Pager\Views\default_head',
         'itsupport_pager' => 'itsupport/layout/pager',
+        'sci_week_pager'  => 'science_week/layout/pager',
     ];
 
     /**

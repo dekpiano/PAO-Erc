@@ -1151,6 +1151,310 @@ class ScienceWeek extends BaseController
     }
 
     /**
+     * ส่งออกผลการแข่งขันและอันดับรางวัลเป็น Excel แยกตามรายการแข่งขัน (Sheet ละ 1 รายการ)
+     * พร้อมตั้งค่าการพิมพ์ A4 ให้พอดีความกว้างกระดาษอัตโนมัติ
+     */
+    public function exportRanking()
+    {
+        $access = $this->checkAccess();
+        if ($access !== true)
+            return $access;
+
+        $selectedYear = $this->getSelectedYear();
+        $searchTerm = $this->request->getGet('search');
+        $compType = $this->request->getGet('competition_type');
+        $level = $this->request->getGet('level');
+
+        $query = $this->regModel->where('reg_year', $selectedYear)->whereIn('reg_status', ['approved', 'approved_reserve']);
+
+        $allowedComps = $this->getAllowedCompetitions();
+        if ($allowedComps !== null && !empty($allowedComps)) {
+            $query = $query->whereIn('reg_competition_type', $allowedComps);
+        }
+
+        if (!empty($searchTerm)) {
+            $query = $query->groupStart()
+                ->like('reg_school_name', $searchTerm)
+                ->orLike('reg_team_name', $searchTerm)
+                ->orLike('reg_code', $searchTerm)
+                ->orLike('reg_members', $searchTerm)
+                ->groupEnd();
+        }
+
+        if (!empty($compType)) {
+            $query = $query->where('reg_competition_type', $compType);
+        }
+
+        if (!empty($level)) {
+            $query = $query->where('reg_level', $level);
+        }
+
+        $rankOrderSql = "CASE 
+            WHEN reg_rank = 'รางวัลชนะเลิศ' THEN 1
+            WHEN reg_rank = 'รางวัลรองชนะเลิศอันดับ 1' THEN 2
+            WHEN reg_rank = 'รางวัลรองชนะเลิศอันดับ 2' THEN 3
+            WHEN reg_rank = 'รางวัลชมเชย' THEN 4
+            WHEN reg_rank LIKE '%เหรียญทอง%' AND reg_rank NOT LIKE '%เหรียญทองแดง%' THEN 5
+            WHEN reg_rank LIKE '%เหรียญเงิน%' THEN 6
+            WHEN reg_rank LIKE '%เหรียญทองแดง%' THEN 7
+            WHEN reg_rank IS NOT NULL AND reg_rank != '' THEN 8
+            ELSE 9
+        END";
+
+        $results = $query->orderBy('reg_competition_type', 'ASC')
+            ->orderBy($rankOrderSql, 'ASC')
+            ->orderBy('reg_score', 'DESC')
+            ->orderBy('reg_id', 'ASC')
+            ->findAll();
+
+        $grouped = [];
+        foreach ($results as $reg) {
+            $rank = trim($reg['reg_rank'] ?? '');
+
+            // Exclude ยังไม่ได้รับรางวัล / ค่าว่าง / รางวัลชมเชย
+            if (empty($rank) || $rank === 'ยังไม่ได้รับรางวัล' || mb_strpos($rank, 'ชมเชย') !== false) {
+                continue;
+            }
+
+            $compName = $reg['reg_competition_type'];
+            $levelName = !empty($reg['reg_level']) ? trim($reg['reg_level']) : 'ทั่วไป / ทุกระดับชั้น';
+            $grouped[$compName][$levelName][] = $reg;
+        }
+
+        $spreadsheet = new Spreadsheet();
+        $spreadsheet->getDefaultStyle()->getFont()->setName('TH Sarabun New');
+        $spreadsheet->getDefaultStyle()->getFont()->setSize(13);
+
+        $sheetIndex = 0;
+        $usedSheetNames = [];
+
+        if (empty($grouped)) {
+            $sheet = $spreadsheet->getActiveSheet();
+            $sheet->setTitle('ไม่มีข้อมูล');
+            $sheet->setCellValue('A1', 'ไม่พบข้อมูลผลการแข่งขันตามเงื่อนไขที่เลือก');
+        } else {
+            foreach ($grouped as $compName => $levelsGroup) {
+                if ($sheetIndex === 0) {
+                    $sheet = $spreadsheet->getActiveSheet();
+                } else {
+                    $sheet = $spreadsheet->createSheet();
+                }
+
+                // Clean and format sheet title (Max 31 characters allowed in Excel)
+                $cleanComp = trim(preg_replace('/[\\/*?:\[\]]/', '', $compName));
+                $baseTitle = mb_substr($cleanComp, 0, 31, 'UTF-8');
+                if (empty($baseTitle)) {
+                    $baseTitle = 'Sheet ' . ($sheetIndex + 1);
+                }
+
+                $finalTitle = $baseTitle;
+                $counter = 1;
+                while (in_array($finalTitle, $usedSheetNames)) {
+                    $suffix = '_' . $counter;
+                    $maxBaseLen = 31 - mb_strlen($suffix, 'UTF-8');
+                    $finalTitle = mb_substr($baseTitle, 0, $maxBaseLen, 'UTF-8') . $suffix;
+                    $counter++;
+                }
+                $usedSheetNames[] = $finalTitle;
+                $sheet->setTitle($finalTitle);
+
+                // ตั้งค่าการพิมพ์สำหรับกระดาษ A4 (ความกว้างไม่เกิน A4)
+                $sheet->getPageSetup()->setOrientation(PageSetup::ORIENTATION_LANDSCAPE);
+                $sheet->getPageSetup()->setPaperSize(PageSetup::PAPERSIZE_A4);
+                $sheet->getPageSetup()->setFitToPage(true);
+                $sheet->getPageSetup()->setFitToWidth(1);
+                $sheet->getPageSetup()->setFitToHeight(0);
+
+                $sheet->getPageMargins()->setTop(0.5);
+                $sheet->getPageMargins()->setRight(0.4);
+                $sheet->getPageMargins()->setLeft(0.4);
+                $sheet->getPageMargins()->setBottom(0.5);
+                $sheet->setShowGridLines(true);
+
+                $currentRow = 1;
+                $levelIndex = 0;
+                $totalLevels = count($levelsGroup);
+
+                foreach ($levelsGroup as $levelName => $regs) {
+                    $levelIndex++;
+
+                    // Document Header for each level page
+                    $sheet->setCellValue('A' . $currentRow, 'สรุปผลการแข่งขันและอันดับรางวัล งานสัปดาห์วิทยาศาสตร์ ประจำปี ' . $selectedYear);
+                    $sheet->mergeCells("A{$currentRow}:H{$currentRow}");
+                    $sheet->getStyle("A{$currentRow}")->getFont()->setSize(16)->setBold(true);
+                    $sheet->getStyle("A{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                    $currentRow++;
+
+                    $sheet->setCellValue('A' . $currentRow, 'รายการแข่งขัน: ' . $compName);
+                    $sheet->mergeCells("A{$currentRow}:H{$currentRow}");
+                    $sheet->getStyle("A{$currentRow}")->getFont()->setSize(14)->setBold(true);
+                    $sheet->getStyle("A{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                    $currentRow++;
+
+                    $sheet->setCellValue('A' . $currentRow, 'พิมพ์ข้อมูลเมื่อ: ' . date('d/m/Y H:i') . ' น.');
+                    $sheet->mergeCells("A{$currentRow}:H{$currentRow}");
+                    $sheet->getStyle("A{$currentRow}")->getFont()->setSize(11)->setItalic(true);
+                    $sheet->getStyle("A{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                    $currentRow += 2;
+
+                    // Level Banner Header
+                    $sheet->setCellValue('A' . $currentRow, '📌 ระดับชั้นการแข่งขัน: ' . $levelName);
+                    $sheet->mergeCells("A{$currentRow}:H{$currentRow}");
+                    $sheet->getStyle("A{$currentRow}")->getFont()->setSize(14)->setBold(true)->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color(\PhpOffice\PhpSpreadsheet\Style\Color::COLOR_WHITE));
+                    $sheet->getStyle("A{$currentRow}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('334155'); // Slate 700
+                    $sheet->getStyle("A{$currentRow}")->getAlignment()->setVertical(Alignment::VERTICAL_CENTER)->setIndent(1);
+                    $sheet->getRowDimension($currentRow)->setRowHeight(28);
+                    $currentRow++;
+
+                    // Table Header
+                    $headers = [
+                        'A' . $currentRow => 'อันดับรางวัล',
+                        'B' . $currentRow => 'เงินรางวัล',
+                        'C' . $currentRow => 'สมาชิก',
+                        'D' . $currentRow => 'ชื่อทีม',
+                        'E' . $currentRow => 'โรงเรียน',
+                        'F' . $currentRow => 'จังหวัด',
+                        'G' . $currentRow => 'ลงชื่อ',
+                        'H' . $currentRow => 'หมายเหตุ'
+                    ];
+
+                    foreach ($headers as $cell => $text) {
+                        $sheet->setCellValue($cell, $text);
+                    }
+
+                    $headerStyle = [
+                        'font' => ['bold' => true, 'size' => 13, 'name' => 'TH Sarabun New', 'color' => ['rgb' => 'FFFFFF']],
+                        'fill' => [
+                            'fillType' => Fill::FILL_SOLID,
+                            'startColor' => ['rgb' => '1E293B'] // Dark slate 800
+                        ],
+                        'alignment' => [
+                            'horizontal' => Alignment::HORIZONTAL_CENTER,
+                            'vertical' => Alignment::VERTICAL_CENTER,
+                        ],
+                        'borders' => [
+                            'allBorders' => [
+                                'borderStyle' => Border::BORDER_THIN,
+                                'color' => ['rgb' => '000000']
+                            ]
+                        ]
+                    ];
+                    $sheet->getStyle("A{$currentRow}:H{$currentRow}")->applyFromArray($headerStyle);
+                    $sheet->getRowDimension($currentRow)->setRowHeight(25);
+                    $currentRow++;
+
+                    foreach ($regs as $reg) {
+                        // Format members
+                        $memberData = json_decode($reg['reg_members'], true) ?? [];
+                        $memberNamesFormatted = [];
+                        foreach ($memberData as $m) {
+                            if (is_array($m)) {
+                                $prefix = trim($m['prefix'] ?? '');
+                                $name = trim($m['name'] ?? '');
+                                $mText = ($prefix !== '' ? $prefix . ' ' : '') . $name;
+                                if (!empty($m['custom_fields'])) {
+                                    $cfStr = [];
+                                    foreach ($m['custom_fields'] as $cfKey => $cfVal) {
+                                        if ($cfVal !== '') {
+                                            $cfStr[] = "{$cfKey}: {$cfVal}";
+                                        }
+                                    }
+                                    if (!empty($cfStr)) {
+                                        $mText .= ' (' . implode(', ', $cfStr) . ')';
+                                    }
+                                }
+                                $memberNamesFormatted[] = $mText;
+                            } else {
+                                $memberNamesFormatted[] = $m;
+                            }
+                        }
+                        $members = implode("\n• ", $memberNamesFormatted);
+                        if (!empty($members)) {
+                            $members = "• " . $members;
+                        }
+
+                        $rankText = !empty($reg['reg_rank']) ? $reg['reg_rank'] : 'ยังไม่ได้รับรางวัล';
+
+                        $sheet->setCellValue('A' . $currentRow, $rankText);
+                        $sheet->setCellValue('B' . $currentRow, '');
+                        $sheet->setCellValue('C' . $currentRow, $members ?: '-');
+                        $sheet->setCellValue('D' . $currentRow, $reg['reg_team_name'] ?: '-');
+                        $sheet->setCellValue('E' . $currentRow, $reg['reg_school_name']);
+                        $sheet->setCellValue('F' . $currentRow, $reg['reg_school_province'] ?: '-');
+                        $sheet->setCellValue('G' . $currentRow, '');
+                        $sheet->setCellValue('H' . $currentRow, '');
+
+                        // Alignments
+                        $sheet->getStyle('A' . $currentRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                        $sheet->getStyle('B' . $currentRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                        $sheet->getStyle('F' . $currentRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                        $sheet->getStyle('G' . $currentRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+                        // Enable Wrap Text for multi-line / long text columns
+                        $sheet->getStyle('C' . $currentRow)->getAlignment()->setWrapText(true);
+                        $sheet->getStyle('D' . $currentRow)->getAlignment()->setWrapText(true);
+                        $sheet->getStyle('E' . $currentRow)->getAlignment()->setWrapText(true);
+                        $sheet->getStyle('H' . $currentRow)->getAlignment()->setWrapText(true);
+
+                        // Vertical alignment center
+                        $sheet->getStyle("A{$currentRow}:H{$currentRow}")->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+                        $sheet->getStyle("A{$currentRow}:H{$currentRow}")->getFont()->setName('TH Sarabun New')->setSize(13);
+
+                        // Dynamic row height calculation to avoid vertical cut-off
+                        $memberLineCount = max(1, count($memberNamesFormatted));
+                        $schoolLines = ceil(mb_strlen($reg['reg_school_name'], 'UTF-8') / 28);
+                        $teamLines = !empty($reg['reg_team_name']) ? ceil(mb_strlen($reg['reg_team_name'], 'UTF-8') / 18) : 1;
+                        $maxLines = max($memberLineCount, $schoolLines, $teamLines);
+                        $calculatedHeight = max(26, $maxLines * 20);
+                        $sheet->getRowDimension($currentRow)->setRowHeight($calculatedHeight);
+
+                        // Borders
+                        $sheet->getStyle("A{$currentRow}:H{$currentRow}")->applyFromArray([
+                            'borders' => [
+                                'allBorders' => [
+                                    'borderStyle' => Border::BORDER_THIN,
+                                    'color' => ['rgb' => 'CBD5E1']
+                                ]
+                            ]
+                        ]);
+
+                        $currentRow++;
+                    }
+
+                    // Set explicit Page Break after each level (so each level is printed on a separate page)
+                    if ($levelIndex < $totalLevels) {
+                        $sheet->setBreak('A' . ($currentRow - 1), \PhpOffice\PhpSpreadsheet\Worksheet\Worksheet::BREAK_ROW);
+                    }
+                    $currentRow += 2;
+                }
+
+                // Set column dimensions
+                $sheet->getColumnDimension('A')->setWidth(24);  // อันดับรางวัล
+                $sheet->getColumnDimension('B')->setWidth(16);  // เงินรางวัล
+                $sheet->getColumnDimension('C')->setWidth(38);  // สมาชิก
+                $sheet->getColumnDimension('D')->setWidth(22);  // ชื่อทีม
+                $sheet->getColumnDimension('E')->setWidth(32);  // โรงเรียน
+                $sheet->getColumnDimension('F')->setWidth(16);  // จังหวัด
+                $sheet->getColumnDimension('G')->setWidth(18);  // ลงชื่อ
+                $sheet->getColumnDimension('H')->setWidth(20);  // หมายเหตุ
+
+                $sheetIndex++;
+            }
+        }
+
+        $spreadsheet->setActiveSheetIndex(0);
+        $filename = 'สรุปผลการแข่งขัน_งานสัปดาห์วิทยาศาสตร์_' . date('Ymd_His') . '.xlsx';
+        
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="' . $filename . '"');
+        header('Cache-Control: max-age=0');
+
+        $writer = new Xlsx($spreadsheet);
+        $writer->save('php://output');
+        exit;
+    }
+
+    /**
      * อัปเดตสถานะการสมัครแข่งขัน (เช่น อนุมัติ / ปฏิเสธ / รอตรวจสอบ)
      */
     public function updateStatus($id)
@@ -3655,8 +3959,151 @@ class ScienceWeek extends BaseController
 
         $selectedYear = $this->getSelectedYear();
         $searchTerm = $this->request->getGet('search');
+        $filterMode = $this->request->getGet('filter');
 
+        // Fetch all evaluations for stats calculation
+        $allEvals = $this->evalModel->where('eval_year', $selectedYear)->findAll();
+        $formConfig = $this->getEvaluationConfig();
+
+        $totalCount = count($allEvals);
+        $totalClaimed = 0;
+        $commentsCount = 0;
+        $allCommentsList = [];
+
+        $questionSums = [];
+        $questionCounts = [];
+        foreach ($formConfig['questions'] as $q) {
+            $questionSums[$q['key']] = 0;
+            $questionCounts[$q['key']] = 0;
+        }
+
+        $ratingDist = [5 => 0, 4 => 0, 3 => 0, 2 => 0, 1 => 0];
+        $occupationCounts = [];
+        $genderCounts = [];
+        $ageCounts = [];
+        $provinceCounts = [];
+        $allRatingsList = [];
+
+        foreach ($allEvals as $ev) {
+            $students = json_decode($ev['eval_students'] ?? '', true) ?: [];
+            if (!empty($students)) {
+                $totalClaimed += count($students);
+            }
+
+            $fb = json_decode($ev['eval_feedback'] ?? '', true) ?: [];
+            $ratings = $fb['ratings'] ?? [];
+            $comments = trim($fb['comments'] ?? '');
+
+            if (!empty($comments) && $comments !== '-') {
+                $commentsCount++;
+                $cFields = $fb['custom_fields'] ?? $fb['fields'] ?? [];
+                $cName = !empty($students) ? implode(', ', $students) : ($ev['eval_name'] ?: 'ผู้ประเมินทั่วไป');
+                $allCommentsList[] = [
+                    'code' => $ev['eval_code'],
+                    'name' => $cName,
+                    'comment' => $comments,
+                    'date' => date('d/m/Y H:i', strtotime($ev['eval_created_at'])),
+                    'province' => !empty($ev['eval_province']) ? $ev['eval_province'] : ($cFields['province'] ?? '-'),
+                    'occupation' => !empty($ev['eval_occupation']) ? $ev['eval_occupation'] : ($cFields['occupation'] ?? '-')
+                ];
+            }
+
+            $evalSum = 0;
+            $evalCount = 0;
+            if (!empty($ratings) && is_array($ratings)) {
+                foreach ($ratings as $qKey => $val) {
+                    $val = (float)$val;
+                    if ($val > 0) {
+                        if (!isset($questionSums[$qKey])) {
+                            $questionSums[$qKey] = 0;
+                            $questionCounts[$qKey] = 0;
+                        }
+                        $questionSums[$qKey] += $val;
+                        $questionCounts[$qKey]++;
+                        $evalSum += $val;
+                        $evalCount++;
+                    }
+                }
+            }
+
+            if ($evalCount > 0) {
+                $avgScore = $evalSum / $evalCount;
+                $allRatingsList[] = $avgScore;
+                if ($avgScore >= 4.5) $ratingDist[5]++;
+                elseif ($avgScore >= 3.5) $ratingDist[4]++;
+                elseif ($avgScore >= 2.5) $ratingDist[3]++;
+                elseif ($avgScore >= 1.5) $ratingDist[2]++;
+                else $ratingDist[1]++;
+            }
+
+            $cFields = $fb['custom_fields'] ?? $fb['fields'] ?? [];
+
+            $occRaw = !empty($ev['eval_occupation']) ? $ev['eval_occupation'] : ($cFields['occupation'] ?? $cFields['eval_occupation'] ?? null);
+            $occ = !empty($occRaw) ? trim($occRaw) : 'ไม่ระบุ';
+            $occupationCounts[$occ] = ($occupationCounts[$occ] ?? 0) + 1;
+
+            $genRaw = !empty($ev['eval_gender']) ? $ev['eval_gender'] : ($cFields['gender'] ?? $cFields['eval_gender'] ?? null);
+            $gen = !empty($genRaw) ? trim($genRaw) : 'ไม่ระบุ';
+            $genderCounts[$gen] = ($genderCounts[$gen] ?? 0) + 1;
+
+            $ageRaw = !empty($ev['eval_age']) ? $ev['eval_age'] : ($cFields['age'] ?? $cFields['eval_age'] ?? null);
+            $age = !empty($ageRaw) ? trim($ageRaw) : 'ไม่ระบุ';
+            $ageCounts[$age] = ($ageCounts[$age] ?? 0) + 1;
+
+            $provRaw = !empty($ev['eval_province']) ? $ev['eval_province'] : ($cFields['province'] ?? $cFields['eval_province'] ?? null);
+            $prov = !empty($provRaw) ? trim($provRaw) : 'ไม่ระบุ';
+            $provinceCounts[$prov] = ($provinceCounts[$prov] ?? 0) + 1;
+        }
+
+        $overallAvg = !empty($allRatingsList) ? number_format(array_sum($allRatingsList) / count($allRatingsList), 2) : '0.00';
+
+        $questionStats = [];
+        foreach ($formConfig['questions'] as $q) {
+            $qKey = $q['key'];
+            $cnt = $questionCounts[$qKey] ?? 0;
+            $sum = $questionSums[$qKey] ?? 0;
+            $avg = $cnt > 0 ? number_format($sum / $cnt, 2) : '0.00';
+            $questionStats[] = [
+                'key' => $qKey,
+                'label' => $q['label'],
+                'avg' => (float)$avg,
+                'count' => $cnt
+            ];
+        }
+
+        arsort($provinceCounts);
+        $topProvinces = array_slice($provinceCounts, 0, 5, true);
+
+        $data['stats'] = [
+            'total_count' => $totalCount,
+            'total_claimed' => $totalClaimed,
+            'overall_avg' => $overallAvg,
+            'comments_count' => $commentsCount,
+            'question_stats' => $questionStats,
+            'rating_dist' => $ratingDist,
+            'occupation_counts' => $occupationCounts,
+            'gender_counts' => $genderCounts,
+            'age_counts' => $ageCounts,
+            'top_provinces' => $topProvinces
+        ];
+        $data['form_config'] = $formConfig;
+        $data['all_comments'] = $allCommentsList;
+        $data['filter_mode'] = $filterMode;
+
+        // Paginated records for table view
         $query = $this->evalModel->where('eval_year', $selectedYear);
+
+        if ($filterMode === 'claimed') {
+            $query = $query->where('eval_students IS NOT NULL')
+                           ->where('eval_students !=', '')
+                           ->where('eval_students !=', '[]');
+        } elseif ($filterMode === 'has_comments') {
+            $query = $query->groupStart()
+                ->like('eval_feedback', '"comments":"')
+                ->notLike('eval_feedback', '"comments":""')
+                ->notLike('eval_feedback', '"comments":"-"')
+                ->groupEnd();
+        }
 
         if (!empty($searchTerm)) {
             $query = $query->groupStart()
