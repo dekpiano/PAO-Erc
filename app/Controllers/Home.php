@@ -10,8 +10,6 @@ class Home extends Controller
 {
     public function index()
     {
-
-
         $newsModel = new \App\Models\NewsModel();
         $data['title'] = 'กองการศึกษา ศาสนา และวัฒนธรรม - องค์การบริหารส่วนจังหวัดนครสวรรค์';
         

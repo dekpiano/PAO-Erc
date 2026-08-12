@@ -140,7 +140,7 @@
                         class="text-sm font-semibold text-slate-600 hover:text-blue-600 transition-colors">ทำเนียบบุคลากร</a>
                     <a href="#"
                         class="text-sm font-semibold text-slate-600 hover:text-blue-600 transition-colors">ดาวน์โหลด</a>
-                    <a href="<?= base_url('staff/attendance') ?>"
+                    <a href="<?= base_url('staff') ?>"
                         class="px-5 py-2.5 bg-blue-600 text-white rounded-full text-sm font-bold premium-btn">
                         สำหรับบุคลากร
                     </a>
@@ -193,7 +193,7 @@
                 class="text-xl font-bold text-slate-800 border-b border-slate-50 pb-4 flex items-center justify-between">
                 ดาวน์โหลด <i data-lucide="chevron-right" class="w-5 h-5 text-slate-300"></i>
             </a>
-            <a href="<?= base_url('staff/attendance') ?>"
+            <a href="<?= base_url('staff') ?>"
                 class="w-full py-5 bg-blue-600 text-white rounded-[2rem] text-center font-black shadow-xl shadow-blue-100 flex items-center justify-center gap-3 mt-4">
                 <i data-lucide="user" class="w-6 h-6"></i> สำหรับบุคลากร
             </a>
@@ -245,7 +245,7 @@
                         <li><a href="<?= base_url('staff/attendance') ?>"
                                 class="hover:text-white transition-colors font-bold text-blue-400">ลงชื่อเข้างาน</a>
                         </li>
-                        <li><a href="<?= base_url('admin') ?>"
+                        <li><a href="<?= base_url('staff') ?>"
                                 class="hover:text-white transition-colors">ระบบจัดการหลังบ้าน</a></li>
                     </ul>
                 </div>

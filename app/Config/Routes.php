@@ -209,3 +209,32 @@ $routes->group('science-week/staff', ['filter' => 'auth'], function($routes) {
     $routes->get('student-staff/delete/(:num)', 'ScienceWeek::studentStaffDelete/$1');
 });
 
+// ================================================================
+// 📝 FORMS & E-CERTIFICATE MODULE (ระบบแบบสอบถาม & เกียรติบัตร)
+// ================================================================
+// Public Routes
+$routes->get('forms', 'Forms\FormPublicController::index');
+$routes->get('forms/view/(:num)', 'Forms\FormPublicController::view/$1');
+$routes->post('forms/submit/(:num)', 'Forms\FormPublicController::submit/$1');
+$routes->get('forms/success/(:num)', 'Forms\FormPublicController::success/$1');
+$routes->get('forms/certificate/(:segment)', 'Forms\FormPublicController::downloadCert/$1');
+
+// Admin / Staff Routes
+$routes->group('staff/forms', function($routes) {
+    $routes->get('/', 'Forms\FormAdminController::index');
+    $routes->post('store', 'Forms\FormAdminController::store');
+    $routes->get('builder/(:num)', 'Forms\FormAdminController::builder/$1');
+    $routes->get('edit/(:num)', 'Forms\FormAdminController::edit/$1');
+    $routes->get('certificate/(:num)', 'Forms\FormAdminController::certificate/$1');
+    $routes->post('save-general/(:num)', 'Forms\FormAdminController::saveGeneralSettings/$1');
+    $routes->post('save-cert-settings/(:num)', 'Forms\FormAdminController::saveCertSettings/$1');
+    $routes->post('save-settings/(:num)', 'Forms\FormAdminController::saveGeneralSettings/$1');
+    $routes->post('save-fields/(:num)', 'Forms\FormAdminController::saveFields/$1');
+    $routes->post('upload-chunk', 'Forms\FormAdminController::uploadCertChunk');
+    $routes->get('delete/(:num)', 'Forms\FormAdminController::delete/$1');
+    $routes->get('responses/(:num)', 'Forms\FormAdminController::responses/$1');
+    $routes->get('clear-responses/(:num)', 'Forms\FormAdminController::clearResponses/$1');
+    $routes->get('export/(:num)', 'Forms\FormAdminController::exportExcel/$1');
+});
+
+

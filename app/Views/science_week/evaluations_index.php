@@ -281,7 +281,6 @@
             <thead>
                 <tr class="bg-slate-50 dark:bg-slate-800/40 border-b border-slate-100 dark:border-slate-800">
                     <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 w-[140px]">รหัสประเมิน</th>
-                    <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">ผู้รับเกียรติบัตร (เคลมสิทธิ์)</th>
                     <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">ข้อมูลทั่วไปผู้ประเมิน</th>
                     <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">จังหวัด</th>
                     <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 text-center w-[120px]">คะแนนเฉลี่ย</th>
@@ -292,7 +291,7 @@
             <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                 <?php if (empty($evaluations)): ?>
                     <tr>
-                        <td colspan="7" class="px-6 py-12 text-center text-slate-400 font-medium bg-white dark:bg-transparent">
+                        <td colspan="6" class="px-6 py-12 text-center text-slate-400 font-medium bg-white dark:bg-transparent">
                             ไม่พบข้อมูลแบบประเมินในระบบ
                         </td>
                     </tr>
@@ -305,9 +304,6 @@
                         $count = count($ratings);
                         $avg = $count > 0 ? number_format($sum / $count, 2) : '-';
 
-                        $students = json_decode($eval['eval_students'] ?? '', true) ?: [];
-                        $claimName = !empty($students) ? implode(', ', $students) : null;
-
                         $cFields = $feedback['custom_fields'] ?? $feedback['fields'] ?? [];
                         $evalGender = !empty($eval['eval_gender']) ? $eval['eval_gender'] : ($cFields['gender'] ?? $cFields['eval_gender'] ?? '-');
                         $evalAge = !empty($eval['eval_age']) ? $eval['eval_age'] : ($cFields['age'] ?? $cFields['eval_age'] ?? '-');
@@ -319,16 +315,6 @@
                             <td class="px-6 py-4">
                                 <span class="text-xs font-extrabold text-cyan-500 dark:text-cyan-400 block font-mono"><?= esc($eval['eval_code']) ?></span>
                                 <span class="text-[9px] text-slate-500 block mt-1"><?= date('d/m/Y H:i', strtotime($eval['eval_created_at'])) ?></span>
-                            </td>
-                            <td class="px-6 py-4">
-                                <?php if ($claimName): ?>
-                                    <div class="font-bold text-xs text-slate-850 dark:text-slate-200"><?= esc($claimName) ?></div>
-                                    <span class="inline-flex mt-1 items-center gap-1 px-1.5 py-0.5 rounded text-[9px] bg-emerald-500/10 text-emerald-450 border border-emerald-500/20 font-bold">
-                                        <i data-lucide="check-circle" class="w-3 h-3"></i> เคลมสิทธิ์แล้ว
-                                    </span>
-                                <?php else: ?>
-                                    <div class="text-xs text-rose-450 dark:text-rose-400 font-semibold italic">ยังไม่ได้เคลมเกียรติบัตร</div>
-                                <?php endif; ?>
                             </td>
                             <td class="px-6 py-4">
                                 <div class="text-xs text-slate-800 dark:text-slate-200 font-semibold">
@@ -353,10 +339,6 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-center text-xs">
                                 <div class="flex items-center justify-center gap-2">
-                                    <!-- Print/View Certificate -->
-                                    <a href="<?= base_url('science-week/certificate/view-all/evaluation/' . $eval['eval_code']) ?>" target="_blank" class="p-1.5 bg-emerald-50 hover:bg-emerald-600 text-emerald-600 hover:text-white rounded-lg border border-emerald-100 dark:border-slate-800 transition-all" title="พิมพ์เกียรติบัตร">
-                                        <i data-lucide="award" class="w-4 h-4"></i>
-                                    </a>
                                     <!-- Edit -->
                                     <a href="<?= base_url('science-week/staff/evaluations/edit/' . $eval['eval_id']) ?>" class="p-1.5 bg-blue-50 hover:bg-blue-600 text-blue-600 hover:text-white rounded-lg border border-blue-100 dark:border-slate-800 transition-all" title="แก้ไข">
                                         <i data-lucide="edit" class="w-4 h-4"></i>
