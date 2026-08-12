@@ -411,10 +411,13 @@ class FormAdminController extends BaseController
             $this->fieldModel->whereIn('field_id', $toDelete)->delete();
         }
 
+        // Return updated list of fields with exact Database IDs and stored options
+        $updatedFields = $this->fieldModel->where('field_form_id', $formId)->orderBy('field_sort_order', 'ASC')->findAll();
+
         return $this->response->setJSON([
             'status'       => 'success',
             'message'      => 'บันทึกชุดคำถามเรียบร้อยแล้ว',
-            'saved_fields' => $savedFieldsResult
+            'saved_fields' => $updatedFields
         ]);
     }
 

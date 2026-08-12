@@ -140,13 +140,15 @@
         clearTimeout(autoSaveTimer);
         autoSaveTimer = setTimeout(() => {
             saveAllFields(true);
-        }, 600);
+        }, 800);
     }
 
     function initSortable() {
         const el = document.getElementById('fields-list');
+        if (!el) return;
         Sortable.create(el, {
             animation: 150,
+            handle: '.cursor-move',
             onEnd: function () {
                 const newFields = [];
                 document.querySelectorAll('.field-item').forEach((item) => {
@@ -190,6 +192,7 @@
 
     function renderFields() {
         const container = document.getElementById('fields-list');
+        if (!container) return;
         container.innerHTML = '';
 
         if (fieldsData.length === 0) {
@@ -202,9 +205,11 @@
 
         fieldsData.forEach((f, idx) => {
             const fId = f.field_id || f.temp_id;
-            let rawOpts = (typeof f.field_options === 'object' && f.field_options !== null) ? f.field_options : {};
-            if (typeof f.field_options === 'string') {
-                try { rawOpts = JSON.parse(f.field_options) || {}; } catch(e) { rawOpts = {}; }
+            let rawOpts = f.field_options;
+            if (typeof rawOpts === 'string') {
+                try { rawOpts = JSON.parse(rawOpts) || {}; } catch(e) { rawOpts = {}; }
+            } else if (!rawOpts) {
+                rawOpts = {};
             }
 
             let options = Array.isArray(rawOpts) ? rawOpts : [];
@@ -219,7 +224,7 @@
                     <div class="flex items-center gap-2 flex-1">
                         <i data-lucide="grip-vertical" class="w-4 h-4 text-slate-400 cursor-move"></i>
                         <span class="text-xs font-black text-indigo-600">ข้อ ${idx + 1}</span>
-                        <input type="text" value="${f.field_label || ''}" oninput="updateLabel('${fId}', this.value)" placeholder="กรอกหัวข้อคำถาม..." class="flex-1 px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold bg-white">
+                        <input type="text" value="${escapeHtml(f.field_label || '')}" oninput="updateLabel('${fId}', this.value)" placeholder="กรอกหัวข้อคำถาม..." class="flex-1 px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold bg-white">
                     </div>
                     <div class="flex items-center gap-2">
                         <label class="flex items-center gap-1.5 text-xs font-bold text-slate-600 cursor-pointer">
@@ -236,8 +241,8 @@
                         ${options.map((opt, oIdx) => `
                             <div class="flex items-center gap-2">
                                 <span class="text-slate-300 text-xs">${f.field_type === 'radio' ? '○' : '□'}</span>
-                                <input type="text" value="${opt}" oninput="updateOption('${fId}', ${oIdx}, this.value)" placeholder="ตัวเลือก ${oIdx + 1}" class="px-3 py-1 rounded-lg border border-slate-200 text-xs bg-white">
-                                <button onclick="removeOption('${fId}', ${oIdx})" class="text-slate-300 hover:text-rose-500 text-xs">✕</button>
+                                <input type="text" value="${escapeHtml(opt || '')}" oninput="updateOption('${fId}', ${oIdx}, this.value)" placeholder="ตัวเลือก ${oIdx + 1}" class="px-3 py-1 rounded-lg border border-slate-200 text-xs bg-white">
+                                <button onclick="removeOption('${fId}', ${oIdx})" class="text-slate-300 hover:text-rose-500 text-xs p-1">✕</button>
                             </div>
                         `).join('')}
                         <button onclick="addOption('${fId}')" class="text-xs font-bold text-indigo-600 hover:underline">+ เพิ่มตัวเลือก</button>
@@ -247,7 +252,7 @@
                         <label class="text-[11px] font-bold text-slate-500">ช่วงคะแนนประเมิน (สเกล): 1 ถึง</label>
                         <select onchange="updateRatingMax('${fId}', this.value)" class="px-3 py-1 rounded-xl border border-slate-200 text-xs font-bold bg-white text-indigo-600">
                             ${[3, 4, 5, 6, 7, 8, 9, 10].map(num => `
-                                <option value="${num}" ${(options.max || 5) == num ? 'selected' : ''}>${num} คะแนน</option>
+                                <option value="${num}" ${(rawOpts.max || 5) == num ? 'selected' : ''}>${num} คะแนน</option>
                             `).join('')}
                         </select>
                     </div>
@@ -267,7 +272,7 @@
                             ${gridItems.map((itemVal, itemIdx) => `
                                 <div class="flex items-center gap-2">
                                     <span class="text-indigo-500 text-xs font-bold">${itemIdx + 1}.</span>
-                                    <input type="text" value="${itemVal}" oninput="updateGridItem('${fId}', ${itemIdx}, this.value)" placeholder="กรอกข้อคำถามย่อยข้อที่ ${itemIdx + 1}..." class="flex-1 px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold bg-white">
+                                    <input type="text" value="${escapeHtml(itemVal || '')}" oninput="updateGridItem('${fId}', ${itemIdx}, this.value)" placeholder="กรอกข้อคำถามย่อยข้อที่ ${itemIdx + 1}..." class="flex-1 px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold bg-white">
                                     <button onclick="removeGridItem('${fId}', ${itemIdx})" class="text-slate-300 hover:text-rose-500 text-xs p-1">✕</button>
                                 </div>
                             `).join('')}
@@ -282,8 +287,25 @@
         lucide.createIcons();
     }
 
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    function getParsedOpts(fieldOpts) {
+        if (typeof fieldOpts === 'string') {
+            try { return JSON.parse(fieldOpts) || {}; } catch(e) { return {}; }
+        }
+        return (typeof fieldOpts === 'object' && fieldOpts !== null) ? JSON.parse(JSON.stringify(fieldOpts)) : {};
+    }
+
     function updateLabel(id, val) {
-        const f = fieldsData.find(x => (x.field_id || x.temp_id) == id);
+        const f = fieldsData.find(x => (x.field_id == id || x.temp_id == id));
         if (f) {
             f.field_label = val;
             triggerAutoSave();
@@ -291,48 +313,52 @@
     }
 
     function updateRequired(id, checked) {
-        const f = fieldsData.find(x => (x.field_id || x.temp_id) == id);
+        const f = fieldsData.find(x => (x.field_id == id || x.temp_id == id));
         if (f) {
             f.field_is_required = checked ? 1 : 0;
             triggerAutoSave();
         }
     }
 
-    function getParsedOptions(fieldOptions) {
-        if (typeof fieldOptions === 'string') {
-            try { return JSON.parse(fieldOptions) || []; } catch(e) { return []; }
-        }
-        return Array.isArray(fieldOptions) ? fieldOptions : [];
-    }
-
     function addOption(id) {
-        const f = fieldsData.find(x => (x.field_id || x.temp_id) == id);
+        const f = fieldsData.find(x => (x.field_id == id || x.temp_id == id));
         if (f) {
-            let opts = getParsedOptions(f.field_options);
-            opts.push("");
-            f.field_options = opts;
+            let opts = getParsedOpts(f.field_options);
+            let arr = Array.isArray(opts) ? opts : [];
+            arr.push("");
+            f.field_options = arr;
             renderFields();
             triggerAutoSave();
         }
     }
 
     function updateOption(id, oIdx, val) {
-        const f = fieldsData.find(x => (x.field_id || x.temp_id) == id);
+        const f = fieldsData.find(x => (x.field_id == id || x.temp_id == id));
         if (f) {
-            let opts = getParsedOptions(f.field_options);
-            opts[oIdx] = val;
-            f.field_options = opts;
+            let opts = getParsedOpts(f.field_options);
+            let arr = Array.isArray(opts) ? opts : [];
+            arr[oIdx] = val;
+            f.field_options = arr;
+            triggerAutoSave();
+        }
+    }
+
+    function removeOption(id, oIdx) {
+        const f = fieldsData.find(x => (x.field_id == id || x.temp_id == id));
+        if (f) {
+            let opts = getParsedOpts(f.field_options);
+            let arr = Array.isArray(opts) ? opts : [];
+            arr.splice(oIdx, 1);
+            f.field_options = arr;
+            renderFields();
             triggerAutoSave();
         }
     }
 
     function updateRatingMax(id, maxVal) {
-        const f = fieldsData.find(x => (x.field_id || x.temp_id) == id);
+        const f = fieldsData.find(x => (x.field_id == id || x.temp_id == id));
         if (f) {
-            let opts = (typeof f.field_options === 'object' && f.field_options !== null) ? f.field_options : {};
-            if (typeof f.field_options === 'string') {
-                try { opts = JSON.parse(f.field_options); } catch(e) { opts = {}; }
-            }
+            let opts = getParsedOpts(f.field_options);
             opts.max = parseInt(maxVal) || 5;
             f.field_options = opts;
             triggerAutoSave();
@@ -340,12 +366,9 @@
     }
 
     function updateGridMax(id, maxVal) {
-        const f = fieldsData.find(x => (x.field_id || x.temp_id) == id);
+        const f = fieldsData.find(x => (x.field_id == id || x.temp_id == id));
         if (f) {
-            let opts = (typeof f.field_options === 'object' && f.field_options !== null) ? f.field_options : {};
-            if (typeof f.field_options === 'string') {
-                try { opts = JSON.parse(f.field_options); } catch(e) { opts = {}; }
-            }
+            let opts = getParsedOpts(f.field_options);
             opts.max = parseInt(maxVal) || 5;
             f.field_options = opts;
             triggerAutoSave();
@@ -353,15 +376,13 @@
     }
 
     function addGridItem(id) {
-        const f = fieldsData.find(x => (x.field_id || x.temp_id) == id);
+        const f = fieldsData.find(x => (x.field_id == id || x.temp_id == id));
         if (f) {
-            let opts = (typeof f.field_options === 'object' && f.field_options !== null) ? f.field_options : {};
-            if (typeof f.field_options === 'string') {
-                try { opts = JSON.parse(f.field_options); } catch(e) { opts = {}; }
-            }
+            let opts = getParsedOpts(f.field_options);
             let items = Array.isArray(opts.items) ? opts.items : [];
             items.push("");
             opts.items = items;
+            opts.max = opts.max || 5;
             f.field_options = opts;
             renderFields();
             triggerAutoSave();
@@ -369,41 +390,26 @@
     }
 
     function updateGridItem(id, itemIdx, val) {
-        const f = fieldsData.find(x => (x.field_id || x.temp_id) == id);
+        const f = fieldsData.find(x => (x.field_id == id || x.temp_id == id));
         if (f) {
-            let opts = (typeof f.field_options === 'object' && f.field_options !== null) ? f.field_options : {};
-            if (typeof f.field_options === 'string') {
-                try { opts = JSON.parse(f.field_options); } catch(e) { opts = {}; }
-            }
+            let opts = getParsedOpts(f.field_options);
             let items = Array.isArray(opts.items) ? opts.items : [];
             items[itemIdx] = val;
             opts.items = items;
+            opts.max = opts.max || 5;
             f.field_options = opts;
             triggerAutoSave();
         }
     }
 
     function removeGridItem(id, itemIdx) {
-        const f = fieldsData.find(x => (x.field_id || x.temp_id) == id);
+        const f = fieldsData.find(x => (x.field_id == id || x.temp_id == id));
         if (f) {
-            let opts = (typeof f.field_options === 'object' && f.field_options !== null) ? f.field_options : {};
-            if (typeof f.field_options === 'string') {
-                try { opts = JSON.parse(f.field_options); } catch(e) { opts = {}; }
-            }
+            let opts = getParsedOpts(f.field_options);
             let items = Array.isArray(opts.items) ? opts.items : [];
             items.splice(itemIdx, 1);
             opts.items = items;
-            f.field_options = opts;
-            renderFields();
-            triggerAutoSave();
-        }
-    }
-
-    function removeOption(id, oIdx) {
-        const f = fieldsData.find(x => (x.field_id || x.temp_id) == id);
-        if (f) {
-            let opts = getParsedOptions(f.field_options);
-            opts.splice(oIdx, 1);
+            opts.max = opts.max || 5;
             f.field_options = opts;
             renderFields();
             triggerAutoSave();
@@ -422,38 +428,39 @@
         const formData = new FormData();
         formData.append('fields', JSON.stringify(payload));
 
-        const res = await fetch('<?= base_url("staff/forms/save-fields/{$form['form_id']}") ?>', {
-            method: 'POST',
-            body: formData
-        });
-        const data = await res.json();
+        try {
+            const res = await fetch('<?= base_url("staff/forms/save-fields/{$form['form_id']}") ?>', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
 
-        const indicator = document.getElementById('save-indicator');
+            const indicator = document.getElementById('save-indicator');
 
-        if (data.status === 'success') {
-            if (Array.isArray(data.saved_fields)) {
-                data.saved_fields.forEach((sf, idx) => {
-                    if (fieldsData[idx]) {
-                        fieldsData[idx].field_id = sf.field_id;
-                    }
-                });
-            }
+            if (data.status === 'success') {
+                if (Array.isArray(data.saved_fields)) {
+                    // Update local fieldsData with DB updated fields
+                    fieldsData = data.saved_fields;
+                }
 
-            if (indicator) {
-                indicator.innerHTML = `<span class="text-emerald-600 flex items-center gap-1"><i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> บันทึกอัตโนมัติแล้ว</span>`;
-                lucide.createIcons();
+                if (indicator) {
+                    indicator.innerHTML = `<span class="text-emerald-600 flex items-center gap-1"><i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> บันทึกอัตโนมัติแล้ว</span>`;
+                    lucide.createIcons();
+                }
+                if (!isAuto) {
+                    Swal.fire({ icon: 'success', title: 'บันทึกคำถามสำเร็จ!', timer: 1500, showConfirmButton: false });
+                }
+            } else {
+                if (indicator) {
+                    indicator.innerHTML = `<span class="text-rose-500 flex items-center gap-1"><i data-lucide="alert-circle" class="w-3.5 h-3.5"></i> บันทึกล้มเหลว</span>`;
+                    lucide.createIcons();
+                }
+                if (!isAuto) {
+                    Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: data.message });
+                }
             }
-            if (!isAuto) {
-                Swal.fire({ icon: 'success', title: 'บันทึกคำถามสำเร็จ!', timer: 1500, showConfirmButton: false });
-            }
-        } else {
-            if (indicator) {
-                indicator.innerHTML = `<span class="text-rose-500 flex items-center gap-1"><i data-lucide="alert-circle" class="w-3.5 h-3.5"></i> บันทึกล้มเหลว</span>`;
-                lucide.createIcons();
-            }
-            if (!isAuto) {
-                Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: data.message });
-            }
+        } catch (err) {
+            console.error('Save error:', err);
         }
     }
 

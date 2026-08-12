@@ -74,18 +74,52 @@ class Admin extends Controller
         $data['users'] = $builder->get()->getResultArray();
         $data['fullname'] = session()->get('u_fullname');
         
-        // นิยามสิทธิ์ที่มีในระบบ
-        $data['available_permissions'] = [
-            'news'         => ['label' => 'จัดการข่าวสาร', 'icon' => 'newspaper', 'color' => 'text-rose-500'],
-            'scholarships' => ['label' => 'จัดการทุนการศึกษา', 'icon' => 'graduation-cap', 'color' => 'text-amber-500'],
-            'science_week' => ['label' => 'จัดการสัปดาห์วิทยาศาสตร์', 'icon' => 'orbit', 'color' => 'text-violet-500'],
-            'it_support'   => ['label' => 'จัดการระบบ IT Support', 'icon' => 'wrench', 'color' => 'text-indigo-600'],
-            'personnel'    => ['label' => 'จัดการบุคลากร', 'icon' => 'users', 'color' => 'text-blue-500'],
-            'summary'      => ['label' => 'ดูสรุปเวลาปฏิบัติงาน', 'icon' => 'bar-chart-3', 'color' => 'text-indigo-500'],
-            'settings'     => ['label' => 'ตั้งค่าระบบ', 'icon' => 'settings', 'color' => 'text-slate-500'],
-            'admin'        => ['label' => 'แอดมินระบบ', 'icon' => 'shield-check', 'color' => 'text-red-500'],
-            'head'         => ['label' => 'หัวหน้าฝ่าย', 'icon' => 'user-check', 'color' => 'text-emerald-500'],
+        // นิยามสิทธิ์ที่มีในระบบ แบ่งกลุ่มเป็นหมวดหมู่ให้เข้าใจง่าย
+        $data['permission_categories'] = [
+            'hr' => [
+                'title' => 'บริหารงานบุคคล & เวลาทำงาน',
+                'badge_bg' => 'bg-indigo-50',
+                'badge_text' => 'text-indigo-600',
+                'badge_border' => 'border-indigo-100',
+                'items' => [
+                    'personnel' => ['label' => 'จัดการข้อมูลบุคลากร', 'icon' => 'users', 'color' => 'text-indigo-600', 'bg' => 'bg-indigo-50', 'desc' => 'เพิ่ม/แก้ไข/ลบ ข้อมูลบุคลากรในระบบ'],
+                    'summary'   => ['label' => 'จัดการ/ดูเวลาเข้างาน', 'icon' => 'calendar-check', 'color' => 'text-blue-600', 'bg' => 'bg-blue-50', 'desc' => 'ดูและบันทึกเวลาปฏิบัติงานบุคลากร'],
+                    'head'      => ['label' => 'สิทธิ์หัวหน้าฝ่าย', 'icon' => 'user-check', 'color' => 'text-emerald-600', 'bg' => 'bg-emerald-50', 'desc' => 'พิจารณาการลางานและอนุมัติระดับฝ่าย'],
+                ]
+            ],
+            'portal' => [
+                'title' => 'ประชาสัมพันธ์ & ทุน & กิจกรรม',
+                'badge_bg' => 'bg-amber-50',
+                'badge_text' => 'text-amber-700',
+                'badge_border' => 'border-amber-100',
+                'items' => [
+                    'news'         => ['label' => 'จัดการข่าวประชาสัมพันธ์', 'icon' => 'newspaper', 'color' => 'text-rose-600', 'bg' => 'bg-rose-50', 'desc' => 'สร้าง/แก้ไข/ลบข่าวสารประชาสัมพันธ์'],
+                    'scholarships' => ['label' => 'จัดการทุนการศึกษา', 'icon' => 'graduation-cap', 'color' => 'text-amber-600', 'bg' => 'bg-amber-50', 'desc' => 'จัดการทุนการศึกษาและตารางคิวจอง'],
+                    'forms'        => ['label' => 'จัดการแบบสอบถาม & เกียรติบัตร', 'icon' => 'file-check-2', 'color' => 'text-blue-600', 'bg' => 'bg-blue-50', 'desc' => 'สร้างแบบสอบถามและออกแบบใบเกียรติบัตร'],
+                    'science_week' => ['label' => 'จัดการสัปดาห์วิทยาศาสตร์', 'icon' => 'orbit', 'color' => 'text-purple-600', 'bg' => 'bg-purple-50', 'desc' => 'การแข่งขัน, ลงทะเบียน และเกียรติบัตร'],
+                    'it_support'   => ['label' => 'จัดการ IT Support', 'icon' => 'wrench', 'color' => 'text-teal-600', 'bg' => 'bg-teal-50', 'desc' => 'รับเรื่องและติดตามงานแจ้งซ่อม IT'],
+                ]
+            ],
+            'system' => [
+                'title' => 'สิทธิ์ผู้ดูแลระบบหลัก',
+                'badge_bg' => 'bg-red-50',
+                'badge_text' => 'text-red-600',
+                'badge_border' => 'border-red-100',
+                'items' => [
+                    'admin'    => ['label' => 'แอดมินระบบ (Admin)', 'icon' => 'shield-check', 'color' => 'text-red-600', 'bg' => 'bg-red-50', 'desc' => 'เข้าถึงส่วนการบริหารจัดการทั่วไป'],
+                    'settings' => ['label' => 'ตั้งค่าระบบหลัก (Settings)', 'icon' => 'settings', 'color' => 'text-slate-700', 'bg' => 'bg-slate-100', 'desc' => 'ตั้งค่าพิกัด เวลาเข้างาน และค่าเริ่มต้นระบบ'],
+                ]
+            ]
         ];
+
+        // Flatten permissions list for backward compatibility if needed
+        $available = [];
+        foreach ($data['permission_categories'] as $cat) {
+            foreach ($cat['items'] as $key => $item) {
+                $available[$key] = $item;
+            }
+        }
+        $data['available_permissions'] = $available;
 
         return view('staff/permissions', $data);
     }

@@ -85,7 +85,7 @@
                 <?php endif; ?>
 
                 <!-- 3. ประชาสัมพันธ์ & ทุน (Portal Services) -->
-                <?php if($isAdmin || strpos($userRoles, 'news') !== false || strpos($userRoles, 'scholarship') !== false): ?>
+                <?php if($isAdmin || strpos($userRoles, 'news') !== false || strpos($userRoles, 'scholarship') !== false || strpos($userRoles, 'forms') !== false || strpos($userRoles, 'science_week') !== false): ?>
                     <div class="sidebar-category-text pt-6 text-[10px] font-bold text-amber-500 uppercase tracking-widest px-4 mb-3">ประชาสัมพันธ์ & ทุน</div>
                     
                     <?php if($isAdmin || strpos($userRoles, 'news') !== false): ?>
@@ -100,9 +100,11 @@
                         </a>
                     <?php endif; ?>
 
-                    <a href="<?= base_url('staff/forms') ?>" class="sidebar-item <?= strpos(uri_string(), 'staff/forms') === 0 ? 'active shadow-lg shadow-indigo-100 bg-indigo-50/50' : 'text-slate-500 hover:text-indigo-600' ?> flex items-center gap-4 px-4 py-3 rounded-2xl font-bold text-sm">
-                        <i data-lucide="file-check-2" class="w-5 h-5 text-indigo-500"></i><span class="sidebar-text">ระบบแบบสอบถาม & เกียรติบัตร</span>
-                    </a>
+                    <?php if($isAdmin || strpos($userRoles, 'forms') !== false): ?>
+                        <a href="<?= base_url('staff/forms') ?>" class="sidebar-item <?= strpos(uri_string(), 'staff/forms') === 0 ? 'active shadow-lg shadow-indigo-100 bg-indigo-50/50' : 'text-slate-500 hover:text-indigo-600' ?> flex items-center gap-4 px-4 py-3 rounded-2xl font-bold text-sm">
+                            <i data-lucide="file-check-2" class="w-5 h-5 text-indigo-500"></i><span class="sidebar-text">ระบบแบบสอบถาม & เกียรติบัตร</span>
+                        </a>
+                    <?php endif; ?>
                     
                     <?php if($isAdmin || strpos($userRoles, 'science_week') !== false): ?>
                         <a href="<?= base_url('science-week/staff') ?>" class="sidebar-item <?= strpos(uri_string(), 'science-week/staff') === 0 ? 'active shadow-lg shadow-amber-100 bg-amber-50/50' : 'text-slate-500 hover:text-amber-600' ?> flex items-center gap-4 px-4 py-3 rounded-2xl font-bold text-sm">
