@@ -58,7 +58,7 @@ foreach ($fields as $f) {
             if ($isPersonal) {
                 $textList[] = [
                     'text' => $cleanVal,
-                    'name' => $s['sub_responder_name'] ?: 'ผู้ตอบแบบสอบถาม',
+                    'name' => 'ผู้ตอบแบบสอบถาม (ไม่ระบุตัวตน)',
                     'date' => $s['sub_submitted_at']
                 ];
             } else {
@@ -220,13 +220,18 @@ foreach ($fields as $f) {
     </div>
 
     <!-- Navigation Tabs (Google Forms Style) -->
-    <div class="flex border-b border-slate-200 bg-white px-6 pt-3 rounded-t-3xl border border-b-0">
-        <button id="tab-summary-btn" onclick="switchTab('summary')" class="px-6 py-3 border-b-4 border-indigo-600 text-indigo-600 font-black text-xs md:text-sm flex items-center gap-2 transition-all">
-            <i data-lucide="sparkles" class="w-4 h-4"></i> 📊 สรุปภาพรวมคำตอบ (Smart Auto Summary)
+    <div class="flex border-b border-slate-200 bg-white px-6 pt-3 rounded-t-3xl border border-b-0 overflow-x-auto">
+        <button id="tab-summary-btn" onclick="switchTab('summary')" class="px-6 py-3 border-b-4 border-indigo-600 text-indigo-600 font-black text-xs md:text-sm flex items-center gap-2 transition-all whitespace-nowrap">
+            <i data-lucide="sparkles" class="w-4 h-4"></i> 📊 สรุปภาพรวมคำตอบ
         </button>
-        <button id="tab-table-btn" onclick="switchTab('table')" class="px-6 py-3 border-b-4 border-transparent text-slate-500 hover:text-slate-800 font-bold text-xs md:text-sm flex items-center gap-2 transition-all">
-            <i data-lucide="table" class="w-4 h-4"></i> 📋 ตารางข้อมูลคำตอบรายบุคคล (Data Table)
+        <button id="tab-table-btn" onclick="switchTab('table')" class="px-6 py-3 border-b-4 border-transparent text-slate-500 hover:text-slate-800 font-bold text-xs md:text-sm flex items-center gap-2 transition-all whitespace-nowrap">
+            <i data-lucide="table" class="w-4 h-4"></i> 📋 ตารางข้อมูลคำตอบ (Data Table)
         </button>
+        <?php if ($form['form_has_certificate'] == 1): ?>
+            <button id="tab-cert-btn" onclick="switchTab('cert')" class="px-6 py-3 border-b-4 border-transparent text-amber-600 hover:text-amber-800 font-bold text-xs md:text-sm flex items-center gap-2 transition-all whitespace-nowrap">
+                <i data-lucide="award" class="w-4 h-4 text-amber-500"></i> 🎓 ประวัติการออกเกียรติบัตร (E-Certificates)
+            </button>
+        <?php endif; ?>
     </div>
 
     <!-- Tab 1 Content: Smart Display Summary -->
@@ -338,7 +343,7 @@ foreach ($fields as $f) {
         <!-- Table Search Bar -->
         <div class="bg-white p-4 rounded-2xl border border-slate-200 flex items-center gap-3">
             <i data-lucide="search" class="w-5 h-5 text-slate-400"></i>
-            <input type="text" id="table-search" oninput="filterTable()" placeholder="ค้นหาตามชื่อผู้ตอบ, อีเมล หรือรหัสเกียรติบัตร..." class="w-full text-xs font-bold bg-transparent focus:outline-none text-slate-700">
+            <input type="text" id="table-search" oninput="filterTable()" placeholder="ค้นหาข้อมูลในตารางคำตอบ..." class="w-full text-xs font-bold bg-transparent focus:outline-none text-slate-700">
         </div>
 
         <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
@@ -348,11 +353,6 @@ foreach ($fields as $f) {
                         <tr>
                             <th class="p-4 w-12 text-center">#</th>
                             <th class="p-4">วันเวลาที่ตอบ</th>
-                            <th class="p-4">ชื่อ-นามสกุล</th>
-                            <th class="p-4">อีเมล</th>
-                            <?php if ($form['form_has_certificate'] == 1): ?>
-                                <th class="p-4">รหัสเกียรติบัตร</th>
-                            <?php endif; ?>
                             <?php foreach ($fields as $f): ?>
                                 <th class="p-4 min-w-[150px]"><?= esc($f['field_label']) ?></th>
                             <?php endforeach; ?>
@@ -361,7 +361,7 @@ foreach ($fields as $f) {
                     <tbody class="divide-y divide-slate-100">
                         <?php if (empty($submissions)): ?>
                             <tr>
-                                <td colspan="<?= 5 + count($fields) ?>" class="p-12 text-center text-slate-400 font-bold">
+                                <td colspan="<?= 2 + count($fields) ?>" class="p-12 text-center text-slate-400 font-bold">
                                     ยังไม่มีการส่งแบบสอบถาม
                                 </td>
                             </tr>
@@ -370,15 +370,6 @@ foreach ($fields as $f) {
                                 <tr class="hover:bg-slate-50/80 transition-colors response-row">
                                     <td class="p-4 text-center font-bold text-slate-400"><?= $idx + 1 ?></td>
                                     <td class="p-4 whitespace-nowrap text-slate-500 font-semibold"><?= date('d/m/Y H:i', strtotime($sub['sub_submitted_at'])) ?></td>
-                                    <td class="p-4 font-bold text-slate-900 whitespace-nowrap search-name"><?= esc($sub['sub_responder_name'] ?: '-') ?></td>
-                                    <td class="p-4 text-slate-500 whitespace-nowrap search-email"><?= esc($sub['sub_responder_email'] ?: '-') ?></td>
-                                    <?php if ($form['form_has_certificate'] == 1): ?>
-                                        <td class="p-4 font-mono font-bold text-amber-600 whitespace-nowrap search-cert">
-                                            <a href="<?= base_url("forms/certificate/{$sub['sub_id']}") ?>" target="_blank" class="hover:underline flex items-center gap-1">
-                                                <i data-lucide="download" class="w-3.5 h-3.5"></i> <?= esc($sub['sub_cert_code']) ?>
-                                            </a>
-                                        </td>
-                                    <?php endif; ?>
                                     <?php foreach ($fields as $f): ?>
                                         <td class="p-4 font-medium text-slate-800">
                                             <?= esc($sub['answers'][$f['field_id']] ?? '-') ?>
@@ -392,6 +383,72 @@ foreach ($fields as $f) {
             </div>
         </div>
     </div>
+
+    <!-- Tab 3 Content: Dedicated E-Certificates History -->
+    <?php if ($form['form_has_certificate'] == 1): ?>
+        <div id="tab-cert-content" class="hidden space-y-4">
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 flex items-center justify-between gap-4">
+                <div class="flex items-center gap-3 flex-1">
+                    <i data-lucide="search" class="w-5 h-5 text-slate-400"></i>
+                    <input type="text" id="cert-search" oninput="filterCertTable()" placeholder="ค้นหาตามชื่อผู้รับเกียรติบัตร หรือรหัสเกียรติบัตร..." class="w-full text-xs font-bold bg-transparent focus:outline-none text-slate-700">
+                </div>
+                <div class="text-xs font-bold text-amber-700 bg-amber-50 px-3 py-1.5 rounded-xl border border-amber-200 shrink-0">
+                    ออกเกียรติบัตรแล้ว <strong><?= number_format($certCount) ?></strong> ใบ
+                </div>
+            </div>
+
+            <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs font-medium text-slate-600" id="cert-table">
+                        <thead class="bg-amber-50/70 border-b border-amber-200/80 text-amber-950 font-bold uppercase tracking-wider">
+                            <tr>
+                                <th class="p-4 w-12 text-center">#</th>
+                                <th class="p-4">วันเวลาออกเกียรติบัตร</th>
+                                <th class="p-4">ชื่อ-นามสกุล ที่พิมพ์บนเกียรติบัตร</th>
+                                <th class="p-4">รหัสเกียรติบัตร</th>
+                                <th class="p-4 text-center">จัดการ</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            <?php 
+                            $certList = array_filter($submissions, function($s) {
+                                return !empty($s['sub_responder_name']);
+                            });
+                            ?>
+                            <?php if (empty($certList)): ?>
+                                <tr>
+                                    <td colspan="5" class="p-12 text-center text-slate-400 font-bold">
+                                        ยังไม่มีประวัติการกดรับเกียรติบัตรในแบบสอบถามนี้
+                                    </td>
+                                </tr>
+                            <?php else: ?>
+                                <?php $cIdx = 1; foreach ($certList as $sub): ?>
+                                    <tr class="hover:bg-amber-50/30 transition-colors cert-row">
+                                        <td class="p-4 text-center font-bold text-slate-400"><?= $cIdx++ ?></td>
+                                        <td class="p-4 whitespace-nowrap text-slate-500 font-semibold"><?= date('d/m/Y H:i', strtotime($sub['sub_submitted_at'])) ?></td>
+                                        <td class="p-4 font-bold text-slate-900 whitespace-nowrap search-cert-name">
+                                            <div class="flex items-center gap-2">
+                                                <i data-lucide="award" class="w-4 h-4 text-amber-500 shrink-0"></i>
+                                                <span><?= esc($sub['sub_responder_name']) ?></span>
+                                            </div>
+                                        </td>
+                                        <td class="p-4 font-mono font-bold text-amber-700 whitespace-nowrap search-cert-code">
+                                            <?= esc($sub['sub_cert_code']) ?>
+                                        </td>
+                                        <td class="p-4 text-center whitespace-nowrap">
+                                            <a href="<?= base_url("forms/certificate/{$sub['sub_id']}") ?>" target="_blank" class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-bold text-[11px] inline-flex items-center gap-1.5 shadow-sm transition-all hover:scale-105">
+                                                <i data-lucide="download" class="w-3.5 h-3.5"></i> เปิดดู / ดาวน์โหลด
+                                            </a>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    <?php endif; ?>
 
 </div>
 <?= $this->endSection() ?>
@@ -422,20 +479,37 @@ foreach ($fields as $f) {
     function switchTab(tab) {
         const summaryBtn = document.getElementById('tab-summary-btn');
         const tableBtn = document.getElementById('tab-table-btn');
+        const certBtn = document.getElementById('tab-cert-btn');
+
         const summaryContent = document.getElementById('tab-summary-content');
         const tableContent = document.getElementById('tab-table-content');
+        const certContent = document.getElementById('tab-cert-content');
 
-        if (tab === 'summary') {
-            summaryBtn.className = 'px-6 py-3 border-b-4 border-indigo-600 text-indigo-600 font-black text-xs md:text-sm flex items-center gap-2 transition-all';
-            tableBtn.className = 'px-6 py-3 border-b-4 border-transparent text-slate-500 hover:text-slate-800 font-bold text-xs md:text-sm flex items-center gap-2 transition-all';
-            summaryContent.classList.remove('hidden');
-            tableContent.classList.add('hidden');
-        } else {
-            tableBtn.className = 'px-6 py-3 border-b-4 border-indigo-600 text-indigo-600 font-black text-xs md:text-sm flex items-center gap-2 transition-all';
-            summaryBtn.className = 'px-6 py-3 border-b-4 border-transparent text-slate-500 hover:text-slate-800 font-bold text-xs md:text-sm flex items-center gap-2 transition-all';
-            tableContent.classList.remove('hidden');
-            summaryContent.classList.add('hidden');
-        }
+        const activeClass = 'px-6 py-3 border-b-4 border-indigo-600 text-indigo-600 font-black text-xs md:text-sm flex items-center gap-2 transition-all whitespace-nowrap';
+        const activeCertClass = 'px-6 py-3 border-b-4 border-amber-500 text-amber-600 font-black text-xs md:text-sm flex items-center gap-2 transition-all whitespace-nowrap';
+        const inactiveClass = 'px-6 py-3 border-b-4 border-transparent text-slate-500 hover:text-slate-800 font-bold text-xs md:text-sm flex items-center gap-2 transition-all whitespace-nowrap';
+
+        if (summaryBtn) summaryBtn.className = (tab === 'summary') ? activeClass : inactiveClass;
+        if (tableBtn) tableBtn.className = (tab === 'table') ? activeClass : inactiveClass;
+        if (certBtn) certBtn.className = (tab === 'cert') ? activeCertClass : inactiveClass;
+
+        if (summaryContent) summaryContent.classList.toggle('hidden', tab !== 'summary');
+        if (tableContent) tableContent.classList.toggle('hidden', tab !== 'table');
+        if (certContent) certContent.classList.toggle('hidden', tab !== 'cert');
+    }
+
+    function filterCertTable() {
+        const query = document.getElementById('cert-search')?.value.toLowerCase() || '';
+        document.querySelectorAll('.cert-row').forEach(row => {
+            const name = row.querySelector('.search-cert-name')?.innerText.toLowerCase() || '';
+            const code = row.querySelector('.search-cert-code')?.innerText.toLowerCase() || '';
+
+            if (name.includes(query) || code.includes(query)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
     }
 
     function filterTable() {

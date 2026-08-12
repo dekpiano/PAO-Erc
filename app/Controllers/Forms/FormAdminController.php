@@ -386,9 +386,14 @@ class FormAdminController extends BaseController
             $fieldId = !empty($f['field_id']) ? (int) $f['field_id'] : null;
             $opts = !empty($f['options']) ? (is_array($f['options']) || is_object($f['options']) ? json_encode($f['options'], JSON_UNESCAPED_UNICODE) : $f['options']) : null;
             
+            $label = trim($f['label'] ?? '');
+            if (empty($label)) {
+                $label = ($f['type'] ?? '') === 'section' ? 'ส่วนใหม่' : 'คำถามที่ไม่มีหัวข้อ';
+            }
+            
             $data = [
                 'field_form_id'     => $formId,
-                'field_label'       => $f['label'] ?? 'คำถามที่ไม่มีหัวข้อ',
+                'field_label'       => $label,
                 'field_type'        => $f['type'] ?? 'text',
                 'field_options'     => $opts,
                 'field_is_required' => !empty($f['is_required']) ? 1 : 0,
@@ -525,7 +530,7 @@ class FormAdminController extends BaseController
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Responses');
 
-        $headers = ['ลำดับ', 'วันเวลาที่ตอบ', 'ชื่อ-นามสกุล', 'อีเมล', 'รหัสเกียรติบัตร'];
+        $headers = ['ลำดับ', 'วันเวลาที่ตอบ'];
         foreach ($fields as $f) {
             $headers[] = $f['field_label'];
         }
@@ -547,11 +552,8 @@ class FormAdminController extends BaseController
 
             $sheet->setCellValue('A' . $row, $idx + 1);
             $sheet->setCellValue('B' . $row, $sub['sub_submitted_at']);
-            $sheet->setCellValue('C' . $row, $sub['sub_responder_name']);
-            $sheet->setCellValue('D' . $row, $sub['sub_responder_email']);
-            $sheet->setCellValue('E' . $row, $sub['sub_cert_code']);
 
-            $colIdx = 5;
+            $colIdx = 2;
             foreach ($fields as $f) {
                 $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIdx + 1);
                 $sheet->setCellValue($colLetter . $row, $ansMap[$f['field_id']] ?? '');

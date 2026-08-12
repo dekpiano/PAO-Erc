@@ -3,8 +3,8 @@
 <?= $this->section('content') ?>
 <div class="space-y-6">
 
-    <!-- Top Header & Actions -->
-    <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <!-- Top Header & Actions (Sticky Card below Navbar) -->
+    <div class="sticky top-20 z-40 bg-white/95 backdrop-blur-md p-6 rounded-3xl border border-slate-200 shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all">
         <div>
             <div class="flex items-center gap-2 text-xs font-bold text-slate-400 mb-1">
                 <a href="<?= base_url('staff/forms') ?>" class="hover:text-indigo-600">แบบสอบถามทั้งหมด</a>
@@ -27,7 +27,49 @@
         </div>
     </div>
 
-    <!-- Main Grid: Builder & General Form Settings -->
+    <!-- General Settings Card (Under Header Card) -->
+    <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+        <h3 class="text-base font-black text-slate-900 border-b border-slate-100 pb-3 flex items-center gap-2">
+            <i data-lucide="settings" class="w-5 h-5 text-indigo-600"></i> ตั้งค่าทั่วไปแบบสอบถาม
+        </h3>
+
+        <form id="general-settings-form" onsubmit="saveGeneralSettings(event)" class="grid grid-cols-1 md:grid-cols-12 gap-4">
+            <div class="md:col-span-6">
+                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">ชื่อแบบสอบถาม</label>
+                <input type="text" name="form_title" value="<?= esc($form['form_title']) ?>" required oninput="triggerGeneralAutoSave()" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 font-bold text-sm">
+            </div>
+
+            <div class="md:col-span-3">
+                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">สถานะรับคำตอบ</label>
+                <select name="form_status" onchange="triggerGeneralAutoSave()" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 font-bold text-xs">
+                    <option value="active" <?= $form['form_status'] === 'active' ? 'selected' : '' ?>>● เปิดรับคำตอบ (Active)</option>
+                    <option value="closed" <?= $form['form_status'] === 'closed' ? 'selected' : '' ?>>○ ปิดรับคำตอบ (Closed)</option>
+                </select>
+            </div>
+
+            <div class="md:col-span-3">
+                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">เกียรติบัตรออนไลน์</label>
+                <a href="<?= base_url("staff/forms/certificate/{$form['form_id']}") ?>" class="flex items-center justify-between p-2.5 bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl border border-amber-200 group hover:border-amber-300 transition-colors">
+                    <div class="flex items-center gap-2">
+                        <div class="w-7 h-7 bg-amber-500 text-white rounded-lg flex items-center justify-center shadow-sm">
+                            <i data-lucide="award" class="w-4 h-4"></i>
+                        </div>
+                        <span class="text-xs font-bold text-amber-950">
+                            <?= $form['form_has_certificate'] == 1 ? '✓ เปิดใช้งานอยู่' : '○ ปิดใช้งานอยู่' ?>
+                        </span>
+                    </div>
+                    <i data-lucide="chevron-right" class="w-4 h-4 text-amber-500 group-hover:translate-x-0.5 transition-transform"></i>
+                </a>
+            </div>
+
+            <div class="md:col-span-12">
+                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">คำชี้แจง / รายละเอียดแบบสอบถาม</label>
+                <textarea name="form_description" rows="2" oninput="triggerGeneralAutoSave()" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 font-medium text-xs"><?= esc($form['form_description']) ?></textarea>
+            </div>
+        </form>
+    </div>
+
+    <!-- Main Grid: Builder & Add Field Control Toolbox -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
         <!-- Left Column: Form Builder Fields (7 cols) -->
@@ -44,74 +86,75 @@
                 <div id="fields-list" class="space-y-4 min-h-[150px]">
                     <!-- Render Dynamic Fields via JS -->
                 </div>
-
-                <!-- Add Field Controls -->
-                <div class="pt-4 border-t border-slate-100 flex flex-wrap gap-2">
-                    <button onclick="addField('text')" class="px-4 py-2 bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-700 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-colors">
-                        + ข้อความสั้น
-                    </button>
-                    <button onclick="addField('textarea')" class="px-4 py-2 bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-700 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-colors">
-                        + ข้อความยาว
-                    </button>
-                    <button onclick="addField('radio')" class="px-4 py-2 bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-700 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-colors">
-                        + ตัวเลือกเดียว (Radio)
-                    </button>
-                    <button onclick="addField('checkbox')" class="px-4 py-2 bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-700 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-colors">
-                        + หลายตัวเลือก (Checkbox)
-                    </button>
-                    <button onclick="addField('rating')" class="px-4 py-2 bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-700 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-colors">
-                        + ให้คะแนนรายข้อ (Rating Scale)
-                    </button>
-                    <button onclick="addField('rating_grid')" class="px-4 py-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-xl font-extrabold text-xs flex items-center gap-1.5 transition-colors shadow-sm">
-                        + ตารางประเมินหลายข้อ (Rating Grid)
-                    </button>
-                </div>
             </div>
         </div>
 
-        <!-- Right Column: General Settings (5 cols) -->
+        <!-- Right Column: Add Field Controls Toolbox (5 cols - Sticky) -->
         <div class="lg:col-span-5 space-y-6">
-            <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+            <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4 sticky top-48">
                 <h3 class="text-base font-black text-slate-900 border-b border-slate-100 pb-3 flex items-center gap-2">
-                    <i data-lucide="settings" class="w-5 h-5 text-indigo-600"></i> ตั้งค่าทั่วไปแบบสอบถาม
+                    <i data-lucide="plus-circle" class="w-5 h-5 text-indigo-600"></i> เพิ่มคำถาม / แบ่งส่วน
                 </h3>
 
-                <form id="general-settings-form" onsubmit="saveGeneralSettings(event)" class="space-y-4">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">ชื่อแบบสอบถาม</label>
-                        <input type="text" name="form_title" value="<?= esc($form['form_title']) ?>" required oninput="triggerGeneralAutoSave()" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 font-bold text-sm">
-                    </div>
+                <p class="text-xs font-semibold text-slate-400">คลิกที่ชนิดคำถามด้านล่างเพื่อเพิ่มคำถามลงในฟอร์ม:</p>
 
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">คำชี้แจง / รายละเอียด</label>
-                        <textarea name="form_description" rows="3" oninput="triggerGeneralAutoSave()" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 font-medium text-xs"><?= esc($form['form_description']) ?></textarea>
-                    </div>
+                <div class="flex flex-col gap-2.5">
+                    <button onclick="addField('section')" class="w-full px-4 py-3 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white hover:from-slate-800 hover:to-indigo-900 rounded-2xl font-extrabold text-xs flex items-center justify-between transition-all shadow-sm group">
+                        <span class="flex items-center gap-2">
+                            <i data-lucide="layers" class="w-4 h-4 text-amber-400"></i>
+                            + แบ่งส่วน / หัวข้อส่วน (Section Break)
+                        </span>
+                        <i data-lucide="plus" class="w-4 h-4 opacity-70 group-hover:translate-x-0.5 transition-transform"></i>
+                    </button>
 
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">สถานะรับคำตอบ</label>
-                        <select name="form_status" onchange="triggerGeneralAutoSave()" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 font-bold text-xs">
-                            <option value="active" <?= $form['form_status'] === 'active' ? 'selected' : '' ?>>● เปิดรับคำตอบ (Active)</option>
-                            <option value="closed" <?= $form['form_status'] === 'closed' ? 'selected' : '' ?>>○ ปิดรับคำตอบ (Closed)</option>
-                        </select>
-                    </div>
+                    <button onclick="addField('text')" class="w-full px-4 py-2.5 bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 text-slate-700 border border-slate-200/80 rounded-2xl font-bold text-xs flex items-center justify-between transition-all group">
+                        <span class="flex items-center gap-2">
+                            <i data-lucide="type" class="w-4 h-4 text-indigo-500"></i>
+                            + ข้อความสั้น
+                        </span>
+                        <i data-lucide="plus" class="w-4 h-4 opacity-40 group-hover:opacity-100 transition-opacity"></i>
+                    </button>
 
-                    <div class="pt-2">
-                        <a href="<?= base_url("staff/forms/certificate/{$form['form_id']}") ?>" class="flex items-center justify-between p-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-2xl border border-amber-200 group hover:border-amber-300 transition-colors">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 bg-amber-500 text-white rounded-xl flex items-center justify-center shadow-md">
-                                    <i data-lucide="award" class="w-5 h-5"></i>
-                                </div>
-                                <div>
-                                    <span class="text-xs font-black text-amber-950 block">ตั้งค่าเกียรติบัตรออนไลน์</span>
-                                    <span class="text-[10px] text-amber-700 font-semibold">
-                                        <?= $form['form_has_certificate'] == 1 ? '✓ เปิดใช้งานเกียรติบัตรอยู่' : '○ ปิดการใช้งานเกียรติบัตรอยู่' ?>
-                                    </span>
-                                </div>
-                            </div>
-                            <i data-lucide="chevron-right" class="w-5 h-5 text-amber-500 group-hover:translate-x-1 transition-transform"></i>
-                        </a>
-                    </div>
-                </form>
+                    <button onclick="addField('textarea')" class="w-full px-4 py-2.5 bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 text-slate-700 border border-slate-200/80 rounded-2xl font-bold text-xs flex items-center justify-between transition-all group">
+                        <span class="flex items-center gap-2">
+                            <i data-lucide="align-left" class="w-4 h-4 text-indigo-500"></i>
+                            + ข้อความยาว
+                        </span>
+                        <i data-lucide="plus" class="w-4 h-4 opacity-40 group-hover:opacity-100 transition-opacity"></i>
+                    </button>
+
+                    <button onclick="addField('radio')" class="w-full px-4 py-2.5 bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 text-slate-700 border border-slate-200/80 rounded-2xl font-bold text-xs flex items-center justify-between transition-all group">
+                        <span class="flex items-center gap-2">
+                            <i data-lucide="disc" class="w-4 h-4 text-indigo-500"></i>
+                            + ตัวเลือกเดียว (Radio)
+                        </span>
+                        <i data-lucide="plus" class="w-4 h-4 opacity-40 group-hover:opacity-100 transition-opacity"></i>
+                    </button>
+
+                    <button onclick="addField('checkbox')" class="w-full px-4 py-2.5 bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 text-slate-700 border border-slate-200/80 rounded-2xl font-bold text-xs flex items-center justify-between transition-all group">
+                        <span class="flex items-center gap-2">
+                            <i data-lucide="check-square" class="w-4 h-4 text-indigo-500"></i>
+                            + หลายตัวเลือก (Checkbox)
+                        </span>
+                        <i data-lucide="plus" class="w-4 h-4 opacity-40 group-hover:opacity-100 transition-opacity"></i>
+                    </button>
+
+                    <button onclick="addField('rating')" class="w-full px-4 py-2.5 bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 text-slate-700 border border-slate-200/80 rounded-2xl font-bold text-xs flex items-center justify-between transition-all group">
+                        <span class="flex items-center gap-2">
+                            <i data-lucide="star" class="w-4 h-4 text-amber-500"></i>
+                            + ให้คะแนนรายข้อ (Rating Scale)
+                        </span>
+                        <i data-lucide="plus" class="w-4 h-4 opacity-40 group-hover:opacity-100 transition-opacity"></i>
+                    </button>
+
+                    <button onclick="addField('rating_grid')" class="w-full px-4 py-3 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200/80 rounded-2xl font-extrabold text-xs flex items-center justify-between transition-all shadow-sm group">
+                        <span class="flex items-center gap-2">
+                            <i data-lucide="grid-3x3" class="w-4 h-4 text-indigo-600"></i>
+                            + ตารางประเมินหลายข้อ (Rating Grid)
+                        </span>
+                        <i data-lucide="plus" class="w-4 h-4 opacity-70 group-hover:translate-x-0.5 transition-transform"></i>
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -165,20 +208,24 @@
     function addField(type) {
         const tempId = 'temp_' + Date.now();
         let defaultOpts = null;
+        let defaultLabel = '';
         if (type === 'radio' || type === 'checkbox') {
             defaultOpts = ["", ""];
         } else if (type === 'rating') {
             defaultOpts = { max: 5 };
         } else if (type === 'rating_grid') {
             defaultOpts = { max: 5, items: ["", ""] };
+        } else if (type === 'section') {
+            const currentSections = fieldsData.filter(f => f.field_type === 'section').length + 1;
+            defaultLabel = `ส่วนที่ ${currentSections}`;
         }
 
         fieldsData.push({
             temp_id: tempId,
-            field_label: '',
+            field_label: defaultLabel,
             field_type: type,
             field_options: defaultOpts,
-            field_is_required: 1
+            field_is_required: type === 'section' ? 0 : 1
         });
         renderFields();
         triggerAutoSave();
@@ -203,6 +250,9 @@
             return;
         }
 
+        let sectionCounter = 0;
+        let questionCounter = 0;
+
         fieldsData.forEach((f, idx) => {
             const fId = f.field_id || f.temp_id;
             let rawOpts = f.field_options;
@@ -216,75 +266,107 @@
             let gridItems = Array.isArray(rawOpts.items) ? rawOpts.items : [];
 
             const item = document.createElement('div');
-            item.className = 'field-item bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-3 relative group';
-            item.setAttribute('data-id', fId);
+            
+            if (f.field_type === 'section') {
+                sectionCounter++;
+                item.className = 'field-item bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-5 rounded-2xl border-2 border-indigo-500/40 text-white space-y-3 relative group shadow-md';
+                item.setAttribute('data-id', fId);
 
-            item.innerHTML = `
-                <div class="flex items-center justify-between gap-3">
-                    <div class="flex items-center gap-2 flex-1">
-                        <i data-lucide="grip-vertical" class="w-4 h-4 text-slate-400 cursor-move"></i>
-                        <span class="text-xs font-black text-indigo-600">ข้อ ${idx + 1}</span>
-                        <input type="text" value="${escapeHtml(f.field_label || '')}" oninput="updateLabel('${fId}', this.value)" placeholder="กรอกหัวข้อคำถาม..." class="flex-1 px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold bg-white">
+                item.innerHTML = `
+                    <div class="flex items-center justify-between gap-3">
+                        <div class="flex items-center gap-2 flex-1">
+                            <i data-lucide="grip-vertical" class="w-4 h-4 text-slate-400 cursor-move"></i>
+                            <span class="text-xs font-black text-amber-400 bg-amber-400/20 border border-amber-400/30 px-2.5 py-1 rounded-xl">ส่วนที่ ${sectionCounter}</span>
+                            <input type="text" value="${escapeHtml(f.field_label || '')}" oninput="updateLabel('${fId}', this.value)" placeholder="กรอกชื่อส่วน / หัวข้อหลัก..." class="flex-1 px-3 py-1.5 rounded-xl border border-slate-700 font-extrabold text-sm bg-slate-800/80 text-white focus:outline-none focus:ring-2 focus:ring-amber-400">
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="removeField('${fId}')" class="p-1.5 text-slate-400 hover:text-rose-400 rounded-lg"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        </div>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <label class="flex items-center gap-1.5 text-xs font-bold text-slate-600 cursor-pointer">
-                            <input type="checkbox" ${f.field_is_required == 1 ? 'checked' : ''} onchange="updateRequired('${fId}', this.checked)" class="rounded text-indigo-600">
-                            บังคับตอบ
-                        </label>
-                        <button onclick="removeField('${fId}')" class="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                    <div class="pl-6">
+                        <input type="text" value="${escapeHtml(rawOpts.description || '')}" oninput="updateSectionDesc('${fId}', this.value)" placeholder="คำชี้แจงประจำส่วนนี้ (ไม่จำเป็นต้องระบุก็ได้)..." class="w-full px-3 py-1 rounded-xl border border-slate-700/80 font-medium text-xs bg-slate-800/40 text-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-400">
                     </div>
-                </div>
+                `;
+            } else {
+                item.className = 'field-item bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-3 relative group';
+                item.setAttribute('data-id', fId);
 
-                ${(f.field_type === 'radio' || f.field_type === 'checkbox') ? `
-                    <div class="pl-6 space-y-2">
-                        <label class="text-[11px] font-bold text-slate-400 uppercase">ตัวเลือก:</label>
-                        ${options.map((opt, oIdx) => `
-                            <div class="flex items-center gap-2">
-                                <span class="text-slate-300 text-xs">${f.field_type === 'radio' ? '○' : '□'}</span>
-                                <input type="text" value="${escapeHtml(opt || '')}" oninput="updateOption('${fId}', ${oIdx}, this.value)" placeholder="ตัวเลือก ${oIdx + 1}" class="px-3 py-1 rounded-lg border border-slate-200 text-xs bg-white">
-                                <button onclick="removeOption('${fId}', ${oIdx})" class="text-slate-300 hover:text-rose-500 text-xs p-1">✕</button>
-                            </div>
-                        `).join('')}
-                        <button onclick="addOption('${fId}')" class="text-xs font-bold text-indigo-600 hover:underline">+ เพิ่มตัวเลือก</button>
+                item.innerHTML = `
+                    <div class="flex items-center justify-between gap-3">
+                        <div class="flex items-center gap-2 flex-1">
+                            <i data-lucide="grip-vertical" class="w-4 h-4 text-slate-400 cursor-move"></i>
+                            <input type="text" value="${escapeHtml(f.field_label || '')}" oninput="updateLabel('${fId}', this.value)" placeholder="กรอกหัวข้อคำถาม..." class="flex-1 px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold bg-white">
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <label class="flex items-center gap-1.5 text-xs font-bold text-slate-600 cursor-pointer">
+                                <input type="checkbox" ${f.field_is_required == 1 ? 'checked' : ''} onchange="updateRequired('${fId}', this.checked)" class="rounded text-indigo-600">
+                                บังคับตอบ
+                            </label>
+                            <button onclick="removeField('${fId}')" class="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        </div>
                     </div>
-                ` : (f.field_type === 'rating' ? `
-                    <div class="pl-6 flex items-center gap-3">
-                        <label class="text-[11px] font-bold text-slate-500">ช่วงคะแนนประเมิน (สเกล): 1 ถึง</label>
-                        <select onchange="updateRatingMax('${fId}', this.value)" class="px-3 py-1 rounded-xl border border-slate-200 text-xs font-bold bg-white text-indigo-600">
-                            ${[3, 4, 5, 6, 7, 8, 9, 10].map(num => `
-                                <option value="${num}" ${(rawOpts.max || 5) == num ? 'selected' : ''}>${num} คะแนน</option>
+
+                    ${(f.field_type === 'radio' || f.field_type === 'checkbox') ? `
+                        <div class="pl-6 space-y-2">
+                            <label class="text-[11px] font-bold text-slate-400 uppercase">ตัวเลือก:</label>
+                            ${options.map((opt, oIdx) => `
+                                <div class="flex items-center gap-2">
+                                    <span class="text-slate-300 text-xs">${f.field_type === 'radio' ? '○' : '□'}</span>
+                                    <input type="text" value="${escapeHtml(opt || '')}" oninput="updateOption('${fId}', ${oIdx}, this.value)" placeholder="ตัวเลือก ${oIdx + 1}" class="px-3 py-1 rounded-lg border border-slate-200 text-xs bg-white">
+                                    <button onclick="removeOption('${fId}', ${oIdx})" class="text-slate-300 hover:text-rose-500 text-xs p-1">✕</button>
+                                </div>
                             `).join('')}
-                        </select>
-                    </div>
-                ` : (f.field_type === 'rating_grid' ? `
-                    <div class="pl-6 space-y-3">
-                        <div class="flex items-center gap-3 pb-2 border-b border-slate-200/60">
-                            <label class="text-[11px] font-bold text-slate-500">ช่วงคะแนนประเมินทุกข้อ (สเกล): 1 ถึง</label>
-                            <select onchange="updateGridMax('${fId}', this.value)" class="px-3 py-1 rounded-xl border border-slate-200 text-xs font-bold bg-white text-indigo-600">
+                            <button onclick="addOption('${fId}')" class="text-xs font-bold text-indigo-600 hover:underline">+ เพิ่มตัวเลือก</button>
+                        </div>
+                    ` : (f.field_type === 'rating' ? `
+                        <div class="pl-6 flex items-center gap-3">
+                            <label class="text-[11px] font-bold text-slate-500">ช่วงคะแนนประเมิน (สเกล): 1 ถึง</label>
+                            <select onchange="updateRatingMax('${fId}', this.value)" class="px-3 py-1 rounded-xl border border-slate-200 text-xs font-bold bg-white text-indigo-600">
                                 ${[3, 4, 5, 6, 7, 8, 9, 10].map(num => `
                                     <option value="${num}" ${(rawOpts.max || 5) == num ? 'selected' : ''}>${num} คะแนน</option>
                                 `).join('')}
                             </select>
                         </div>
+                    ` : (f.field_type === 'rating_grid' ? `
+                        <div class="pl-6 space-y-3">
+                            <div class="flex items-center gap-3 pb-2 border-b border-slate-200/60">
+                                <label class="text-[11px] font-bold text-slate-500">ช่วงคะแนนประเมินทุกข้อ (สเกล): 1 ถึง</label>
+                                <select onchange="updateGridMax('${fId}', this.value)" class="px-3 py-1 rounded-xl border border-slate-200 text-xs font-bold bg-white text-indigo-600">
+                                    ${[3, 4, 5, 6, 7, 8, 9, 10].map(num => `
+                                        <option value="${num}" ${(rawOpts.max || 5) == num ? 'selected' : ''}>${num} คะแนน</option>
+                                    `).join('')}
+                                </select>
+                            </div>
 
-                        <div class="space-y-2">
-                            <label class="text-[11px] font-bold text-slate-400 uppercase">รายการข้อคำถามย่อย:</label>
-                            ${gridItems.map((itemVal, itemIdx) => `
-                                <div class="flex items-center gap-2">
-                                    <span class="text-indigo-500 text-xs font-bold">${itemIdx + 1}.</span>
-                                    <input type="text" value="${escapeHtml(itemVal || '')}" oninput="updateGridItem('${fId}', ${itemIdx}, this.value)" placeholder="กรอกข้อคำถามย่อยข้อที่ ${itemIdx + 1}..." class="flex-1 px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold bg-white">
-                                    <button onclick="removeGridItem('${fId}', ${itemIdx})" class="text-slate-300 hover:text-rose-500 text-xs p-1">✕</button>
-                                </div>
-                            `).join('')}
-                            <button onclick="addGridItem('${fId}')" class="text-xs font-bold text-indigo-600 hover:underline">+ เพิ่มข้อคำถามย่อย</button>
+                            <div class="space-y-2">
+                                <label class="text-[11px] font-bold text-slate-400 uppercase">รายการข้อคำถามย่อย:</label>
+                                ${gridItems.map((itemVal, itemIdx) => `
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-indigo-500 text-xs font-bold">${itemIdx + 1}.</span>
+                                        <input type="text" value="${escapeHtml(itemVal || '')}" oninput="updateGridItem('${fId}', ${itemIdx}, this.value)" placeholder="กรอกข้อคำถามย่อยข้อที่ ${itemIdx + 1}..." class="flex-1 px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold bg-white">
+                                        <button onclick="removeGridItem('${fId}', ${itemIdx})" class="text-slate-300 hover:text-rose-500 text-xs p-1">✕</button>
+                                    </div>
+                                `).join('')}
+                                <button onclick="addGridItem('${fId}')" class="text-xs font-bold text-indigo-600 hover:underline">+ เพิ่มข้อคำถามย่อย</button>
+                            </div>
                         </div>
-                    </div>
-                ` : ''))}
-            `;
+                    ` : ''))}
+                `;
+            }
             container.appendChild(item);
         });
 
         lucide.createIcons();
+    }
+
+    function updateSectionDesc(id, val) {
+        const f = fieldsData.find(x => (x.field_id == id || x.temp_id == id));
+        if (f) {
+            let opts = getParsedOpts(f.field_options);
+            opts.description = val;
+            f.field_options = opts;
+            triggerAutoSave();
+        }
     }
 
     function escapeHtml(str) {
@@ -439,8 +521,12 @@
 
             if (data.status === 'success') {
                 if (Array.isArray(data.saved_fields)) {
-                    // Update local fieldsData with DB updated fields
-                    fieldsData = data.saved_fields;
+                    // Update only field_id mapping onto local fieldsData without overwriting typing state
+                    data.saved_fields.forEach((sf, idx) => {
+                        if (fieldsData[idx]) {
+                            fieldsData[idx].field_id = sf.field_id;
+                        }
+                    });
                 }
 
                 if (indicator) {

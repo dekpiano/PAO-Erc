@@ -217,6 +217,7 @@ $routes->get('forms', 'Forms\FormPublicController::index');
 $routes->get('forms/view/(:num)', 'Forms\FormPublicController::view/$1');
 $routes->post('forms/submit/(:num)', 'Forms\FormPublicController::submit/$1');
 $routes->get('forms/success/(:num)', 'Forms\FormPublicController::success/$1');
+$routes->post('forms/claim-certificate/(:num)', 'Forms\FormPublicController::claimCertificate/$1');
 $routes->get('forms/certificate/(:segment)', 'Forms\FormPublicController::downloadCert/$1');
 
 // Admin / Staff Routes

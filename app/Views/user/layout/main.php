@@ -125,6 +125,10 @@
                         </button>
                         <div
                             class="absolute top-full left-0 w-56 bg-white border border-slate-100 rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 overflow-hidden transform origin-top group-hover:translate-y-0 translate-y-2">
+                            <a href="<?= base_url('forms') ?>"
+                                class="block px-5 py-3 text-sm font-medium text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors border-b border-slate-50 last:border-0">
+                                แบบสอบถาม & เกียรติบัตร
+                            </a>
                             <a href="<?= base_url('science-week') ?>"
                                 class="block px-5 py-3 text-sm font-medium text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors border-b border-slate-50 last:border-0">
                                 สัปดาห์วิทยาศาสตร์
@@ -174,6 +178,10 @@
                     กิจกรรม <i data-lucide="chevron-down" class="w-5 h-5 text-slate-300 transition-transform duration-300"></i>
                 </button>
                 <div id="mobile-submenu" class="hidden pl-4 space-y-4 mt-4 transition-all duration-300">
+                    <a href="<?= base_url('forms') ?>"
+                        class="text-lg font-bold text-slate-600 flex items-center justify-between">
+                        แบบสอบถาม & เกียรติบัตร <i data-lucide="chevron-right" class="w-5 h-5 text-slate-300"></i>
+                    </a>
                     <a href="<?= base_url('science-week') ?>"
                         class="text-lg font-bold text-slate-600 flex items-center justify-between">
                         กิจกรรมสัปดาห์วิทยาศาสตร์ <i data-lucide="chevron-right" class="w-5 h-5 text-slate-300"></i>

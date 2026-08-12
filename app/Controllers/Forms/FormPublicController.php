@@ -81,29 +81,12 @@ class FormPublicController extends BaseController
             }
         }
 
-        // Dynamically find responder_name (Search for field label containing 'ชื่อ' or 'Name' or take first text field)
-        $responderName = '';
-        $responderEmail = '';
-
-        foreach ($fields as $f) {
-            $val = $answers[$f['field_id']] ?? '';
-            if (is_array($val)) $val = implode(', ', $val);
-
-            $labelLower = mb_strtolower($f['field_label']);
-            if (empty($responderName) && (mb_strpos($labelLower, 'ชื่อ') !== false || mb_strpos($labelLower, 'name') !== false || $f['field_type'] === 'text')) {
-                $responderName = trim($val);
-            }
-            if (empty($responderEmail) && (mb_strpos($labelLower, 'เมล') !== false || mb_strpos($labelLower, 'email') !== false)) {
-                $responderEmail = trim($val);
-            }
-        }
-
         $certCode = ($form['form_has_certificate'] == 1) ? $this->subModel->generateCertCode() : null;
 
         $subId = $this->subModel->insert([
             'sub_form_id'         => $formId,
-            'sub_responder_name'  => $responderName,
-            'sub_responder_email' => $responderEmail,
+            'sub_responder_name'  => null,
+            'sub_responder_email' => null,
             'sub_cert_code'       => $certCode,
             'sub_submitted_at'    => date('Y-m-d H:i:s')
         ]);
@@ -136,25 +119,6 @@ class FormPublicController extends BaseController
 
         $form = $this->formModel->find($sub['sub_form_id']);
 
-        // Backfill sub_responder_name if empty
-        if (empty($sub['sub_responder_name'])) {
-            $ansRows = $this->ansModel->where('ans_sub_id', $subId)->findAll();
-            $fields = $this->fieldModel->where('field_form_id', $sub['sub_form_id'])->findAll();
-            $ansMap = [];
-            foreach ($ansRows as $ar) {
-                $ansMap[$ar['ans_field_id']] = $ar['ans_value'];
-            }
-            foreach ($fields as $f) {
-                $val = $ansMap[$f['field_id']] ?? '';
-                $labelLower = mb_strtolower($f['field_label']);
-                if (!empty($val) && (mb_strpos($labelLower, 'ชื่อ') !== false || mb_strpos($labelLower, 'name') !== false || $f['field_type'] === 'text')) {
-                    $sub['sub_responder_name'] = trim($val);
-                    $this->subModel->update($subId, ['sub_responder_name' => $sub['sub_responder_name']]);
-                    break;
-                }
-            }
-        }
-
         $data = [
             'title' => 'ส่งแบบสอบถามเรียบร้อยแล้ว | อบจ.นครสวรรค์',
             'sub'   => $sub,
@@ -162,6 +126,35 @@ class FormPublicController extends BaseController
         ];
 
         return view('forms/success', $data);
+    }
+
+    public function claimCertificate($subId)
+    {
+        $sub = $this->subModel->find($subId);
+        if (!$sub) {
+            return $this->response->setJSON(['status' => 'error', 'message' => 'ไม่พบข้อมูลการส่งแบบสอบถาม']);
+        }
+
+        $form = $this->formModel->find($sub['sub_form_id']);
+        if (!$form || $form['form_has_certificate'] != 1) {
+            return $this->response->setJSON(['status' => 'error', 'message' => 'แบบสอบถามนี้ไม่มีเกียรติบัตร']);
+        }
+
+        $responderName = trim($this->request->getPost('sub_responder_name') ?? '');
+
+        if (empty($responderName)) {
+            return $this->response->setJSON(['status' => 'error', 'message' => 'กรุณากรอกชื่อ-นามสกุลสำหรับออกเกียรติบัตร']);
+        }
+
+        $this->subModel->update($subId, [
+            'sub_responder_name' => $responderName
+        ]);
+
+        return $this->response->setJSON([
+            'status'   => 'success',
+            'message'  => 'ออกเกียรติบัตรเรียบร้อยแล้ว!',
+            'cert_url' => base_url("forms/certificate/{$subId}")
+        ]);
     }
 
     private function hexToRgb($hex)
@@ -246,41 +239,13 @@ class FormPublicController extends BaseController
         return $text;
     }
 
-    public function downloadCert($subId)
+    public function generateCertBinary($sub, $form)
     {
-        if ($subId === 'demo') {
-            $sub = [
-                'sub_id'             => 'demo',
-                'sub_responder_name' => $this->request->getGet('name') ?: 'นายสมชาย รักดี',
-                'sub_responder_email'=> 'demo@example.com',
-                'sub_cert_code'      => 'CERT-2026-DEMO',
-                'sub_submitted_at'   => date('Y-m-d H:i:s')
-            ];
-            $formId = $this->request->getGet('form_id');
-            $form = $this->formModel->find($formId);
-            if (!$form) {
-                $form = [
-                    'form_id'              => 0,
-                    'form_title'           => 'แบบสอบถามสาธิตตัวอย่าง',
-                    'form_has_certificate' => 1,
-                    'form_cert_template'   => ''
-                ];
-            }
-        } else {
-            $sub = $this->subModel->find($subId);
-            if (!$sub) throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('ไม่พบข้อมูล');
-
-            $form = $this->formModel->find($sub['sub_form_id']);
-            if (!$form || $form['form_has_certificate'] != 1) {
-                throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('แบบสอบถามนี้ไม่มีเกียรติบัตร');
-            }
-        }
-
         $formId = $form['form_id'] ?? 0;
         $dbFields = $this->fieldModel->where('field_form_id', $formId)->orderBy('field_sort_order', 'ASC')->findAll();
 
         $answersMap = [];
-        if ($subId !== 'demo') {
+        if (($sub['sub_id'] ?? '') !== 'demo') {
             $ansRows = $this->ansModel->where('ans_sub_id', $sub['sub_id'])->findAll();
             foreach ($ansRows as $ar) {
                 $answersMap[$ar['ans_field_id']] = $ar['ans_value'];
@@ -419,6 +384,41 @@ class FormPublicController extends BaseController
         imagepng($image);
         $imageData = ob_get_clean();
         imagedestroy($image);
+
+        return $imageData;
+    }
+
+    public function downloadCert($subId)
+    {
+        if ($subId === 'demo') {
+            $sub = [
+                'sub_id'             => 'demo',
+                'sub_responder_name' => $this->request->getGet('name') ?: 'นายสมชาย รักดี',
+                'sub_responder_email'=> 'demo@example.com',
+                'sub_cert_code'      => 'CERT-2026-DEMO',
+                'sub_submitted_at'   => date('Y-m-d H:i:s')
+            ];
+            $formId = $this->request->getGet('form_id');
+            $form = $this->formModel->find($formId);
+            if (!$form) {
+                $form = [
+                    'form_id'              => 0,
+                    'form_title'           => 'แบบสอบถามสาธิตตัวอย่าง',
+                    'form_has_certificate' => 1,
+                    'form_cert_template'   => ''
+                ];
+            }
+        } else {
+            $sub = $this->subModel->find($subId);
+            if (!$sub) throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('ไม่พบข้อมูล');
+
+            $form = $this->formModel->find($sub['sub_form_id']);
+            if (!$form || $form['form_has_certificate'] != 1) {
+                throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('แบบสอบถามนี้ไม่มีเกียรติบัตร');
+            }
+        }
+
+        $imageData = $this->generateCertBinary($sub, $form);
 
         $certCode = $sub['sub_cert_code'] ?: 'CERT-DEMO';
         return $this->response
