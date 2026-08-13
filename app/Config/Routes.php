@@ -214,10 +214,10 @@ $routes->group('science-week/staff', ['filter' => 'auth'], function($routes) {
 // ================================================================
 // Public Routes
 $routes->get('forms', 'Forms\FormPublicController::index');
-$routes->get('forms/view/(:num)', 'Forms\FormPublicController::view/$1');
-$routes->post('forms/submit/(:num)', 'Forms\FormPublicController::submit/$1');
-$routes->get('forms/success/(:num)', 'Forms\FormPublicController::success/$1');
-$routes->post('forms/claim-certificate/(:num)', 'Forms\FormPublicController::claimCertificate/$1');
+$routes->get('forms/view/(:segment)', 'Forms\FormPublicController::view/$1');
+$routes->post('forms/submit/(:segment)', 'Forms\FormPublicController::submit/$1');
+$routes->get('forms/success/(:segment)', 'Forms\FormPublicController::success/$1');
+$routes->post('forms/claim-certificate/(:segment)', 'Forms\FormPublicController::claimCertificate/$1');
 $routes->get('forms/certificate/(:segment)', 'Forms\FormPublicController::downloadCert/$1');
 
 // Admin / Staff Routes
@@ -236,6 +236,10 @@ $routes->group('staff/forms', function($routes) {
     $routes->get('responses/(:num)', 'Forms\FormAdminController::responses/$1');
     $routes->get('clear-responses/(:num)', 'Forms\FormAdminController::clearResponses/$1');
     $routes->get('export/(:num)', 'Forms\FormAdminController::exportExcel/$1');
+    $routes->match(['get', 'post'], 'toggle-status/(:num)', 'Forms\FormAdminController::toggleStatus/$1');
+    $routes->match(['get', 'post'], 'toggle-share/(:num)', 'Forms\FormAdminController::toggleShare/$1');
+    $routes->get('get-permissions/(:num)', 'Forms\FormAdminController::getPermissions/$1');
+    $routes->post('save-permissions/(:num)', 'Forms\FormAdminController::savePermissions/$1');
 });
 
 

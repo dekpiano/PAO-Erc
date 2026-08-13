@@ -21,7 +21,7 @@
             <a href="<?= base_url("staff/forms/certificate/{$form['form_id']}") ?>" class="px-4 py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 rounded-xl font-bold text-xs flex items-center gap-2">
                 <i data-lucide="award" class="w-4 h-4 text-amber-600"></i> ตั้งค่าเกียรติบัตร
             </a>
-            <a href="<?= base_url("forms/view/{$form['form_id']}") ?>" target="_blank" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs flex items-center gap-2">
+            <a href="<?= base_url("forms/view/" . (!empty($form['form_code']) ? $form['form_code'] : $form['form_id'])) ?>" target="_blank" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs flex items-center gap-2">
                 <i data-lucide="external-link" class="w-4 h-4"></i> ดูฟอร์มจริง
             </a>
         </div>
@@ -44,6 +44,14 @@
                 <select name="form_status" onchange="triggerGeneralAutoSave()" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 font-bold text-xs">
                     <option value="active" <?= $form['form_status'] === 'active' ? 'selected' : '' ?>>● เปิดรับคำตอบ (Active)</option>
                     <option value="closed" <?= $form['form_status'] === 'closed' ? 'selected' : '' ?>>○ ปิดรับคำตอบ (Closed)</option>
+                </select>
+            </div>
+
+            <div class="md:col-span-3">
+                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">สิทธิ์การแชร์ให้ทีม</label>
+                <select name="form_is_shared" onchange="triggerGeneralAutoSave()" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 font-bold text-xs">
+                    <option value="1" <?= ($form['form_is_shared'] ?? 1) == 1 ? 'selected' : '' ?>>👥 แชร์ให้เพื่อนร่วมจัดการ</option>
+                    <option value="0" <?= ($form['form_is_shared'] ?? 1) == 0 ? 'selected' : '' ?>>🔒 จัดการคนเดียว (ส่วนตัว)</option>
                 </select>
             </div>
 
@@ -167,6 +175,9 @@
     let fieldsData = <?= json_encode($fields ?: []) ?>;
 
     document.addEventListener('DOMContentLoaded', () => {
+        fieldsData.forEach(f => {
+            if (!f.temp_id) f.temp_id = 'id_' + (f.field_id || (Date.now() + '_' + Math.random().toString(36).substr(2, 6)));
+        });
         renderFields();
         initSortable();
     });
@@ -186,6 +197,11 @@
         }, 800);
     }
 
+    function findField(id) {
+        if (!id) return null;
+        return fieldsData.find(x => x.temp_id == id || (x.field_id && x.field_id == id));
+    }
+
     function initSortable() {
         const el = document.getElementById('fields-list');
         if (!el) return;
@@ -196,7 +212,7 @@
                 const newFields = [];
                 document.querySelectorAll('.field-item').forEach((item) => {
                     const id = item.getAttribute('data-id');
-                    const f = fieldsData.find(x => (x.field_id || x.temp_id) == id);
+                    const f = findField(id);
                     if (f) newFields.push(f);
                 });
                 fieldsData = newFields;
@@ -206,7 +222,7 @@
     }
 
     function addField(type) {
-        const tempId = 'temp_' + Date.now();
+        const tempId = 'temp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
         let defaultOpts = null;
         let defaultLabel = '';
         if (type === 'radio' || type === 'checkbox') {
@@ -232,7 +248,7 @@
     }
 
     function removeField(id) {
-        fieldsData = fieldsData.filter(f => (f.field_id || f.temp_id) != id);
+        fieldsData = fieldsData.filter(x => x.temp_id != id && x.field_id != id);
         renderFields();
         triggerAutoSave();
     }
@@ -262,8 +278,34 @@
                 rawOpts = {};
             }
 
-            let options = Array.isArray(rawOpts) ? rawOpts : [];
-            let gridItems = Array.isArray(rawOpts.items) ? rawOpts.items : [];
+            let rawList = [];
+            let hasOther = false;
+            let gridItems = [];
+
+            if (Array.isArray(rawOpts)) {
+                rawList = rawOpts;
+            } else if (rawOpts && typeof rawOpts === 'object') {
+                if (Array.isArray(rawOpts.options)) {
+                    rawList = rawOpts.options;
+                }
+                hasOther = !!rawOpts.has_other;
+                if (Array.isArray(rawOpts.items)) {
+                    gridItems = rawOpts.items;
+                }
+            }
+
+            let options = [];
+            rawList.forEach(opt => {
+                if (Array.isArray(opt)) {
+                    opt.forEach(subOpt => {
+                        if (subOpt !== null && subOpt !== undefined && String(subOpt).trim() !== '') {
+                            options.push(String(subOpt));
+                        }
+                    });
+                } else if (opt !== null && opt !== undefined && String(opt).trim() !== '') {
+                    options.push(String(opt));
+                }
+            });
 
             const item = document.createElement('div');
             
@@ -273,18 +315,18 @@
                 item.setAttribute('data-id', fId);
 
                 item.innerHTML = `
-                    <div class="flex items-center justify-between gap-3">
-                        <div class="flex items-center gap-2 flex-1">
-                            <i data-lucide="grip-vertical" class="w-4 h-4 text-slate-400 cursor-move"></i>
-                            <span class="text-xs font-black text-amber-400 bg-amber-400/20 border border-amber-400/30 px-2.5 py-1 rounded-xl">ส่วนที่ ${sectionCounter}</span>
-                            <input type="text" value="${escapeHtml(f.field_label || '')}" oninput="updateLabel('${fId}', this.value)" placeholder="กรอกชื่อส่วน / หัวข้อหลัก..." class="flex-1 px-3 py-1.5 rounded-xl border border-slate-700 font-extrabold text-sm bg-slate-800/80 text-white focus:outline-none focus:ring-2 focus:ring-amber-400">
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="flex items-start gap-2 flex-1">
+                            <i data-lucide="grip-vertical" class="w-4 h-4 text-slate-400 cursor-move mt-2.5"></i>
+                            <span class="text-xs font-black text-amber-400 bg-amber-400/20 border border-amber-400/30 px-2.5 py-1 rounded-xl mt-1.5 shrink-0">ส่วนที่ ${sectionCounter}</span>
+                            <textarea rows="1" oninput="updateLabel('${fId}', this.value)" placeholder="กรอกชื่อส่วน / หัวข้อหลัก..." class="flex-1 w-full px-3.5 py-2 rounded-xl border border-slate-700 font-extrabold text-sm bg-slate-800/80 text-white focus:outline-none focus:ring-2 focus:ring-amber-400 leading-relaxed resize-y">${escapeHtml(f.field_label || '')}</textarea>
                         </div>
-                        <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-2 mt-1">
                             <button onclick="removeField('${fId}')" class="p-1.5 text-slate-400 hover:text-rose-400 rounded-lg"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                         </div>
                     </div>
                     <div class="pl-6">
-                        <input type="text" value="${escapeHtml(rawOpts.description || '')}" oninput="updateSectionDesc('${fId}', this.value)" placeholder="คำชี้แจงประจำส่วนนี้ (ไม่จำเป็นต้องระบุก็ได้)..." class="w-full px-3 py-1 rounded-xl border border-slate-700/80 font-medium text-xs bg-slate-800/40 text-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-400">
+                        <textarea rows="2" oninput="updateSectionDesc('${fId}', this.value)" placeholder="คำชี้แจงประจำส่วนนี้ (ไม่จำเป็นต้องระบุก็ได้)..." class="w-full px-3.5 py-2 rounded-xl border border-slate-700/80 font-medium text-xs bg-slate-800/40 text-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-400 leading-relaxed resize-y">${escapeHtml(rawOpts.description || '')}</textarea>
                     </div>
                 `;
             } else {
@@ -292,12 +334,12 @@
                 item.setAttribute('data-id', fId);
 
                 item.innerHTML = `
-                    <div class="flex items-center justify-between gap-3">
-                        <div class="flex items-center gap-2 flex-1">
-                            <i data-lucide="grip-vertical" class="w-4 h-4 text-slate-400 cursor-move"></i>
-                            <input type="text" value="${escapeHtml(f.field_label || '')}" oninput="updateLabel('${fId}', this.value)" placeholder="กรอกหัวข้อคำถาม..." class="flex-1 px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold bg-white">
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="flex items-start gap-2 flex-1">
+                            <i data-lucide="grip-vertical" class="w-4 h-4 text-slate-400 cursor-move mt-2.5"></i>
+                            <textarea rows="2" oninput="updateLabel('${fId}', this.value)" placeholder="กรอกหัวข้อคำถาม..." class="flex-1 w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-bold bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 leading-relaxed resize-y">${escapeHtml(f.field_label || '')}</textarea>
                         </div>
-                        <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-2 mt-1">
                             <label class="flex items-center gap-1.5 text-xs font-bold text-slate-600 cursor-pointer">
                                 <input type="checkbox" ${f.field_is_required == 1 ? 'checked' : ''} onchange="updateRequired('${fId}', this.checked)" class="rounded text-indigo-600">
                                 บังคับตอบ
@@ -312,11 +354,19 @@
                             ${options.map((opt, oIdx) => `
                                 <div class="flex items-center gap-2">
                                     <span class="text-slate-300 text-xs">${f.field_type === 'radio' ? '○' : '□'}</span>
-                                    <input type="text" value="${escapeHtml(opt || '')}" oninput="updateOption('${fId}', ${oIdx}, this.value)" placeholder="ตัวเลือก ${oIdx + 1}" class="px-3 py-1 rounded-lg border border-slate-200 text-xs bg-white">
+                                    <input type="text" value="${escapeHtml(opt || '')}" oninput="updateOption('${fId}', ${oIdx}, this.value)" placeholder="ตัวเลือก ${oIdx + 1}" class="flex-1 w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-bold bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
                                     <button onclick="removeOption('${fId}', ${oIdx})" class="text-slate-300 hover:text-rose-500 text-xs p-1">✕</button>
                                 </div>
                             `).join('')}
-                            <button onclick="addOption('${fId}')" class="text-xs font-bold text-indigo-600 hover:underline">+ เพิ่มตัวเลือก</button>
+                            
+                            <div class="flex items-center gap-3 pt-1">
+                                <button onclick="addOption('${fId}')" class="text-xs font-bold text-indigo-600 hover:underline">+ เพิ่มตัวเลือก</button>
+                                <span class="text-slate-300 text-xs">|</span>
+                                <label class="flex items-center gap-1.5 text-xs font-bold text-slate-700 cursor-pointer bg-slate-100 hover:bg-slate-200 px-2.5 py-1 rounded-lg transition-colors">
+                                    <input type="checkbox" ${hasOther ? 'checked' : ''} onchange="toggleHasOther('${fId}', this.checked)" class="rounded text-indigo-600">
+                                    + เพิ่มตัวเลือก "อื่นๆ (โปรดระบุ...)"
+                                </label>
+                            </div>
                         </div>
                     ` : (f.field_type === 'rating' ? `
                         <div class="pl-6 flex items-center gap-3">
@@ -360,7 +410,7 @@
     }
 
     function updateSectionDesc(id, val) {
-        const f = fieldsData.find(x => (x.field_id == id || x.temp_id == id));
+        const f = findField(id);
         if (f) {
             let opts = getParsedOpts(f.field_options);
             opts.description = val;
@@ -387,7 +437,7 @@
     }
 
     function updateLabel(id, val) {
-        const f = fieldsData.find(x => (x.field_id == id || x.temp_id == id));
+        const f = findField(id);
         if (f) {
             f.field_label = val;
             triggerAutoSave();
@@ -395,50 +445,76 @@
     }
 
     function updateRequired(id, checked) {
-        const f = fieldsData.find(x => (x.field_id == id || x.temp_id == id));
+        const f = findField(id);
         if (f) {
             f.field_is_required = checked ? 1 : 0;
             triggerAutoSave();
         }
     }
 
-    function addOption(id) {
-        const f = fieldsData.find(x => (x.field_id == id || x.temp_id == id));
+    function toggleHasOther(id, checked) {
+        const f = findField(id);
         if (f) {
             let opts = getParsedOpts(f.field_options);
-            let arr = Array.isArray(opts) ? opts : [];
-            arr.push("");
-            f.field_options = arr;
+            if (Array.isArray(opts)) {
+                opts = { options: opts, has_other: checked ? 1 : 0 };
+            } else {
+                if (!Array.isArray(opts.options)) opts.options = [];
+                opts.has_other = checked ? 1 : 0;
+            }
+            f.field_options = opts;
+            triggerAutoSave();
+        }
+    }
+
+    function addOption(id) {
+        const f = findField(id);
+        if (f) {
+            let opts = getParsedOpts(f.field_options);
+            if (Array.isArray(opts)) {
+                opts.push("");
+            } else {
+                if (!Array.isArray(opts.options)) opts.options = [];
+                opts.options.push("");
+            }
+            f.field_options = opts;
             renderFields();
             triggerAutoSave();
         }
     }
 
     function updateOption(id, oIdx, val) {
-        const f = fieldsData.find(x => (x.field_id == id || x.temp_id == id));
+        const f = findField(id);
         if (f) {
             let opts = getParsedOpts(f.field_options);
-            let arr = Array.isArray(opts) ? opts : [];
-            arr[oIdx] = val;
-            f.field_options = arr;
+            if (Array.isArray(opts)) {
+                opts[oIdx] = val;
+            } else {
+                if (!Array.isArray(opts.options)) opts.options = [];
+                opts.options[oIdx] = val;
+            }
+            f.field_options = opts;
             triggerAutoSave();
         }
     }
 
     function removeOption(id, oIdx) {
-        const f = fieldsData.find(x => (x.field_id == id || x.temp_id == id));
+        const f = findField(id);
         if (f) {
             let opts = getParsedOpts(f.field_options);
-            let arr = Array.isArray(opts) ? opts : [];
-            arr.splice(oIdx, 1);
-            f.field_options = arr;
+            if (Array.isArray(opts)) {
+                opts.splice(oIdx, 1);
+            } else {
+                if (Array.isArray(opts.options)) opts.options.splice(oIdx, 1);
+            }
+            f.field_options = opts;
             renderFields();
             triggerAutoSave();
         }
     }
 
     function updateRatingMax(id, maxVal) {
-        const f = fieldsData.find(x => (x.field_id == id || x.temp_id == id));
+        const f = findField(id);
         if (f) {
             let opts = getParsedOpts(f.field_options);
             opts.max = parseInt(maxVal) || 5;
@@ -448,7 +524,7 @@
     }
 
     function updateGridMax(id, maxVal) {
-        const f = fieldsData.find(x => (x.field_id == id || x.temp_id == id));
+        const f = findField(id);
         if (f) {
             let opts = getParsedOpts(f.field_options);
             opts.max = parseInt(maxVal) || 5;
@@ -458,7 +534,7 @@
     }
 
     function addGridItem(id) {
-        const f = fieldsData.find(x => (x.field_id == id || x.temp_id == id));
+        const f = findField(id);
         if (f) {
             let opts = getParsedOpts(f.field_options);
             let items = Array.isArray(opts.items) ? opts.items : [];
@@ -472,7 +548,7 @@
     }
 
     function updateGridItem(id, itemIdx, val) {
-        const f = fieldsData.find(x => (x.field_id == id || x.temp_id == id));
+        const f = findField(id);
         if (f) {
             let opts = getParsedOpts(f.field_options);
             let items = Array.isArray(opts.items) ? opts.items : [];
@@ -485,7 +561,7 @@
     }
 
     function removeGridItem(id, itemIdx) {
-        const f = fieldsData.find(x => (x.field_id == id || x.temp_id == id));
+        const f = findField(id);
         if (f) {
             let opts = getParsedOpts(f.field_options);
             let items = Array.isArray(opts.items) ? opts.items : [];
@@ -498,8 +574,20 @@
         }
     }
 
+    let isSavingFields = false;
+    let needsSaveAfter = false;
+
     async function saveAllFields(isAuto = false) {
+        if (isSavingFields) {
+            needsSaveAfter = true;
+            return;
+        }
+
+        isSavingFields = true;
+        needsSaveAfter = false;
+
         const payload = fieldsData.map(f => ({
+            temp_id: f.temp_id || ('temp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6)),
             field_id: f.field_id || null,
             label: f.field_label,
             type: f.field_type,
@@ -521,10 +609,10 @@
 
             if (data.status === 'success') {
                 if (Array.isArray(data.saved_fields)) {
-                    // Update only field_id mapping onto local fieldsData without overwriting typing state
-                    data.saved_fields.forEach((sf, idx) => {
-                        if (fieldsData[idx]) {
-                            fieldsData[idx].field_id = sf.field_id;
+                    data.saved_fields.forEach(sf => {
+                        const target = fieldsData.find(x => (sf.temp_id && x.temp_id === sf.temp_id) || (sf.field_id && x.field_id == sf.field_id));
+                        if (target) {
+                            target.field_id = sf.field_id;
                         }
                     });
                 }
@@ -547,6 +635,12 @@
             }
         } catch (err) {
             console.error('Save error:', err);
+        } finally {
+            isSavingFields = false;
+            if (needsSaveAfter) {
+                needsSaveAfter = false;
+                saveAllFields(true);
+            }
         }
     }
 

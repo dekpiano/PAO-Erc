@@ -13,10 +13,13 @@ class FormModel extends Model
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
     protected $allowedFields    = [
+        'form_code',
         'form_title',
         'form_description',
         'form_status',
         'form_has_certificate',
+        'form_is_shared',
+        'form_shared_users',
         'form_cert_template',
         'form_cert_config',
         'form_created_by',

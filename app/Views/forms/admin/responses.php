@@ -16,6 +16,11 @@ if ($form['form_has_certificate'] == 1) {
     }
 }
 
+// Filter actual question fields (exclude section dividers)
+$questionFields = array_filter($fields, function($f) {
+    return ($f['field_type'] ?? '') !== 'section';
+});
+
 // Keywords that indicate personal identity, contact info, or open comments
 $personalKeywords = ['ชื่อ', 'นามสกุล', 'เบอร์', 'โทร', 'phone', 'tel', 'อีเมล', 'email', 'ที่อยู่', 'ข้อเสนอแนะ', 'ความคิดเห็น', 'หมายเหตุ', 'comment', 'รายละเอียด'];
 
@@ -30,6 +35,14 @@ foreach ($fields as $f) {
     $answeredCount = 0;
     $ratingSum = 0;
     $ratingCount = 0;
+
+    if ($fType === 'section') {
+        $fieldAnalytics[$fId] = [
+            'field'              => $f,
+            'smart_display_type' => 'section_header'
+        ];
+        continue;
+    }
 
     // Check if label contains personal/contact/comment keywords or if type is text/textarea
     $isPersonal = false;
@@ -49,6 +62,24 @@ foreach ($fields as $f) {
         $counts = [1 => 0, 2 => 0, 3 => 0, 4 => 0, 5 => 0];
     }
 
+    $gridAnalytics = [];
+    if ($fType === 'rating_grid') {
+        $decOpts = !empty($f['field_options']) ? (is_array($f['field_options']) ? $f['field_options'] : json_decode($f['field_options'], true)) : [];
+        $gridItems = is_array($decOpts['items'] ?? null) ? $decOpts['items'] : [];
+        $maxScore = (int) ($decOpts['max'] ?? 5);
+
+        foreach ($gridItems as $gIdx => $gItem) {
+            $itemLabel = trim((string)$gItem) ?: "ข้อคำถามย่อยที่ " . ($gIdx + 1);
+            $gridAnalytics[$gIdx] = [
+                'label'  => $itemLabel,
+                'counts' => array_fill(1, $maxScore, 0),
+                'sum'    => 0,
+                'count'  => 0,
+                'avg'    => 0
+            ];
+        }
+    }
+
     foreach ($submissions as $s) {
         $ansVal = $s['answers'][$fId] ?? null;
         if ($ansVal !== null && trim((string)$ansVal) !== '') {
@@ -61,6 +92,35 @@ foreach ($fields as $f) {
                     'name' => 'ผู้ตอบแบบสอบถาม (ไม่ระบุตัวตน)',
                     'date' => $s['sub_submitted_at']
                 ];
+            } elseif ($fType === 'rating_grid') {
+                $parts = explode(',', $cleanVal);
+                foreach ($parts as $pIdx => $part) {
+                    $part = trim($part);
+                    if ($part === '') continue;
+
+                    $score = 0;
+                    $matchedIdx = $pIdx;
+
+                    if (strpos($part, ':') !== false) {
+                        list($pLabel, $pScore) = explode(':', $part, 2);
+                        $pLabel = trim($pLabel);
+                        $score = (int) trim($pScore);
+                        foreach ($gridAnalytics as $gIdx => $gaItem) {
+                            if (mb_strpos($pLabel, $gaItem['label']) !== false || mb_strpos($gaItem['label'], $pLabel) !== false) {
+                                $matchedIdx = $gIdx;
+                                break;
+                            }
+                        }
+                    } else {
+                        $score = (int) $part;
+                    }
+
+                    if (isset($gridAnalytics[$matchedIdx]) && $score >= 1 && $score <= ($maxScore ?? 5)) {
+                        $gridAnalytics[$matchedIdx]['counts'][$score]++;
+                        $gridAnalytics[$matchedIdx]['sum'] += $score;
+                        $gridAnalytics[$matchedIdx]['count']++;
+                    }
+                }
             } else {
                 if ($fType === 'checkbox') {
                     $vals = array_map('trim', explode(',', $ansVal));
@@ -81,8 +141,14 @@ foreach ($fields as $f) {
         }
     }
 
+    if ($fType === 'rating_grid') {
+        foreach ($gridAnalytics as &$ga) {
+            $ga['avg'] = $ga['count'] > 0 ? round($ga['sum'] / $ga['count'], 2) : 0;
+        }
+    }
+
     // Pre-populate defined choices if answers are empty
-    if (!$isPersonal && empty($counts) && ($fType === 'radio' || $fType === 'checkbox')) {
+    if (!$isPersonal && $fType !== 'rating_grid' && empty($counts) && ($fType === 'radio' || $fType === 'checkbox')) {
         if (!empty($f['field_options'])) {
             $dec = json_decode($f['field_options'], true);
             if (is_array($dec)) {
@@ -96,19 +162,13 @@ foreach ($fields as $f) {
                 }
             }
         }
-        if (empty($counts)) {
-            $counts = ['ตัวเลือก 1' => 0, 'ตัวเลือก 2' => 0];
-        }
     }
 
-    // Smart Display Type Determination:
-    // 1. Personal/Text -> 'text_list' (Clean Text Response Cards)
-    // 2. Rating Scale -> 'rating_bar' (Rating Column Bar)
-    // 3. Checkbox or Many options (>5) -> 'hbar' (Horizontal Bar Chart)
-    // 4. Radio or Single Choice (<=5) -> 'doughnut' (Pie/Doughnut Chart)
     $smartDisplayType = 'doughnut';
     if ($isPersonal) {
         $smartDisplayType = 'text_list';
+    } elseif ($fType === 'rating_grid') {
+        $smartDisplayType = 'rating_grid';
     } elseif ($fType === 'rating') {
         $smartDisplayType = 'rating_bar';
     } elseif ($fType === 'checkbox' || count($counts) > 5) {
@@ -122,6 +182,7 @@ foreach ($fields as $f) {
         'answered_count'     => $answeredCount,
         'counts'             => $counts,
         'text_list'          => $textList,
+        'grid_analytics'     => $gridAnalytics,
         'smart_display_type' => $smartDisplayType,
         'avg_rating'         => $ratingCount > 0 ? round($ratingSum / $ratingCount, 2) : 0,
     ];
@@ -143,7 +204,7 @@ foreach ($fields as $f) {
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
-            <a href="<?= base_url("forms/view/{$form['form_id']}") ?>" target="_blank" class="px-3.5 py-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-colors">
+            <a href="<?= base_url("forms/view/" . ($form['form_code'] ?: $form['form_id'])) ?>" target="_blank" class="px-3.5 py-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-colors">
                 <i data-lucide="external-link" class="w-3.5 h-3.5"></i> ลองตอบฟอร์ม
             </a>
             <button onclick="window.print()" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-colors">
@@ -164,7 +225,7 @@ foreach ($fields as $f) {
                 <i data-lucide="info" class="w-5 h-5 text-indigo-600 flex-shrink-0"></i>
                 <span>ยังไม่มีผู้ตอบแบบสอบถามนี้ — ระบบวิเคราะห์ชนิดข้อมูลและจัดเตรียมการแสดงผลไว้เรียบร้อยแล้ว</span>
             </div>
-            <a href="<?= base_url("forms/view/{$form['form_id']}") ?>" target="_blank" class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-extrabold flex-shrink-0 transition-colors">
+            <a href="<?= base_url("forms/view/" . ($form['form_code'] ?: $form['form_id'])) ?>" target="_blank" class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-extrabold flex-shrink-0 transition-colors">
                 + ทดลองส่งคำตอบแรก
             </a>
         </div>
@@ -183,11 +244,11 @@ foreach ($fields as $f) {
             </div>
         </div>
 
-        <!-- Card 2: Total Questions -->
+        <!-- Card 2: Total Question Fields -->
         <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex items-center justify-between">
             <div>
                 <p class="text-xs font-extrabold text-slate-400 uppercase tracking-wider mb-1">ข้อคำถามทั้งหมด</p>
-                <h3 class="text-3xl font-black text-slate-900"><?= number_format(count($fields)) ?> <span class="text-xs font-bold text-slate-400">ข้อ</span></h3>
+                <h3 class="text-3xl font-black text-slate-900"><?= number_format(count($questionFields)) ?> <span class="text-xs font-bold text-slate-400">ข้อ</span></h3>
             </div>
             <div class="w-14 h-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center shadow-inner">
                 <i data-lucide="help-circle" class="w-7 h-7"></i>
@@ -243,12 +304,35 @@ foreach ($fields as $f) {
                 <p class="text-xs text-slate-400 mt-1">โปรดเพิ่มข้อคำถามในระบบจัดการคำถามก่อน</p>
             </div>
         <?php else: ?>
-            <?php foreach ($fields as $idx => $f): 
+            <?php 
+            $qCounter = 0;
+            foreach ($fields as $idx => $f): 
                 $analytics = $fieldAnalytics[$f['field_id']] ?? null;
-                $answeredCount = $analytics['answered_count'] ?? 0;
                 $smartDisplayType = $analytics['smart_display_type'] ?? 'doughnut';
+
+                if ($smartDisplayType === 'section_header'): 
+            ?>
+                    <!-- Section Header Divider Banner -->
+                    <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-5 md:p-6 rounded-3xl shadow-md border border-slate-800 flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-amber-500/20 text-amber-400 rounded-2xl flex items-center justify-center border border-amber-500/30 shrink-0">
+                                <i data-lucide="layers" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <span class="text-[10px] font-bold text-amber-400 uppercase tracking-widest block">ส่วนของแบบสอบถาม</span>
+                                <h3 class="text-base md:text-lg font-black text-white"><?= esc($f['field_label']) ?></h3>
+                            </div>
+                        </div>
+                    </div>
+            <?php 
+                    continue;
+                endif; 
+
+                $qCounter++;
+                $answeredCount = $analytics['answered_count'] ?? 0;
                 $avgRating = $analytics['avg_rating'] ?? 0;
                 $textList = $analytics['text_list'] ?? [];
+                $gridAnalytics = $analytics['grid_analytics'] ?? [];
                 $fType = $f['field_type'];
                 $fId = $f['field_id'];
 
@@ -260,6 +344,9 @@ foreach ($fields as $f) {
                 } elseif ($smartDisplayType === 'rating_bar') {
                     $badgeLabel = '⭐ คะแนนประเมิน';
                     $badgeBg = 'bg-amber-50 text-amber-700 border-amber-200';
+                } elseif ($smartDisplayType === 'rating_grid') {
+                    $badgeLabel = '📋 ตารางประเมินหัวข้อย่อย';
+                    $badgeBg = 'bg-emerald-50 text-emerald-700 border-emerald-200';
                 } elseif ($smartDisplayType === 'text_list') {
                     $badgeLabel = '📝 รายการข้อความ';
                     $badgeBg = 'bg-slate-100 text-slate-700 border-slate-200';
@@ -268,7 +355,7 @@ foreach ($fields as $f) {
                 <div class="bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-6">
                     <div class="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-slate-100 gap-3">
                         <div>
-                            <span class="text-xs font-black text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-100 mr-2">ข้อที่ <?= $idx + 1 ?></span>
+                            <span class="text-xs font-black text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-100 mr-2">ข้อที่ <?= $qCounter ?></span>
                             <span class="text-xs font-bold text-slate-400 uppercase">
                                 <?= esc($f['field_label']) ?>
                             </span>
@@ -310,6 +397,48 @@ foreach ($fields as $f) {
                                 </div>
                             <?php endif; ?>
                         </div>
+                    <?php elseif ($smartDisplayType === 'rating_grid'): ?>
+                        <!-- Rating Grid Table Analytics Breakdown -->
+                        <div class="overflow-x-auto rounded-2xl border border-slate-200">
+                            <table class="w-full text-left text-xs md:text-sm">
+                                <thead class="bg-slate-100/80 text-slate-700 font-bold border-b border-slate-200">
+                                    <tr>
+                                        <th class="p-3.5">ข้อประเมินย่อย</th>
+                                        <th class="p-3.5 text-center min-w-[120px]">คะแนนเฉลี่ย</th>
+                                        <th class="p-3.5 text-center min-w-[200px]">แจกแจงคะแนน (5 ➔ 1)</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100 bg-white">
+                                    <?php if (empty($gridAnalytics)): ?>
+                                        <tr>
+                                            <td colspan="3" class="p-6 text-center text-slate-400 font-bold">ยังไม่มีข้อมูลคะแนนประเมินย่อย</td>
+                                        </tr>
+                                    <?php else: ?>
+                                        <?php foreach ($gridAnalytics as $ga): ?>
+                                            <tr class="hover:bg-indigo-50/30 transition-colors">
+                                                <td class="p-3.5 font-bold text-slate-800"><?= esc($ga['label']) ?></td>
+                                                <td class="p-3.5 text-center">
+                                                    <span class="px-3 py-1 rounded-xl text-xs font-black bg-amber-50 text-amber-700 border border-amber-200 inline-flex items-center gap-1">
+                                                        <span><?= number_format($ga['avg'], 2) ?></span>
+                                                        <span class="text-amber-400">★</span>
+                                                    </span>
+                                                </td>
+                                                <td class="p-3.5">
+                                                    <div class="flex items-center gap-1 justify-center">
+                                                        <?php for ($r = 5; $r >= 1; $r--): ?>
+                                                            <div class="text-center flex-1 px-1 py-1 bg-slate-50 rounded-lg border border-slate-200/80">
+                                                                <div class="text-[9px] font-bold text-slate-400"><?= $r ?>★</div>
+                                                                <div class="text-xs font-black text-slate-700"><?= $ga['counts'][$r] ?? 0 ?></div>
+                                                            </div>
+                                                        <?php endfor; ?>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </tbody>
+                            </table>
+                        </div>
                     <?php elseif ($smartDisplayType === 'rating_bar'): ?>
                         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
                             <div class="lg:col-span-3 bg-amber-50/60 p-6 rounded-2xl border border-amber-200 text-center space-y-2">
@@ -343,7 +472,7 @@ foreach ($fields as $f) {
         <!-- Table Search Bar -->
         <div class="bg-white p-4 rounded-2xl border border-slate-200 flex items-center gap-3">
             <i data-lucide="search" class="w-5 h-5 text-slate-400"></i>
-            <input type="text" id="table-search" oninput="filterTable()" placeholder="ค้นหาข้อมูลในตารางคำตอบ..." class="w-full text-xs font-bold bg-transparent focus:outline-none text-slate-700">
+            <input type="text" id="table-search" oninput="filterTable()" placeholder="ค้นหาคำตอบในตาราง..." class="w-full text-xs font-bold bg-transparent focus:outline-none text-slate-700">
         </div>
 
         <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
@@ -352,16 +481,16 @@ foreach ($fields as $f) {
                     <thead class="bg-slate-50 border-b border-slate-200 text-slate-700 font-bold uppercase tracking-wider">
                         <tr>
                             <th class="p-4 w-12 text-center">#</th>
-                            <th class="p-4">วันเวลาที่ตอบ</th>
-                            <?php foreach ($fields as $f): ?>
-                                <th class="p-4 min-w-[150px]"><?= esc($f['field_label']) ?></th>
+                            <th class="p-4 whitespace-nowrap">วันเวลาที่ตอบ</th>
+                            <?php foreach ($questionFields as $f): ?>
+                                <th class="p-4 min-w-[180px]"><?= esc($f['field_label']) ?></th>
                             <?php endforeach; ?>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
                         <?php if (empty($submissions)): ?>
                             <tr>
-                                <td colspan="<?= 2 + count($fields) ?>" class="p-12 text-center text-slate-400 font-bold">
+                                <td colspan="<?= 2 + count($questionFields) ?>" class="p-12 text-center text-slate-400 font-bold">
                                     ยังไม่มีการส่งแบบสอบถาม
                                 </td>
                             </tr>
@@ -370,9 +499,17 @@ foreach ($fields as $f) {
                                 <tr class="hover:bg-slate-50/80 transition-colors response-row">
                                     <td class="p-4 text-center font-bold text-slate-400"><?= $idx + 1 ?></td>
                                     <td class="p-4 whitespace-nowrap text-slate-500 font-semibold"><?= date('d/m/Y H:i', strtotime($sub['sub_submitted_at'])) ?></td>
-                                    <?php foreach ($fields as $f): ?>
-                                        <td class="p-4 font-medium text-slate-800">
-                                            <?= esc($sub['answers'][$f['field_id']] ?? '-') ?>
+                                    <?php foreach ($questionFields as $f): ?>
+                                        <td class="p-4 font-medium text-slate-800 leading-relaxed">
+                                            <?php 
+                                            $rawAns = $sub['answers'][$f['field_id']] ?? null;
+                                            if (!empty($rawAns) && strpos($rawAns, ', ') !== false) {
+                                                $parts = explode(', ', $rawAns);
+                                                echo implode('<br>', array_map('esc', $parts));
+                                            } else {
+                                                echo esc($rawAns ?? '-');
+                                            }
+                                            ?>
                                         </td>
                                     <?php endforeach; ?>
                                 </tr>
@@ -513,13 +650,10 @@ foreach ($fields as $f) {
     }
 
     function filterTable() {
-        const query = document.getElementById('table-search').value.toLowerCase();
+        const query = document.getElementById('table-search')?.value.toLowerCase() || '';
         document.querySelectorAll('.response-row').forEach(row => {
-            const name = row.querySelector('.search-name')?.innerText.toLowerCase() || '';
-            const email = row.querySelector('.search-email')?.innerText.toLowerCase() || '';
-            const cert = row.querySelector('.search-cert')?.innerText.toLowerCase() || '';
-
-            if (name.includes(query) || email.includes(query) || cert.includes(query)) {
+            const text = row.innerText.toLowerCase();
+            if (text.includes(query)) {
                 row.style.display = '';
             } else {
                 row.style.display = 'none';
@@ -605,7 +739,7 @@ foreach ($fields as $f) {
             $fId = $f['field_id'];
             $analytics = $fieldAnalytics[$fId] ?? null;
             $smartDisplayType = $analytics['smart_display_type'] ?? 'doughnut';
-            if ($smartDisplayType !== 'text_list'):
+            if ($smartDisplayType !== 'text_list' && $smartDisplayType !== 'section_header' && $smartDisplayType !== 'rating_grid'):
                 $counts = $analytics['counts'] ?? [];
                 $labels = array_keys($counts);
                 $values = array_values($counts);

@@ -41,10 +41,10 @@
                     </div>
 
                     <div class="space-y-2">
-                        <a href="<?= base_url("forms/view/{$f['form_id']}") ?>" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-extrabold text-xs flex items-center justify-center gap-2 shadow-lg shadow-indigo-100 transition-all hover:scale-[1.02]">
+                        <a href="<?= base_url("forms/view/" . (!empty($f['form_code']) ? $f['form_code'] : $f['form_id'])) ?>" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-extrabold text-xs flex items-center justify-center gap-2 shadow-lg shadow-indigo-100 transition-all hover:scale-[1.02]">
                             ทำแบบสอบถาม <i data-lucide="arrow-right" class="w-4 h-4"></i>
                         </a>
-                        <button type="button" onclick="openShareModal(<?= $f['form_id'] ?>, '<?= esc($f['form_title'], 'js') ?>')" class="w-full py-2.5 bg-slate-100 hover:bg-indigo-50 text-slate-700 hover:text-indigo-600 rounded-2xl font-bold text-xs flex items-center justify-center gap-2 transition-all border border-slate-200/80">
+                        <button type="button" onclick="openShareModal('<?= esc(!empty($f['form_code']) ? $f['form_code'] : $f['form_id'], 'js') ?>', '<?= esc($f['form_title'], 'js') ?>')" class="w-full py-2.5 bg-slate-100 hover:bg-indigo-50 text-slate-700 hover:text-indigo-600 rounded-2xl font-bold text-xs flex items-center justify-center gap-2 transition-all border border-slate-200/80">
                             <i data-lucide="qr-code" class="w-4 h-4 text-indigo-600"></i> สแกน QR Code / แชร์ลิงก์
                         </button>
                     </div>

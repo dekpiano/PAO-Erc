@@ -92,7 +92,7 @@
                              alt="Template Preview" 
                              id="preview-img-form" 
                              class="preview-img <?= $imageExists ? '' : 'hidden' ?>"
-                             onload="updateBadges()"
+                             onload="if (typeof updateBadges === 'function') updateBadges()"
                              onclick="handleImageClick(event)">
                              
                         <div id="no-img-placeholder-form" class="py-24 text-center <?= $imageExists ? 'hidden' : '' ?>">
@@ -302,6 +302,22 @@
     let badgeStartX = 0, badgeStartY = 0;
     let dragCachedRect = null, dragCachedNaturalWidth = 0, dragCachedNaturalHeight = 0;
 
+    function previewTemplate(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = document.getElementById('preview-img-form');
+                const placeholder = document.getElementById('no-img-placeholder-form');
+                img.src = e.target.result;
+                img.classList.remove('hidden');
+                if (placeholder) placeholder.classList.add('hidden');
+                updateBadges();
+                img.onload = function() { updateBadges(); };
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
         const activeSelect = document.getElementById('active-field-select');
         if (activeSelect && activeSelect.value) {
@@ -502,7 +518,7 @@
 
     function updateBadges() {
         const img = document.getElementById('preview-img-form');
-        if (img.classList.contains('hidden') || !img.complete || img.naturalWidth === 0) return;
+        if (!img || !img.complete || img.naturalWidth === 0) return;
 
         const rect = img.getBoundingClientRect();
         const naturalWidth = img.naturalWidth;

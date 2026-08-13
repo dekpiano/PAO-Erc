@@ -37,14 +37,36 @@ class FormPublicController extends BaseController
         return view('forms/index', $data);
     }
 
-    public function view($formId)
+    private function findForm($key)
     {
-        $form = $this->formModel->find($formId);
-        if (!$form || $form['form_status'] !== 'active') {
-            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('ไม่พบแบบสอบถาม หรือแบบสอบถามปิดรับคำตอบแล้ว');
+        if (empty($key)) return null;
+        $form = $this->formModel->where('form_code', $key)->first();
+        if (!$form && is_numeric($key)) {
+            $form = $this->formModel->find($key);
+        }
+        return $form;
+    }
+
+    public function view($key)
+    {
+        $form = $this->findForm($key);
+        if (!$form) {
+            return view('forms/closed', [
+                'title'   => 'ไม่พบแบบสอบถาม | อบจ.นครสวรรค์',
+                'form'    => null,
+                'message' => 'ไม่พบแบบสอบถามที่คุณต้องการเข้าถึง หรือลิงก์แบบสอบถามนี้อาจไม่ถูกต้อง'
+            ]);
         }
 
-        $fields = $this->fieldModel->where('field_form_id', $formId)->orderBy('field_sort_order', 'ASC')->findAll();
+        if ($form['form_status'] !== 'active') {
+            return view('forms/closed', [
+                'title'   => 'แบบสอบถามปิดรับคำตอบแล้ว | อบจ.นครสวรรค์',
+                'form'    => $form,
+                'message' => 'แบบสอบถามนี้ปิดรับฟังความคิดเห็นเรียบร้อยแล้ว ขอขอบพระคุณทุกท่านที่ร่วมตอบแบบสอบถาม'
+            ]);
+        }
+
+        $fields = $this->fieldModel->where('field_form_id', $form['form_id'])->orderBy('field_sort_order', 'ASC')->findAll();
 
         $data = [
             'title'  => $form['form_title'] . ' | แบบสอบถามออนไลน์',
@@ -55,13 +77,14 @@ class FormPublicController extends BaseController
         return view('forms/view', $data);
     }
 
-    public function submit($formId)
+    public function submit($key)
     {
-        $form = $this->formModel->find($formId);
+        $form = $this->findForm($key);
         if (!$form || $form['form_status'] !== 'active') {
             return $this->response->setJSON(['status' => 'error', 'message' => 'แบบสอบถามปิดรับคำตอบแล้ว']);
         }
 
+        $formId = $form['form_id'];
         $fields = $this->fieldModel->where('field_form_id', $formId)->findAll();
         $answers = $this->request->getPost('answers') ?: [];
 
@@ -114,7 +137,11 @@ class FormPublicController extends BaseController
     {
         $sub = $this->subModel->find($subId);
         if (!$sub) {
-            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('ไม่พบข้อมูลการส่งแบบสอบถาม');
+            return view('forms/closed', [
+                'title'   => 'ไม่พบข้อมูลการส่ง | อบจ.นครสวรรค์',
+                'form'    => null,
+                'message' => 'ไม่พบข้อมูลประวัติการทำแบบสอบถามที่คุณต้องการดู'
+            ]);
         }
 
         $form = $this->formModel->find($sub['sub_form_id']);
@@ -275,12 +302,25 @@ class FormPublicController extends BaseController
             imagesetthickness($image, 8);
             imagerectangle($image, 40, 40, 1880, 1317, $borderColor);
         } else {
-            $info = getimagesize($fullBgPath);
-            $mime = $info['mime'] ?? 'image/jpeg';
+            $image = null;
+            $info = @getimagesize($fullBgPath);
+            $mime = $info['mime'] ?? '';
             if ($mime === 'image/png') {
-                $image = imagecreatefrompng($fullBgPath);
-            } else {
-                $image = imagecreatefromjpeg($fullBgPath);
+                $image = @imagecreatefrompng($fullBgPath);
+            } elseif ($mime === 'image/jpeg') {
+                $image = @imagecreatefromjpeg($fullBgPath);
+            } elseif ($mime === 'image/webp' && function_exists('imagecreatefromwebp')) {
+                $image = @imagecreatefromwebp($fullBgPath);
+            }
+
+            if (!$image) {
+                // Fallback to default A4 Landscape image if format is not supported directly by GD
+                $image = imagecreatetruecolor(1920, 1357);
+                $bgColor = imagecolorallocate($image, 255, 255, 255);
+                imagefill($image, 0, 0, $bgColor);
+                $borderColor = imagecolorallocate($image, 99, 102, 241);
+                imagesetthickness($image, 8);
+                imagerectangle($image, 40, 40, 1880, 1317, $borderColor);
             }
         }
 

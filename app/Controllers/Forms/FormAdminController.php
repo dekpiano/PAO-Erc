@@ -27,6 +27,21 @@ class FormAdminController extends BaseController
         $this->initTables();
     }
 
+    private function generateUniqueFormCode()
+    {
+        $db = \Config\Database::connect();
+        $chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+        do {
+            $code = '';
+            for ($i = 0; $i < 8; $i++) {
+                $code .= $chars[mt_rand(0, strlen($chars) - 1)];
+            }
+            $exists = $db->query("SELECT form_id FROM Tb_Forms WHERE form_code = ?", [$code])->getRow();
+        } while (!empty($exists));
+
+        return $code;
+    }
+
     private function initTables()
     {
         $db = \Config\Database::connect();
@@ -34,15 +49,33 @@ class FormAdminController extends BaseController
         if (!$db->tableExists('Tb_Forms')) {
             $db->query("CREATE TABLE Tb_Forms (
                 form_id INT AUTO_INCREMENT PRIMARY KEY,
+                form_code VARCHAR(64) NULL UNIQUE,
                 form_title VARCHAR(255) NOT NULL,
                 form_description TEXT NULL,
                 form_status VARCHAR(50) NOT NULL DEFAULT 'active',
                 form_has_certificate TINYINT(1) NOT NULL DEFAULT 0,
+                form_is_shared TINYINT(1) NOT NULL DEFAULT 1,
                 form_cert_template VARCHAR(255) NULL,
                 form_cert_config TEXT NULL,
                 form_created_by INT NULL,
                 form_created_at DATETIME NOT NULL
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+        } else {
+            if (!$db->fieldExists('form_code', 'Tb_Forms')) {
+                $db->query("ALTER TABLE Tb_Forms ADD COLUMN form_code VARCHAR(64) NULL UNIQUE AFTER form_id");
+            }
+            if (!$db->fieldExists('form_is_shared', 'Tb_Forms')) {
+                $db->query("ALTER TABLE Tb_Forms ADD COLUMN form_is_shared TINYINT(1) NOT NULL DEFAULT 1 AFTER form_has_certificate");
+            }
+            if (!$db->fieldExists('form_shared_users', 'Tb_Forms')) {
+                $db->query("ALTER TABLE Tb_Forms ADD COLUMN form_shared_users TEXT NULL AFTER form_is_shared");
+            }
+        }
+
+        $emptyForms = $db->query("SELECT form_id FROM Tb_Forms WHERE form_code IS NULL OR form_code = ''")->getResultArray();
+        foreach ($emptyForms as $ef) {
+            $code = $this->generateUniqueFormCode();
+            $db->query("UPDATE Tb_Forms SET form_code = ? WHERE form_id = ?", [$code, $ef['form_id']]);
         }
 
         if (!$db->tableExists('Tb_Form_Fields')) {
@@ -92,34 +125,59 @@ class FormAdminController extends BaseController
         if ($chk !== true) return $chk;
 
         $userId = session()->get('u_id');
+        $db = \Config\Database::connect();
 
-        $builder = $this->formModel->orderBy('form_created_at', 'DESC');
-        if ($userId) {
-            $builder->groupStart()
-                    ->where('form_created_by', $userId)
-                    ->orWhere('form_created_by', null)
-                    ->groupEnd();
-        }
-        $forms = $builder->findAll();
+        $userModel = new \App\Models\UserModel();
+        $allStaff = $userModel->select('u_id, u_fullname, u_position')
+                              ->where('u_status !=', 'inactive')
+                              ->orderBy('u_fullname', 'ASC')
+                              ->findAll();
 
-        if ($userId && !empty($forms)) {
-            foreach ($forms as &$f) {
-                if (empty($f['form_created_by'])) {
+        $rawForms = $db->table('Tb_Forms as f')
+                       ->select('f.*, u.u_fullname as creator_name')
+                       ->join('Tb_Users as u', 'u.u_id = f.form_created_by', 'left')
+                       ->orderBy('f.form_created_at', 'DESC')
+                       ->get()
+                       ->getResultArray();
+
+        $forms = [];
+        foreach ($rawForms as $f) {
+            $isOwner = ($userId && !empty($f['form_created_by']) && $f['form_created_by'] == $userId);
+            $isSharedAll = (!isset($f['form_is_shared']) || $f['form_is_shared'] === null || (int)$f['form_is_shared'] === 1);
+            $isSharedSpecific = (isset($f['form_is_shared']) && (int)$f['form_is_shared'] === 2);
+
+            $hasAccess = false;
+            if ($isOwner || empty($f['form_created_by']) || $isSharedAll) {
+                $hasAccess = true;
+            } elseif ($isSharedSpecific && !empty($f['form_shared_users'])) {
+                $sharedUserIds = json_decode($f['form_shared_users'], true);
+                if (is_array($sharedUserIds) && in_array($userId, $sharedUserIds)) {
+                    $hasAccess = true;
+                }
+            }
+
+            if ($hasAccess) {
+                if ($userId && empty($f['form_created_by'])) {
                     $this->formModel->update($f['form_id'], ['form_created_by' => $userId]);
                     $f['form_created_by'] = $userId;
                 }
+                if (empty($f['form_code'])) {
+                    $code = $this->generateUniqueFormCode();
+                    $this->formModel->update($f['form_id'], ['form_code' => $code]);
+                    $f['form_code'] = $code;
+                }
                 $f['response_count'] = $this->subModel->where('sub_form_id', $f['form_id'])->countAllResults();
-            }
-        } else {
-            foreach ($forms as &$f) {
-                $f['response_count'] = $this->subModel->where('sub_form_id', $f['form_id'])->countAllResults();
+                $f['is_owner'] = ($userId && $f['form_created_by'] == $userId);
+                $forms[] = $f;
             }
         }
 
         $data = [
-            'title'    => 'ระบบแบบสอบถาม & เกียรติบัตรออนไลน์',
-            'fullname' => session()->get('u_fullname'),
-            'forms'    => $forms
+            'title'           => 'ระบบแบบสอบถาม & เกียรติบัตรออนไลน์',
+            'fullname'        => session()->get('u_fullname'),
+            'current_user_id' => $userId,
+            'all_staff'       => $allStaff,
+            'forms'           => $forms
         ];
 
         return view('forms/admin/index', $data);
@@ -136,10 +194,12 @@ class FormAdminController extends BaseController
         }
 
         $formId = $this->formModel->insert([
+            'form_code'            => $this->generateUniqueFormCode(),
             'form_title'           => $title,
             'form_description'     => $this->request->getPost('form_description'),
             'form_status'          => 'active',
             'form_has_certificate' => (int) $this->request->getPost('form_has_certificate'),
+            'form_is_shared'       => $this->request->getPost('form_is_shared') !== null ? (int)$this->request->getPost('form_is_shared') : 1,
             'form_created_by'      => session()->get('u_id'),
             'form_created_at'      => date('Y-m-d H:i:s')
         ]);
@@ -154,10 +214,22 @@ class FormAdminController extends BaseController
     private function verifyOwnership($form)
     {
         $userId = session()->get('u_id');
-        if ($userId && !empty($form['form_created_by']) && $form['form_created_by'] != $userId) {
-            return false;
+        if (!$userId) return false;
+
+        $isOwner = (empty($form['form_created_by']) || $form['form_created_by'] == $userId);
+        if ($isOwner) return true;
+
+        $isShared = isset($form['form_is_shared']) ? (int)$form['form_is_shared'] : 1;
+        if ($isShared === 1) return true;
+
+        if ($isShared === 2 && !empty($form['form_shared_users'])) {
+            $sharedUsers = json_decode($form['form_shared_users'], true);
+            if (is_array($sharedUsers) && in_array($userId, $sharedUsers)) {
+                return true;
+            }
         }
-        return true;
+
+        return false;
     }
 
     public function edit($formId)
@@ -245,8 +317,11 @@ class FormAdminController extends BaseController
         $file->move($tempDir, 'chunk_' . $chunkIndex);
 
         if ($chunkIndex + 1 === $totalChunks) {
-            $ext = pathinfo($originalFilename, PATHINFO_EXTENSION);
-            $newName = 'cert_bg_' . uniqid() . '.' . strtolower($ext);
+            $ext = strtolower(pathinfo($originalFilename, PATHINFO_EXTENSION));
+            if (!in_array($ext, ['png', 'jpg', 'jpeg'])) {
+                $ext = 'png';
+            }
+            $newName = 'cert_bg_' . uniqid() . '.' . $ext;
             $targetDir = FCPATH . 'uploads/forms/certificates/';
             if (!is_dir($targetDir)) mkdir($targetDir, 0777, true);
 
@@ -266,7 +341,7 @@ class FormAdminController extends BaseController
 
             return $this->response->setJSON([
                 'status'   => 'success',
-                'message'  => 'อัปโหลดภาพเรียบร้อยแล้ว',
+                'message'  => 'อัปโหลดไฟล์เรียบร้อยแล้ว',
                 'filename' => 'uploads/forms/certificates/' . $newName
             ]);
         }
@@ -290,6 +365,7 @@ class FormAdminController extends BaseController
             'form_description'     => $this->request->getPost('form_description'),
             'form_status'          => $this->request->getPost('form_status') ?? 'active',
             'form_has_certificate' => (int) $this->request->getPost('form_has_certificate'),
+            'form_is_shared'       => (int) $this->request->getPost('form_is_shared'),
         ];
 
         $this->formModel->update($formId, $updateData);
@@ -300,6 +376,134 @@ class FormAdminController extends BaseController
     public function saveSettings($formId)
     {
         return $this->saveGeneralSettings($formId);
+    }
+
+    public function toggleShare($formId)
+    {
+        $chk = $this->checkAccess();
+        if ($chk !== true) return $this->response->setJSON(['status' => 'error', 'message' => 'Unauthorized']);
+
+        $form = $this->formModel->find($formId);
+        if (!$form) {
+            return $this->response->setJSON(['status' => 'error', 'message' => 'ไม่พบข้อมูลแบบสอบถาม']);
+        }
+
+        $userId = session()->get('u_id');
+        if ($userId && !empty($form['form_created_by']) && $form['form_created_by'] != $userId) {
+            return $this->response->setJSON(['status' => 'error', 'message' => 'เฉพาะผู้สร้างแบบสอบถามเท่านั้นที่สามารถเปลี่ยนสิทธิ์การแชร์ได้']);
+        }
+
+        $current = isset($form['form_is_shared']) ? (int)$form['form_is_shared'] : 1;
+        $newSharedState = ($current === 1) ? 0 : 1;
+        $this->formModel->update($formId, ['form_is_shared' => $newSharedState]);
+
+        return $this->response->setJSON([
+            'status'         => 'success',
+            'form_is_shared' => $newSharedState,
+            'message'        => ($newSharedState === 1) ? 'เปิดการแชร์ให้เพื่อนในระบบร่วมจัดการแบบสอบถามแล้ว' : 'ปิดการแชร์ (ตั้งค่าเป็นแบบสอบถามส่วนตัว)'
+        ]);
+    }
+
+    public function getPermissions($formId)
+    {
+        $chk = $this->checkAccess();
+        if ($chk !== true) return $this->response->setJSON(['status' => 'error', 'message' => 'Unauthorized']);
+
+        $form = $this->formModel->find($formId);
+        if (!$form) return $this->response->setJSON(['status' => 'error', 'message' => 'ไม่พบข้อมูลแบบสอบถาม']);
+
+        $userId = session()->get('u_id');
+        $userModel = new \App\Models\UserModel();
+
+        $builder = $userModel->select('u_id, u_fullname, u_position, u_division')
+                             ->where('u_status !=', 'inactive')
+                             ->whereIn('u_division', ['ผู้บริหาร', 'ฝ่ายบริหาร', 'ฝ่ายส่งเสริม']);
+
+        if ($userId) {
+            $builder->where('u_id !=', $userId);
+        }
+
+        $staff = $builder->orderBy('u_fullname', 'ASC')->findAll();
+
+        $sharedUsers = !empty($form['form_shared_users']) ? json_decode($form['form_shared_users'], true) : [];
+        if (!is_array($sharedUsers)) $sharedUsers = [];
+
+        return $this->response->setJSON([
+            'status'            => 'success',
+            'form_id'           => $form['form_id'],
+            'form_title'        => $form['form_title'],
+            'current_division'  => 'บุคลากรทุกฝ่าย (ผู้บริหาร / ฝ่ายบริหาร / ฝ่ายส่งเสริม)',
+            'form_is_shared'    => isset($form['form_is_shared']) ? (int)$form['form_is_shared'] : 1,
+            'form_shared_users' => $sharedUsers,
+            'staff'             => $staff
+        ]);
+    }
+
+    public function savePermissions($formId)
+    {
+        $chk = $this->checkAccess();
+        if ($chk !== true) return $this->response->setJSON(['status' => 'error', 'message' => 'Unauthorized']);
+
+        $form = $this->formModel->find($formId);
+        if (!$form) return $this->response->setJSON(['status' => 'error', 'message' => 'ไม่พบข้อมูลแบบสอบถาม']);
+
+        $userId = session()->get('u_id');
+        if ($userId && !empty($form['form_created_by']) && $form['form_created_by'] != $userId) {
+            return $this->response->setJSON(['status' => 'error', 'message' => 'เฉพาะผู้สร้างแบบสอบถามเท่านั้นที่สามารถเปลี่ยนสิทธิ์การแชร์ได้']);
+        }
+
+        $isShared = (int) $this->request->getPost('form_is_shared');
+        $sharedUsersInput = $this->request->getPost('shared_users');
+        $sharedUsersJson = null;
+
+        if ($isShared === 2) {
+            if (is_array($sharedUsersInput)) {
+                $sharedUsersJson = json_encode(array_map('intval', $sharedUsersInput));
+            } else {
+                $sharedUsersJson = json_encode([]);
+            }
+        }
+
+        $this->formModel->update($formId, [
+            'form_is_shared'    => $isShared,
+            'form_shared_users' => $sharedUsersJson
+        ]);
+
+        $message = 'บันทึกสิทธิ์การแชร์เรียบร้อยแล้ว';
+        if ($isShared === 0) {
+            $message = 'ตั้งค่าเป็นแบบสอบถามส่วนตัวแล้ว';
+        } elseif ($isShared === 1) {
+            $message = 'เปิดการแชร์ให้เพื่อนทุกคนในระบบแล้ว';
+        } else {
+            $count = is_array($sharedUsersInput) ? count($sharedUsersInput) : 0;
+            $message = "แชร์ให้เจ้าหน้าที่ที่เลือก {$count} ท่าน เรียบร้อยแล้ว";
+        }
+
+        return $this->response->setJSON([
+            'status'         => 'success',
+            'form_is_shared' => $isShared,
+            'message'        => $message
+        ]);
+    }
+
+    public function toggleStatus($formId)
+    {
+        $chk = $this->checkAccess();
+        if ($chk !== true) return $this->response->setJSON(['status' => 'error', 'message' => 'Unauthorized']);
+
+        $form = $this->formModel->find($formId);
+        if (!$form || !$this->verifyOwnership($form)) {
+            return $this->response->setJSON(['status' => 'error', 'message' => 'ไม่พบแบบสอบถามหรือไม่มีสิทธิ์']);
+        }
+
+        $newStatus = ($form['form_status'] === 'active') ? 'closed' : 'active';
+        $this->formModel->update($formId, ['form_status' => $newStatus]);
+
+        return $this->response->setJSON([
+            'status'     => 'success',
+            'new_status' => $newStatus,
+            'message'    => ($newStatus === 'active') ? 'เปิดใช้งานแบบสอบถามเป็นสาธารณะเรียบร้อยแล้ว' : 'ปิดใช้งานแบบสอบถามเรียบร้อยแล้ว'
+        ]);
     }
 
     public function saveCertSettings($formId)
@@ -369,6 +573,11 @@ class FormAdminController extends BaseController
         $chk = $this->checkAccess();
         if ($chk !== true) return $this->response->setJSON(['status' => 'error', 'message' => 'Unauthorized']);
 
+        $form = $this->formModel->find($formId);
+        if (!$form || !$this->verifyOwnership($form)) {
+            return $this->response->setJSON(['status' => 'error', 'message' => 'ไม่พบแบบสอบถามหรือไม่มีสิทธิ์']);
+        }
+
         $fieldsJson = $this->request->getPost('fields');
         $fields = json_decode($fieldsJson, true);
 
@@ -384,6 +593,7 @@ class FormAdminController extends BaseController
 
         foreach ($fields as $idx => $f) {
             $fieldId = !empty($f['field_id']) ? (int) $f['field_id'] : null;
+            $tempId  = $f['temp_id'] ?? null;
             $opts = !empty($f['options']) ? (is_array($f['options']) || is_object($f['options']) ? json_encode($f['options'], JSON_UNESCAPED_UNICODE) : $f['options']) : null;
             
             $label = trim($f['label'] ?? '');
@@ -403,11 +613,17 @@ class FormAdminController extends BaseController
             if ($fieldId && in_array($fieldId, $existingIds)) {
                 $this->fieldModel->update($fieldId, $data);
                 $keptIds[] = $fieldId;
-                $savedFieldsResult[] = array_merge(['field_id' => $fieldId], $data);
+                $savedFieldsResult[] = [
+                    'temp_id'  => $tempId,
+                    'field_id' => $fieldId
+                ];
             } else {
                 $newId = $this->fieldModel->insert($data);
-                $keptIds[] = $newId;
-                $savedFieldsResult[] = array_merge(['field_id' => $newId], $data);
+                $keptIds[] = (int) $newId;
+                $savedFieldsResult[] = [
+                    'temp_id'  => $tempId,
+                    'field_id' => (int) $newId
+                ];
             }
         }
 
@@ -416,13 +632,10 @@ class FormAdminController extends BaseController
             $this->fieldModel->whereIn('field_id', $toDelete)->delete();
         }
 
-        // Return updated list of fields with exact Database IDs and stored options
-        $updatedFields = $this->fieldModel->where('field_form_id', $formId)->orderBy('field_sort_order', 'ASC')->findAll();
-
         return $this->response->setJSON([
             'status'       => 'success',
             'message'      => 'บันทึกชุดคำถามเรียบร้อยแล้ว',
-            'saved_fields' => $updatedFields
+            'saved_fields' => $savedFieldsResult
         ]);
     }
 
