@@ -536,9 +536,10 @@
                     <div class="sm:col-span-2">
                         <label class="block text-[11px] font-bold text-slate-600 mb-1">ตำแหน่งในทีม</label>
                         <select name="members[${idx}][position]" class="select2-init w-full text-xs font-medium bg-white">
-                            <option value="ผู้จัดการทีม">ผู้จัดการทีม</option>
+                            <option value="ผู้ควบคุมทีม">ผู้ควบคุมทีม</option>
                             <option value="ผู้ฝึกสอน">ผู้ฝึกสอน (โค้ช)</option>
                             <option value="ผู้ช่วยผู้ฝึกสอน">ผู้ช่วยผู้ฝึกสอน</option>
+                            <option value="ผู้จัดการทีม">ผู้จัดการทีม</option>
                             <option value="เจ้าหน้าที่ประจำทีม">เจ้าหน้าที่ประจำทีม</option>
                         </select>
                     </div>

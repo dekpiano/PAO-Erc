@@ -72,7 +72,7 @@
                                 <div class="space-y-3">
                                     <div class="flex items-start justify-between gap-3">
                                         <span class="px-2.5 py-1 rounded-full text-[10px] font-black <?= $m['member_type'] === 'athlete' ? 'bg-emerald-100 text-emerald-800' : 'bg-purple-100 text-purple-800' ?>">
-                                            <?= $m['member_type'] === 'athlete' ? 'นักกีฬา' : 'ผู้ฝึกสอน / จนท.' ?>
+                                            <?= !empty($m['position']) ? esc($m['position']) : ($m['member_type'] === 'athlete' ? 'นักกีฬา' : 'ผู้ฝึกสอน / จนท.') ?>
                                         </span>
                                         <span class="px-2.5 py-1 bg-amber-50 text-amber-800 border border-amber-200 rounded-full text-[10px] font-black">
                                             <?= $finalAward === 'champion' ? '🏆 ชนะเลิศ' : ($finalAward === 'runner_up_1' ? '🥈 รองชนะเลิศอันดับ 1' : ($finalAward === 'runner_up_2' ? '🥉 รองชนะเลิศอันดับ 2' : ($finalAward === 'runner_up_3' ? '🎖️ รองชนะเลิศอันดับ 3' : '📜 เข้าร่วมการแข่งขัน'))) ?>

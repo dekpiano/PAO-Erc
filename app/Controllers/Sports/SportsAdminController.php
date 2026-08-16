@@ -443,6 +443,152 @@ class SportsAdminController extends BaseController
         return redirect()->back()->with('success', 'อัปเดตสถานะทีมสำเร็จ');
     }
 
+    // Update Team Details (School name, Team name, Contact info)
+    public function teamUpdate($teamId)
+    {
+        $chk = $this->checkAccess();
+        if ($chk instanceof \CodeIgniter\HTTP\ResponseInterface) return $chk;
+
+        $team = $this->teamModel->find($teamId);
+        if (!$team) {
+            return redirect()->to(base_url('staff/sports/teams'))->with('error', 'ไม่พบข้อมูลทีม');
+        }
+
+        $schoolName   = trim($this->request->getPost('school_name'));
+        $teamName     = trim($this->request->getPost('team_name'));
+        $contactName  = trim($this->request->getPost('contact_name'));
+        $contactPhone = trim($this->request->getPost('contact_phone'));
+        $contactEmail = trim($this->request->getPost('contact_email'));
+        $contactLine  = trim($this->request->getPost('contact_line_id'));
+
+        $this->teamModel->update($teamId, [
+            'school_name'     => $schoolName,
+            'team_name'       => $teamName,
+            'contact_name'    => $contactName,
+            'contact_phone'   => $contactPhone,
+            'contact_email'   => $contactEmail,
+            'contact_line_id' => $contactLine,
+            'updated_at'      => date('Y-m-d H:i:s')
+        ]);
+
+        return redirect()->back()->with('success', 'บันทึกการแก้ไขข้อมูลทีมเรียบร้อยแล้ว');
+    }
+
+    // Update Individual Member / Athlete / Coach Details
+    public function memberUpdate($memberId)
+    {
+        $chk = $this->checkAccess();
+        if ($chk instanceof \CodeIgniter\HTTP\ResponseInterface) return $chk;
+
+        $member = $this->memberModel->find($memberId);
+        if (!$member) {
+            return redirect()->back()->with('error', 'ไม่พบข้อมูลสมาชิกในทีม');
+        }
+
+        $prefix       = trim($this->request->getPost('prefix'));
+        $firstName    = trim($this->request->getPost('first_name'));
+        $lastName     = trim($this->request->getPost('last_name'));
+        $idCard       = trim($this->request->getPost('id_card'));
+        $memberType   = $this->request->getPost('member_type') ?: 'athlete';
+        $position     = trim($this->request->getPost('position') ?? '');
+        $jerseyNumber = trim($this->request->getPost('jersey_number') ?? '');
+        $birthDate    = $this->request->getPost('birth_date') ?: null;
+        $age          = $this->request->getPost('age') !== null ? (int)$this->request->getPost('age') : $member['age'];
+
+        if (!empty($birthDate)) {
+            $bTime = strtotime($birthDate);
+            if ($bTime) {
+                $age = date('Y') - date('Y', $bTime);
+                if (date('md') < date('md', $bTime)) {
+                    $age--;
+                }
+            }
+        }
+
+        $this->memberModel->update($memberId, [
+            'prefix'        => $prefix,
+            'first_name'    => $firstName,
+            'last_name'     => $lastName,
+            'id_card'       => $idCard,
+            'member_type'   => $memberType,
+            'position'      => $position,
+            'jersey_number' => $jerseyNumber,
+            'birth_date'    => $birthDate,
+            'age'           => $age,
+            'updated_at'    => date('Y-m-d H:i:s')
+        ]);
+
+        return redirect()->back()->with('success', 'บันทึกการแก้ไขข้อมูล "' . $firstName . ' ' . $lastName . '" เรียบร้อยแล้ว');
+    }
+
+    // Delete Member from Team
+    public function memberDelete($memberId)
+    {
+        $chk = $this->checkAccess();
+        if ($chk instanceof \CodeIgniter\HTTP\ResponseInterface) return $chk;
+
+        $member = $this->memberModel->find($memberId);
+        if (!$member) {
+            return redirect()->back()->with('error', 'ไม่พบข้อมูลสมาชิก');
+        }
+
+        $this->memberModel->delete($memberId);
+        return redirect()->back()->with('success', 'ลบสมาชิกออกจากทีมเรียบร้อยแล้ว');
+    }
+
+    // Delete Team & Members
+    public function teamDelete($teamId)
+    {
+        $chk = $this->checkAccess();
+        if ($chk instanceof \CodeIgniter\HTTP\ResponseInterface) return $chk;
+
+        $team = $this->teamModel->find($teamId);
+        if (!$team) {
+            return redirect()->to(base_url('staff/sports/teams'))->with('error', 'ไม่พบข้อมูลทีม');
+        }
+
+        $this->memberModel->where('team_id', $teamId)->delete();
+        $this->teamModel->delete($teamId);
+
+        return redirect()->to(base_url('staff/sports/teams'))->with('success', 'ลบทีมและสมาชิกทั้งหมดเรียบร้อยแล้ว');
+    }
+
+    // Print Team Match Sheet
+    public function matchSheet($teamId)
+    {
+        $chk = $this->checkAccess();
+        if ($chk instanceof \CodeIgniter\HTTP\ResponseInterface) return $chk;
+
+        $db = \Config\Database::connect();
+        $team = $db->table('Tb_Sports_Teams as t')
+                   ->select('t.*, c.sport_name, c.category_name, c.category_gender, c.min_players, c.max_players, c.min_coaches, c.max_coaches, c.comp_year')
+                   ->join('Tb_Sports_Categories as c', 'c.category_id = t.category_id', 'left')
+                   ->where('t.team_id', $teamId)
+                   ->get()
+                   ->getRowArray();
+
+        if (!$team) {
+            return redirect()->to(base_url('staff/sports/teams'))->with('error', 'ไม่พบข้อมูลทีม');
+        }
+
+        $members = $this->memberModel->where('team_id', $teamId)
+                                     ->orderBy("IF(member_type = 'coach', 1, 0)", 'ASC', false)
+                                     ->orderBy('member_id', 'ASC')
+                                     ->findAll();
+
+        $athletes = array_values(array_filter($members, fn($m) => $m['member_type'] === 'athlete'));
+        $coaches  = array_values(array_filter($members, fn($m) => $m['member_type'] !== 'athlete'));
+
+        $data = [
+            'title'    => 'ใบรายชื่อการแข่งขัน (Match Sheet) - ' . ($team['team_name'] ?: $team['school_name']),
+            'team'     => $team,
+            'athletes' => $athletes,
+            'coaches'  => $coaches
+        ];
+
+        return view('sports/admin/match_sheet', $data);
+    }
+
     // Results & Awards Management
     public function results()
     {
@@ -710,6 +856,85 @@ class SportsAdminController extends BaseController
         return redirect()->to(base_url("staff/sports/certificates/design/{$newCertId}"))->with('success', 'สร้างเทมเพลตเกียรติบัตรสำเร็จ');
     }
 
+    // Update Certificate Details
+    public function certUpdate($certId)
+    {
+        $chk = $this->checkAccess();
+        if ($chk instanceof \CodeIgniter\HTTP\ResponseInterface) return $chk;
+
+        $db = \Config\Database::connect();
+        $cert = $db->table('Tb_Sports_Certificates')->where('cert_id', $certId)->get()->getRowArray();
+        if (!$cert) {
+            return redirect()->to(base_url('staff/sports/certificates'))->with('error', 'ไม่พบข้อมูลแบบเกียรติบัตร');
+        }
+
+        $certTitle   = trim($this->request->getPost('cert_title'));
+        $categoryId  = (int) $this->request->getPost('category_id');
+        $targetType  = $this->request->getPost('target_type') ?: 'all';
+        $awardLevel  = $this->request->getPost('award_level') ?: 'all';
+        $certPrefix  = trim($this->request->getPost('cert_prefix') ?: 'PAO-SP-2569/');
+        $isActive    = $this->request->getPost('is_active') !== null ? (int) $this->request->getPost('is_active') : 1;
+
+        if (empty($certTitle)) {
+            return redirect()->back()->with('error', 'กรุณาระบุชื่อแบบเกียรติบัตร');
+        }
+
+        $db->table('Tb_Sports_Certificates')->where('cert_id', $certId)->update([
+            'category_id' => $categoryId,
+            'target_type' => $targetType,
+            'award_level' => $awardLevel,
+            'cert_title'  => $certTitle,
+            'cert_prefix' => $certPrefix,
+            'is_active'   => $isActive,
+            'updated_at'  => date('Y-m-d H:i:s')
+        ]);
+
+        return redirect()->to(base_url('staff/sports/certificates'))->with('success', 'บันทึกการแก้ไขแบบเกียรติบัตรเรียบร้อยแล้ว');
+    }
+
+    // Delete Certificate Template
+    public function certDelete($certId)
+    {
+        $chk = $this->checkAccess();
+        if ($chk instanceof \CodeIgniter\HTTP\ResponseInterface) return $chk;
+
+        $db = \Config\Database::connect();
+        $cert = $db->table('Tb_Sports_Certificates')->where('cert_id', $certId)->get()->getRowArray();
+        if (!$cert) {
+            return redirect()->to(base_url('staff/sports/certificates'))->with('error', 'ไม่พบข้อมูลแบบเกียรติบัตร');
+        }
+
+        // Remove background template image if exists
+        if (!empty($cert['cert_template']) && file_exists(FCPATH . $cert['cert_template'])) {
+            @unlink(FCPATH . $cert['cert_template']);
+        }
+
+        $db->table('Tb_Sports_Certificates')->where('cert_id', $certId)->delete();
+
+        return redirect()->to(base_url('staff/sports/certificates'))->with('success', 'ลบแบบเกียรติบัตรเรียบร้อยแล้ว');
+    }
+
+    // Toggle Certificate Status
+    public function certToggleStatus($certId)
+    {
+        $chk = $this->checkAccess();
+        if ($chk instanceof \CodeIgniter\HTTP\ResponseInterface) return $chk;
+
+        $db = \Config\Database::connect();
+        $cert = $db->table('Tb_Sports_Certificates')->where('cert_id', $certId)->get()->getRowArray();
+        if (!$cert) {
+            return redirect()->to(base_url('staff/sports/certificates'))->with('error', 'ไม่พบข้อมูลแบบเกียรติบัตร');
+        }
+
+        $newStatus = $cert['is_active'] ? 0 : 1;
+        $db->table('Tb_Sports_Certificates')->where('cert_id', $certId)->update([
+            'is_active'  => $newStatus,
+            'updated_at' => date('Y-m-d H:i:s')
+        ]);
+
+        return redirect()->to(base_url('staff/sports/certificates'))->with('success', 'ปรับปรุงสถานะแบบเกียรติบัตรเรียบร้อยแล้ว');
+    }
+
     // Demo Certificate Generator (Preview with Sample Data)
     public function certDemo($certId)
     {
@@ -739,11 +964,25 @@ class SportsAdminController extends BaseController
         if (!file_exists($fontBold)) $fontBold = FCPATH . 'assets/fonts/THSarabunNew-Bold.ttf';
         if (!file_exists($fontReg))  $fontReg  = FCPATH . 'assets/fonts/THSarabunNew.ttf';
 
+        $isCoachTarget = ($cert['target_type'] === 'coach');
+        $demoName = $isCoachTarget ? 'นายสมศักดิ์ นำชัย' : 'นายสมชาย รักดี';
+        $demoAward = $isCoachTarget ? 'ผู้ควบคุมทีม  ได้รับรางวัล  ชนะเลิศ' : 'ได้รับรางวัล  ชนะเลิศ';
+        
+        if ($cert['award_level'] === 'runner_up_1') {
+            $demoAward = $isCoachTarget ? 'ผู้ควบคุมทีม  ได้รับรางวัล  รองชนะเลิศอันดับ 1' : 'ได้รับรางวัล  รองชนะเลิศอันดับ 1';
+        } elseif ($cert['award_level'] === 'runner_up_2') {
+            $demoAward = $isCoachTarget ? 'ผู้ควบคุมทีม  ได้รับรางวัล  รองชนะเลิศอันดับ 2' : 'ได้รับรางวัล  รองชนะเลิศอันดับ 2';
+        } elseif ($cert['award_level'] === 'runner_up_3') {
+            $demoAward = $isCoachTarget ? 'ผู้ควบคุมทีม  ได้รับรางวัล  รองชนะเลิศอันดับ 3' : 'ได้รับรางวัล  รองชนะเลิศอันดับ 3';
+        } elseif ($cert['award_level'] === 'participation') {
+            $demoAward = $isCoachTarget ? 'ผู้ควบคุมทีม  ได้เข้าร่วมการแข่งขัน' : 'ได้เข้าร่วมการแข่งขัน';
+        }
+
         $samples = [
-            'name'     => 'นายสมชาย รักดี',
-            'award'    => 'ได้รับรางวัล ชนะเลิศ',
+            'name'     => $demoName,
+            'award'    => $demoAward,
             'category' => 'กีฬาฟุตบอล (ประเภททีม)',
-            'model'    => 'ประเภท รุ่นอายุไม่เกิน 15 ปี (ชาย)',
+            'model'    => 'ประเภท  รุ่นอายุไม่เกิน 15 ปี (ชาย)',
             'school'   => 'โรงเรียนสวนกุหลาบวิทยาลัย (จิรประวัติ) นครสวรรค์',
             'date'     => 'ให้ไว้ ณ วันที่ 14 สิงหาคม พ.ศ. 2569',
             'code'     => ($cert['cert_prefix'] ?: 'PAO-SP-2569/') . 'DEMO-001'

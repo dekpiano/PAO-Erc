@@ -276,6 +276,8 @@ $routes->group('staff/sports', function($routes) {
     $routes->post('teams/update-status/(:num)', 'Sports\SportsAdminController::teamUpdateStatus/$1');
     $routes->get('teams/edit/(:num)', 'Sports\SportsAdminController::teamEdit/$1');
     $routes->post('teams/update/(:num)', 'Sports\SportsAdminController::teamUpdate/$1');
+    $routes->post('teams/member-update/(:num)', 'Sports\SportsAdminController::memberUpdate/$1');
+    $routes->get('teams/member-delete/(:num)', 'Sports\SportsAdminController::memberDelete/$1');
     $routes->get('teams/delete/(:num)', 'Sports\SportsAdminController::teamDelete/$1');
     $routes->get('teams/match-sheet/(:num)', 'Sports\SportsAdminController::matchSheet/$1');
     $routes->get('export-excel', 'Sports\SportsAdminController::exportExcel');
@@ -288,6 +290,9 @@ $routes->group('staff/sports', function($routes) {
     // Certificates Management & Designer
     $routes->get('certificates', 'Sports\SportsAdminController::certificates');
     $routes->post('certificates/create', 'Sports\SportsAdminController::certCreate');
+    $routes->post('certificates/update/(:num)', 'Sports\SportsAdminController::certUpdate/$1');
+    $routes->get('certificates/delete/(:num)', 'Sports\SportsAdminController::certDelete/$1');
+    $routes->post('certificates/toggle-status/(:num)', 'Sports\SportsAdminController::certToggleStatus/$1');
     $routes->get('certificates/design/(:num)', 'Sports\SportsAdminController::certDesign/$1');
     $routes->post('certificates/save-design/(:num)', 'Sports\SportsAdminController::saveCertDesign/$1');
     $routes->get('certificates/demo/(:num)', 'Sports\SportsAdminController::certDemo/$1');

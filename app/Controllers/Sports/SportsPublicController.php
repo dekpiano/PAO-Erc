@@ -443,15 +443,47 @@ class SportsPublicController extends BaseController
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('ไม่พบข้อมูลผู้รับเกียรติบัตร');
         }
 
-        // Determine matching certificate template
+        $isStaff = ($member['member_type'] !== 'athlete');
+        $memberTarget = $isStaff ? 'coach' : 'athlete';
+        $finalAward = $member['award_level'] !== 'none' ? $member['award_level'] : $member['team_award'];
+        $posLabel = !empty($member['position']) ? $member['position'] : ($member['member_type'] === 'coach' ? 'ผู้ฝึกสอน' : 'ผู้ควบคุมทีม');
+
+        // Determine matching certificate template (Priority matching)
+        // 1. Match category + target + award
         $cert = $db->table('Tb_Sports_Certificates')
                    ->where('category_id', $member['category_id'])
+                   ->whereIn('target_type', [$memberTarget, 'all'])
+                   ->whereIn('award_level', [$finalAward, 'all'])
                    ->where('is_active', 1)
+                   ->orderBy("IF(target_type = 'all', 1, 0)", 'ASC', false) // prefer specific target
+                   ->orderBy("IF(award_level = 'all', 1, 0)", 'ASC', false)  // prefer specific award
                    ->get()
                    ->getRowArray();
 
         if (!$cert) {
-            // Fallback to general template
+            // 2. Fallback to general template (category_id = 0) with target + award match
+            $cert = $db->table('Tb_Sports_Certificates')
+                       ->where('category_id', 0)
+                       ->whereIn('target_type', [$memberTarget, 'all'])
+                       ->whereIn('award_level', [$finalAward, 'all'])
+                       ->where('is_active', 1)
+                       ->orderBy("IF(target_type = 'all', 1, 0)", 'ASC', false)
+                       ->orderBy("IF(award_level = 'all', 1, 0)", 'ASC', false)
+                       ->get()
+                       ->getRowArray();
+        }
+
+        if (!$cert) {
+            // 3. Fallback to category match without strict target/award
+            $cert = $db->table('Tb_Sports_Certificates')
+                       ->where('category_id', $member['category_id'])
+                       ->where('is_active', 1)
+                       ->get()
+                       ->getRowArray();
+        }
+
+        if (!$cert) {
+            // 4. Fallback to general template
             $cert = $db->table('Tb_Sports_Certificates')
                        ->where('category_id', 0)
                        ->where('is_active', 1)
@@ -460,7 +492,7 @@ class SportsPublicController extends BaseController
         }
 
         if (!$cert) {
-            // If none exists, get the latest one
+            // 5. If none exists, get the latest one
             $cert = $db->table('Tb_Sports_Certificates')->orderBy('cert_id', 'DESC')->get()->getRowArray();
         }
 
@@ -490,17 +522,35 @@ class SportsPublicController extends BaseController
         if (!file_exists($fontBold)) $fontBold = FCPATH . 'assets/fonts/THSarabunNew-Bold.ttf';
         if (!file_exists($fontReg))  $fontReg  = FCPATH . 'assets/fonts/THSarabunNew.ttf';
 
+        // Determine Position Label for Staff / Coach
+        $rawPos = trim($member['position'] ?? '');
+        if (empty($rawPos) || is_numeric($rawPos) || preg_match('/^0[0-9]{8,9}$/', $rawPos)) {
+            $posLabel = 'ผู้ควบคุมทีม';
+        } else {
+            $posLabel = $rawPos;
+        }
+
         // Format award text
-        $finalAward = $member['award_level'] !== 'none' ? $member['award_level'] : $member['team_award'];
-        $awardMap = [
-            'champion'      => 'ได้รับรางวัล  ชนะเลิศ',
-            'runner_up_1'   => 'ได้รับรางวัล  รองชนะเลิศอันดับ 1',
-            'runner_up_2'   => 'ได้รับรางวัล  รองชนะเลิศอันดับ 2',
-            'runner_up_3'   => 'ได้รับรางวัล  รองชนะเลิศอันดับ 3',
-            'participation' => 'ได้เข้าร่วมการแข่งขัน',
-            'none'          => 'ได้เข้าร่วมการแข่งขัน'
-        ];
-        $awardText = $awardMap[$finalAward] ?? 'ได้เข้าร่วมการแข่งขัน';
+        if ($isStaff) {
+            $awardMap = [
+                'champion'      => "{$posLabel}  ได้รับรางวัล  ชนะเลิศ",
+                'runner_up_1'   => "{$posLabel}  ได้รับรางวัล  รองชนะเลิศอันดับ 1",
+                'runner_up_2'   => "{$posLabel}  ได้รับรางวัล  รองชนะเลิศอันดับ 2",
+                'runner_up_3'   => "{$posLabel}  ได้รับรางวัล  รองชนะเลิศอันดับ 3",
+                'participation' => "{$posLabel}  ได้เข้าร่วมการแข่งขัน",
+                'none'          => "{$posLabel}  ได้เข้าร่วมการแข่งขัน"
+            ];
+        } else {
+            $awardMap = [
+                'champion'      => 'ได้รับรางวัล  ชนะเลิศ',
+                'runner_up_1'   => 'ได้รับรางวัล  รองชนะเลิศอันดับ 1',
+                'runner_up_2'   => 'ได้รับรางวัล  รองชนะเลิศอันดับ 2',
+                'runner_up_3'   => 'ได้รับรางวัล  รองชนะเลิศอันดับ 3',
+                'participation' => 'ได้เข้าร่วมการแข่งขัน',
+                'none'          => 'ได้เข้าร่วมการแข่งขัน'
+            ];
+        }
+        $awardText = $awardMap[$finalAward] ?? ($isStaff ? "{$posLabel}  ได้เข้าร่วมการแข่งขัน" : 'ได้เข้าร่วมการแข่งขัน');
 
         $genderText = $member['category_gender'] === 'female' ? 'หญิง' : ($member['category_gender'] === 'mixed' ? 'ผสม' : 'ชาย');
         $certCode = $member['cert_number'] ?: (($cert['cert_prefix'] ?: 'PAO-SP-2569/') . str_pad($member['member_id'], 5, '0', STR_PAD_LEFT));
@@ -525,8 +575,23 @@ class SportsPublicController extends BaseController
             $modelStr .= ' (' . $genderText . ')';
         }
 
+        // Format Name (Avoid duplicate titles like นายครู...)
+        $prefix = trim($member['prefix'] ?? '');
+        $firstName = trim($member['first_name'] ?? '');
+        $lastName = trim($member['last_name'] ?? '');
+        
+        if (!empty($prefix) && (mb_strpos($firstName, $prefix) === 0 || mb_strpos($firstName, 'ครู') === 0 || mb_strpos($firstName, 'อาจารย์') === 0)) {
+            if (mb_strpos($firstName, 'ครู') === 0 || mb_strpos($firstName, 'อาจารย์') === 0) {
+                $fullName = $firstName . ' ' . $lastName;
+            } else {
+                $fullName = $prefix . preg_replace('/^' . preg_quote($prefix, '/') . '\s*/u', '', $firstName) . ' ' . $lastName;
+            }
+        } else {
+            $fullName = trim($prefix . $firstName . ' ' . $lastName);
+        }
+
         $samples = [
-            'name'     => trim(($member['prefix'] ?? '') . $member['first_name'] . ' ' . $member['last_name']),
+            'name'     => $fullName,
             'award'    => $awardText,
             'category' => 'กีฬา' . $member['sport_name'],
             'model'    => $modelStr,
