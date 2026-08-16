@@ -51,6 +51,11 @@
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+    <!-- Flatpickr (Thai Buddhist Era support) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/th.js"></script>
+
     <style>
         :root {
             --primary: #2563eb;
@@ -124,18 +129,26 @@
                             กิจกรรม <i data-lucide="chevron-down" class="w-4 h-4"></i>
                         </button>
                         <div
-                            class="absolute top-full left-0 w-56 bg-white border border-slate-100 rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 overflow-hidden transform origin-top group-hover:translate-y-0 translate-y-2">
+                            class="absolute top-full left-0 w-64 bg-white border border-slate-100 rounded-2xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 overflow-hidden transform origin-top group-hover:translate-y-0 translate-y-2 p-1.5 space-y-1">
+                            <a href="<?= base_url('sports') ?>"
+                                class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-emerald-800 bg-emerald-50/60 hover:bg-emerald-100/80 rounded-xl transition-colors">
+                                <i data-lucide="trophy" class="w-4 h-4 text-emerald-600"></i>
+                                <span>กีฬา อบจ.นครสวรรค์ เกมส์</span>
+                            </a>
                             <a href="<?= base_url('forms') ?>"
-                                class="block px-5 py-3 text-sm font-medium text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors border-b border-slate-50 last:border-0">
-                                แบบสอบถาม & เกียรติบัตร
+                                class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-slate-700 hover:bg-blue-50 hover:text-blue-600 rounded-xl transition-colors">
+                                <i data-lucide="file-check-2" class="w-4 h-4 text-blue-500"></i>
+                                <span>แบบสอบถาม & เกียรติบัตร</span>
                             </a>
                             <a href="<?= base_url('science-week') ?>"
-                                class="block px-5 py-3 text-sm font-medium text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors border-b border-slate-50 last:border-0">
-                                สัปดาห์วิทยาศาสตร์
+                                class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-slate-700 hover:bg-blue-50 hover:text-blue-600 rounded-xl transition-colors">
+                                <i data-lucide="orbit" class="w-4 h-4 text-purple-500"></i>
+                                <span>สัปดาห์วิทยาศาสตร์</span>
                             </a>
                             <a href="<?= base_url('/#scholarships') ?>"
-                                class="block px-5 py-3 text-sm font-medium text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors border-b border-slate-50 last:border-0">
-                                ทุนการศึกษา
+                                class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-slate-700 hover:bg-blue-50 hover:text-blue-600 rounded-xl transition-colors">
+                                <i data-lucide="graduation-cap" class="w-4 h-4 text-amber-500"></i>
+                                <span>ทุนการศึกษา</span>
                             </a>
                         </div>
                     </div>
@@ -178,6 +191,14 @@
                     กิจกรรม <i data-lucide="chevron-down" class="w-5 h-5 text-slate-300 transition-transform duration-300"></i>
                 </button>
                 <div id="mobile-submenu" class="hidden pl-4 space-y-4 mt-4 transition-all duration-300">
+                    <a href="<?= base_url('sports') ?>"
+                        class="text-lg font-bold text-emerald-700 flex items-center justify-between">
+                        <span class="flex items-center gap-2">
+                            <i data-lucide="trophy" class="w-4 h-4 text-amber-500"></i>
+                            <span>กีฬา อบจ.นครสวรรค์ เกมส์</span>
+                        </span>
+                        <i data-lucide="chevron-right" class="w-5 h-5 text-slate-300"></i>
+                    </a>
                     <a href="<?= base_url('forms') ?>"
                         class="text-lg font-bold text-slate-600 flex items-center justify-between">
                         แบบสอบถาม & เกียรติบัตร <i data-lucide="chevron-right" class="w-5 h-5 text-slate-300"></i>
@@ -352,7 +373,42 @@
                 }
             }
         });
+
+        // Global Flatpickr Thai Buddhist Era (พ.ศ.) Helper
+        function applyBE(instance) {
+            if (!instance) return;
+            
+            // 1. แปลงปีใน Header ของ Calendar Container (ทั้ง input .cur-year และ numInputWrapper)
+            if (instance.calendarContainer) {
+                const yearInputs = instance.calendarContainer.querySelectorAll(".cur-year");
+                yearInputs.forEach(y => {
+                    let val = parseInt(y.value);
+                    if (val > 0 && val < 2400) {
+                        y.value = val + 543;
+                    }
+                });
+            }
+
+            // 2. แปลงปีในช่องกรอก (altInput) ให้เป็น พ.ศ.
+            if (instance.altInput) {
+                let dateToUse = null;
+                if (instance.selectedDates && instance.selectedDates.length > 0) {
+                    dateToUse = instance.selectedDates[0];
+                } else if (instance.input && instance.input.value) {
+                    let parsed = new Date(instance.input.value.replace(/-/g, '/'));
+                    if (!isNaN(parsed.getTime())) {
+                        dateToUse = parsed;
+                    }
+                }
+
+                if (dateToUse) {
+                    const day = dateToUse.getDate().toString().padStart(2, '0');
+                    const month = (dateToUse.getMonth() + 1).toString().padStart(2, '0');
+                    const year = dateToUse.getFullYear() + 543;
+                    instance.altInput.value = `${day}/${month}/${year}`;
+                }
+            }
+        }
     </script>
 </body>
-
 </html>

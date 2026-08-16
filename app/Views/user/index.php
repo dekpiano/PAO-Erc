@@ -122,14 +122,44 @@
         
         <!-- Wave Divider at the bottom for smooth transition to next section -->
         <div class="absolute bottom-0 left-0 right-0 h-24 sm:h-32 pointer-events-none z-10 translate-y-1">
-            <svg class="w-full h-full fill-white" preserveAspectRatio="none" viewBox="0 0 1440 320">
+            <svg class="w-full h-full fill-slate-50" preserveAspectRatio="none" viewBox="0 0 1440 320">
                 <path d="M0,192L48,197.3C96,203,192,213,288,229.3C384,245,480,267,576,250.7C672,235,768,181,864,181.3C960,181,1056,235,1152,234.7C1248,235,1344,181,1392,154.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
             </svg>
         </div>
     </section>
 
+    <!-- Featured Sports Banner Section -->
+    <section class="bg-slate-50 py-8 relative -mt-10 z-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-700 rounded-3xl p-6 sm:p-8 text-white shadow-xl flex flex-col md:flex-row items-center justify-between gap-6" data-aos="fade-up">
+                <div class="flex items-center gap-5">
+                    <div class="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-amber-300 shrink-0 shadow-inner">
+                        <i data-lucide="trophy" class="w-8 h-8"></i>
+                    </div>
+                    <div class="space-y-1">
+                        <div class="inline-flex items-center gap-2 px-3 py-0.5 bg-amber-400 text-slate-950 rounded-full text-[11px] font-black uppercase tracking-wider">
+                            <span>เปิดรับสมัครแล้ว</span>
+                        </div>
+                        <h3 class="text-xl sm:text-2xl font-black tracking-tight">การแข่งขันกีฬา อบจ.นครสวรรค์ เกมส์ ประจำปี 2569</h3>
+                        <p class="text-emerald-100 text-xs sm:text-sm max-w-xl">ขอเชิญสถานศึกษาส่งทีมนักกีฬาเข้าร่วมการแข่งขัน พร้อมระบบตรวจสอบสถานะ ประกาศผล และดาวน์โหลดเกียรติบัตรออนไลน์</p>
+                    </div>
+                </div>
+                <div class="flex flex-wrap items-center gap-3 w-full md:w-auto justify-end">
+                    <a href="<?= base_url('sports') ?>" class="px-6 py-3.5 bg-amber-400 hover:bg-amber-500 text-slate-950 font-black rounded-2xl text-xs flex items-center gap-2 shadow-lg shadow-amber-400/20 transition-all hover:scale-105">
+                        <i data-lucide="user-plus" class="w-4 h-4"></i>
+                        <span>เข้าสู่ระบบแข่งขันกีฬา</span>
+                    </a>
+                    <a href="<?= base_url('sports/results') ?>" class="px-5 py-3.5 bg-white/10 hover:bg-white/20 border border-white/30 text-white font-bold rounded-2xl text-xs flex items-center gap-2 transition-all">
+                        <i data-lucide="award" class="w-4 h-4 text-amber-300"></i>
+                        <span>ผลการแข่งขัน</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- News & PR Section (Magazine Style) -->
-    <section id="news" class="py-32 bg-white">
+    <section id="news" class="py-24 bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex flex-col md:flex-row justify-between items-end mb-16 gap-6" data-aos="fade-up">
                 <div>

@@ -76,7 +76,7 @@ class Filters extends BaseFilters
             // 'honeypot',
             // 'csrf',
             // 'invalidchars',
-            'auth' => ['except' => ['/', 'auth/*', 'home/*', 'migrate', 'news', 'news/*', 'personnel', 'itsupport', 'itsupport/logs', 'itsupport/view/*', 'science-week', 'science-week/*', 'forms', 'forms/*']],
+            'auth' => ['except' => ['/', 'auth/*', 'home/*', 'migrate', 'news', 'news/*', 'personnel', 'itsupport', 'itsupport/logs', 'itsupport/view/*', 'science-week', 'science-week/*', 'forms', 'forms/*', 'sports', 'sports/*']],
         ],
         'after' => [
             // 'honeypot',

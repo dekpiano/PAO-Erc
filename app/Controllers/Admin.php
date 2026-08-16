@@ -97,6 +97,7 @@ class Admin extends Controller
                     'scholarships' => ['label' => 'จัดการทุนการศึกษา', 'icon' => 'graduation-cap', 'color' => 'text-amber-600', 'bg' => 'bg-amber-50', 'desc' => 'จัดการทุนการศึกษาและตารางคิวจอง'],
                     'forms'        => ['label' => 'จัดการแบบสอบถาม & เกียรติบัตร', 'icon' => 'file-check-2', 'color' => 'text-blue-600', 'bg' => 'bg-blue-50', 'desc' => 'สร้างแบบสอบถามและออกแบบใบเกียรติบัตร'],
                     'science_week' => ['label' => 'จัดการสัปดาห์วิทยาศาสตร์', 'icon' => 'orbit', 'color' => 'text-purple-600', 'bg' => 'bg-purple-50', 'desc' => 'การแข่งขัน, ลงทะเบียน และเกียรติบัตร'],
+                    'sports'       => ['label' => 'จัดการแข่งขันกีฬา อบจ.', 'icon' => 'trophy', 'color' => 'text-emerald-600', 'bg' => 'bg-emerald-50', 'desc' => 'กีฬา, ใบสมัครทีม, ผลการแข่งขัน และเกียรติบัตร'],
                     'it_support'   => ['label' => 'จัดการ IT Support', 'icon' => 'wrench', 'color' => 'text-teal-600', 'bg' => 'bg-teal-50', 'desc' => 'รับเรื่องและติดตามงานแจ้งซ่อม IT'],
                 ]
             ],

@@ -235,11 +235,65 @@ $routes->group('staff/forms', function($routes) {
     $routes->get('delete/(:num)', 'Forms\FormAdminController::delete/$1');
     $routes->get('responses/(:num)', 'Forms\FormAdminController::responses/$1');
     $routes->get('clear-responses/(:num)', 'Forms\FormAdminController::clearResponses/$1');
-    $routes->get('export/(:num)', 'Forms\FormAdminController::exportExcel/$1');
     $routes->match(['get', 'post'], 'toggle-status/(:num)', 'Forms\FormAdminController::toggleStatus/$1');
     $routes->match(['get', 'post'], 'toggle-share/(:num)', 'Forms\FormAdminController::toggleShare/$1');
     $routes->get('get-permissions/(:num)', 'Forms\FormAdminController::getPermissions/$1');
     $routes->post('save-permissions/(:num)', 'Forms\FormAdminController::savePermissions/$1');
 });
+
+// ================================================================
+// 🏆 SPORTS CUP MODULE (ระบบจัดการแข่งขันกีฬา อบจ.คัพ & เกียรติบัตร)
+// ================================================================
+// Public Routes
+$routes->group('sports', function($routes) {
+    $routes->get('/', 'Sports\SportsPublicController::index');
+    $routes->get('register/(:num)', 'Sports\SportsPublicController::register/$1');
+    $routes->post('register/submit', 'Sports\SportsPublicController::submit');
+    $routes->get('success/(:segment)', 'Sports\SportsPublicController::success/$1');
+    $routes->get('status', 'Sports\SportsPublicController::status');
+    $routes->post('status/search', 'Sports\SportsPublicController::searchStatus');
+    $routes->get('print-reg/(:segment)', 'Sports\SportsPublicController::printRegistration/$1');
+    $routes->get('results', 'Sports\SportsPublicController::results');
+    $routes->get('certificate', 'Sports\SportsPublicController::certificate');
+    $routes->post('certificate/search', 'Sports\SportsPublicController::searchCertificate');
+    $routes->get('certificate/download/(:segment)', 'Sports\SportsPublicController::downloadCert/$1');
+});
+
+// Admin / Staff Routes
+$routes->group('staff/sports', function($routes) {
+    $routes->get('/', 'Sports\SportsAdminController::index');
+    
+    // Categories CRUD
+    $routes->get('categories', 'Sports\SportsAdminController::categories');
+    $routes->post('categories/store', 'Sports\SportsAdminController::categoryStore');
+    $routes->post('categories/update/(:num)', 'Sports\SportsAdminController::categoryUpdate/$1');
+    $routes->get('categories/delete/(:num)', 'Sports\SportsAdminController::categoryDelete/$1');
+    $routes->post('categories/toggle-status/(:num)', 'Sports\SportsAdminController::categoryToggleStatus/$1');
+    
+    // Teams Management & Verification
+    $routes->get('teams', 'Sports\SportsAdminController::teams');
+    $routes->get('teams/detail/(:num)', 'Sports\SportsAdminController::teamDetail/$1');
+    $routes->post('teams/update-status/(:num)', 'Sports\SportsAdminController::teamUpdateStatus/$1');
+    $routes->get('teams/edit/(:num)', 'Sports\SportsAdminController::teamEdit/$1');
+    $routes->post('teams/update/(:num)', 'Sports\SportsAdminController::teamUpdate/$1');
+    $routes->get('teams/delete/(:num)', 'Sports\SportsAdminController::teamDelete/$1');
+    $routes->get('teams/match-sheet/(:num)', 'Sports\SportsAdminController::matchSheet/$1');
+    $routes->get('export-excel', 'Sports\SportsAdminController::exportExcel');
+    
+    // Results & Awards
+    $routes->get('results', 'Sports\SportsAdminController::results');
+    $routes->post('results/save-team-award', 'Sports\SportsAdminController::saveTeamAward');
+    $routes->post('results/save-member-award', 'Sports\SportsAdminController::saveMemberAward');
+    
+    // Certificates Management & Designer
+    $routes->get('certificates', 'Sports\SportsAdminController::certificates');
+    $routes->post('certificates/create', 'Sports\SportsAdminController::certCreate');
+    $routes->get('certificates/design/(:num)', 'Sports\SportsAdminController::certDesign/$1');
+    $routes->post('certificates/save-design/(:num)', 'Sports\SportsAdminController::saveCertDesign/$1');
+    $routes->get('certificates/demo/(:num)', 'Sports\SportsAdminController::certDemo/$1');
+    $routes->post('certificates/upload-template', 'Sports\SportsAdminController::uploadCertTemplate');
+    $routes->post('certificates/generate-batch', 'Sports\SportsAdminController::generateBatch');
+});
+
 
 

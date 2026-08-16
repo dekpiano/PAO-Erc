@@ -112,6 +112,12 @@
                         </a>
                     <?php endif; ?>
 
+                    <?php if($isAdmin || strpos($userRoles, 'sports') !== false): ?>
+                        <a href="<?= base_url('staff/sports') ?>" class="sidebar-item <?= strpos(uri_string(), 'staff/sports') === 0 ? 'active shadow-lg shadow-emerald-100 bg-emerald-50/50 text-emerald-700' : 'text-slate-500 hover:text-emerald-600' ?> flex items-center gap-4 px-4 py-3 rounded-2xl font-bold text-sm">
+                            <i data-lucide="trophy" class="w-5 h-5 text-emerald-500"></i><span class="sidebar-text">จัดการแข่งขันกีฬา อบจ.</span>
+                        </a>
+                    <?php endif; ?>
+
                 <?php endif; ?>
 
                 <!-- 4. ตั้งค่าระบบ (System Admin) -->
@@ -195,32 +201,102 @@
         <?php endif; ?>
 
         document.addEventListener('DOMContentLoaded', function() {
+            initFlatpickrBE();
+        });
+
+        function initFlatpickrBE() {
             const fpConfig = {
-                dateFormat: "Y-m-d", altInput: true, altFormat: "d/m/Y", locale: "th",
-                onReady: instance => applyBE(instance),
-                onValueUpdate: instance => applyBE(instance),
-                onOpen: instance => applyBE(instance),
-                onMonthChange: instance => setTimeout(() => applyBE(instance), 1),
-                onYearChange: instance => setTimeout(() => applyBE(instance), 1)
+                dateFormat: "Y-m-d",
+                altInput: true,
+                altFormat: "d/m/Y",
+                locale: "th",
+                onReady: function(selectedDates, dateStr, instance) {
+                    applyBE(instance);
+                },
+                onValueUpdate: function(selectedDates, dateStr, instance) {
+                    applyBE(instance);
+                },
+                onOpen: function(selectedDates, dateStr, instance) {
+                    applyBE(instance);
+                },
+                onMonthChange: function(selectedDates, dateStr, instance) {
+                    setTimeout(() => applyBE(instance), 10);
+                },
+                onYearChange: function(selectedDates, dateStr, instance) {
+                    setTimeout(() => applyBE(instance), 10);
+                }
             };
             flatpickr(".datepicker-be", fpConfig);
-        });
+        }
 
         function applyBE(instance) {
             if (!instance) return;
-            const years = instance.calendarContainer ? instance.calendarContainer.querySelectorAll(".cur-year") : [];
-            years.forEach(y => {
-                let val = parseInt(y.value);
-                if (val > 0 && val < 2400) y.value = val + 543;
-            });
-            if (instance.altInput && instance.selectedDates.length > 0) {
-                const d = instance.selectedDates[0];
-                const day = d.getDate().toString().padStart(2, '0');
-                const month = (d.getMonth() + 1).toString().padStart(2, '0');
-                const year = d.getFullYear() + 543;
-                instance.altInput.value = `${day}/${month}/${year}`;
+
+            // 1. แปลงปีใน Header ของ Calendar Container (ทั้ง input .cur-year และ numInputWrapper)
+            if (instance.calendarContainer) {
+                setTimeout(function() {
+                    const yearInputs = instance.calendarContainer.querySelectorAll(".cur-year");
+                    yearInputs.forEach(y => {
+                        let val = parseInt(y.value);
+                        if (val > 0 && val < 2400) {
+                            y.value = val + 543;
+                        }
+                    });
+
+                    // Dropdown Month/Year if present
+                    const yearElements = instance.calendarContainer.querySelectorAll(".flatpickr-current-month .numInputWrapper span");
+                    yearElements.forEach(el => {
+                        el.addEventListener('click', () => {
+                            setTimeout(() => applyBE(instance), 10);
+                        });
+                    });
+                }, 10);
+            }
+
+            // 2. แปลงปีในช่องกรอก (altInput) ให้เป็น พ.ศ.
+            if (instance.altInput) {
+                let dateToUse = null;
+                if (instance.selectedDates && instance.selectedDates.length > 0) {
+                    dateToUse = instance.selectedDates[0];
+                } else if (instance.input && instance.input.value) {
+                    let parsed = new Date(instance.input.value.replace(/-/g, '/'));
+                    if (!isNaN(parsed.getTime())) {
+                        dateToUse = parsed;
+                    }
+                }
+
+                if (dateToUse) {
+                    const day = dateToUse.getDate().toString().padStart(2, '0');
+                    const month = (dateToUse.getMonth() + 1).toString().padStart(2, '0');
+                    const year = dateToUse.getFullYear() + 543;
+                    instance.altInput.value = `${day}/${month}/${year}`;
+                }
             }
         }
+
+        // Global Loading for All Submit Buttons
+        document.addEventListener('submit', function (e) {
+            const form = e.target;
+            const submitBtn = e.submitter || form.querySelector('button[type="submit"]');
+
+            if (submitBtn && !submitBtn.hasAttribute('data-no-loading')) {
+                if (form.checkValidity()) {
+                    setTimeout(() => {
+                        submitBtn.disabled = true;
+                        submitBtn.classList.add('opacity-80', 'cursor-not-allowed', 'pointer-events-none');
+                        submitBtn.innerHTML = `
+                            <div class="flex items-center justify-center gap-2">
+                                <svg class="animate-spin h-4 w-4 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                <span>กำลังประมวลผล...</span>
+                            </div>
+                        `;
+                    }, 0);
+                }
+            }
+        });
     </script>
     <?= $this->renderSection('scripts') ?>
 </body>
