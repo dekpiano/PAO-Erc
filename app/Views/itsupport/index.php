@@ -2,57 +2,80 @@
 
 <?= $this->section('content') ?>
 <!-- Header Section -->
-<div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 w-full">
-    <div class="min-w-0 w-full md:w-auto">
-        <h2 class="text-lg sm:text-2xl md:text-3xl font-extrabold text-slate-800 tracking-tight tech-glow flex items-center gap-2 sm:gap-3">
-            <span class="truncate">ไทม์ไลน์งานบริการ</span>
+<div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6 w-full">
+    <div class="min-w-0 w-full lg:w-auto">
+        <div class="flex items-center gap-2 flex-wrap">
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-700">
+                IT Service Logs & Activity Feed
+            </span>
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-700 flex items-center gap-1">
+                <i data-lucide="check-circle-2" class="w-3 h-3"></i>
+                <span>บันทึกสะสม <?= esc($total_tasks_count ?? 83) ?> รายการ</span>
+            </span>
+        </div>
+        <h2 class="text-xl sm:text-2xl md:text-3xl font-extrabold text-slate-800 dark:text-white tracking-tight tech-glow flex items-center gap-2 sm:gap-3 mt-1">
+            <span>ไทม์ไลน์งานบริการ & บันทึกภารกิจ</span>
         </h2>
-        <p class="text-[10px] sm:text-xs text-slate-500 mt-1 font-medium">ประวัติการบำรุงรักษาและแก้ไขปัญหาทางระบบ</p>
+        <p class="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-medium">
+            ระบบบันทึกประวัติการบำรุงรักษา งานโสตทัศนูปกรณ์ และการพัฒนาระบบสารสนเทศภาครัฐ
+        </p>
     </div>
     
-    <div class="flex flex-wrap gap-2 w-full md:w-auto">
+    <!-- Action Buttons Toolbar -->
+    <div class="flex flex-wrap items-center gap-2 w-full lg:w-auto">
+        <!-- Prominent E-Portfolio & MOU Link Button -->
+        <a href="<?= base_url('itsupport/portfolio') ?>" class="flex-1 sm:flex-none justify-center px-4 py-2.5 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-500 hover:from-blue-700 hover:to-indigo-700 text-white font-black text-xs sm:text-sm transition-all flex items-center gap-2 shadow-lg shadow-blue-500/25 border border-white/20 group hover:scale-[1.02]">
+            <i data-lucide="award" class="w-4 h-4 text-cyan-200 group-hover:rotate-12 transition-transform"></i>
+            <span>🌟 E-Portfolio & MOU</span>
+        </a>
+
         <?php if ($can_manage): ?>
             <!-- Button to open Post Job Modal -->
-            <button onclick="openModal('modal-post-job')" class="flex-1 md:flex-none justify-center px-4 py-2.5 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm transition-all flex items-center gap-2 shadow-md shadow-blue-500/10">
-                <i data-lucide="plus-circle" class="w-4.5 h-4.5"></i> <span>โพสต์บันทึกงาน</span>
+            <button onclick="openModal('modal-post-job')" class="flex-1 sm:flex-none justify-center px-4 py-2.5 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm transition-all flex items-center gap-2 shadow-md shadow-blue-500/10">
+                <i data-lucide="plus-circle" class="w-4 h-4"></i> <span>โพสต์บันทึกงาน</span>
             </button>
         <?php endif; ?>
 
         <!-- Button to open Search & Filter Modal -->
-        <button onclick="openModal('modal-search')" class="flex-1 md:flex-none justify-center px-4 py-2.5 rounded-2xl bg-white border border-slate-200 text-slate-700 hover:text-slate-900 font-bold text-xs sm:text-sm hover:bg-slate-50 transition-all flex items-center gap-2 shadow-sm">
-            <i data-lucide="search" class="w-4.5 h-4.5 text-blue-600"></i> <span>ค้นหา & กรองฟีด</span>
+        <button onclick="openModal('modal-search')" class="flex-1 sm:flex-none justify-center px-4 py-2.5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white font-bold text-xs sm:text-sm hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-all flex items-center gap-2 shadow-sm">
+            <i data-lucide="search" class="w-4 h-4 text-blue-600 dark:text-blue-400"></i> <span>ค้นหา & กรองฟีด</span>
         </button>
 
         <?php if ($can_manage): ?>
             <!-- Button to open Export Report Modal -->
-            <button onclick="openModal('modal-export')" class="flex-1 md:flex-none justify-center px-4 py-2.5 rounded-2xl bg-white border border-slate-200 text-slate-700 hover:text-slate-900 font-bold text-xs sm:text-sm hover:bg-slate-50 transition-all flex items-center gap-2 shadow-sm">
-                <i data-lucide="file-spreadsheet" class="w-4.5 h-4.5 text-emerald-600"></i> <span>ส่งออกรายงาน</span>
+            <button onclick="openModal('modal-export')" class="flex-1 sm:flex-none justify-center px-4 py-2.5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white font-bold text-xs sm:text-sm hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-all flex items-center gap-2 shadow-sm">
+                <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-600 dark:text-emerald-400"></i> <span>ส่งออกรายงาน</span>
             </button>
         <?php endif; ?>
     </div>
 </div>
 
 <!-- Active Filters Summary Badge Bar -->
-<?php if(!empty($search) || !empty($category_active) || !empty($location_active) || !empty($start_date) || !empty($end_date)): ?>
+<?php if(!empty($search) || !empty($category_active) || !empty($location_active) || !empty($start_date) || !empty($end_date) || (!empty($selected_fy) && $selected_fy !== 'all')): ?>
 <div class="flex flex-wrap items-center gap-2 mb-6 bg-blue-50/50 dark:bg-blue-950/20 border border-blue-100/50 dark:border-blue-900/30 p-3.5 rounded-2xl max-w-2xl mx-auto w-full">
-    <span class="text-xs font-bold text-slate-500">ตัวกรองที่ใช้งานอยู่:</span>
+    <span class="text-xs font-bold text-slate-500 dark:text-slate-400">ตัวกรองที่ใช้งานอยู่:</span>
+    <?php if(!empty($selected_fy) && $selected_fy !== 'all'): ?>
+        <span class="px-2.5 py-1 text-[10px] font-bold bg-blue-100 dark:bg-blue-900/60 border border-blue-200 dark:border-blue-700 rounded-lg flex items-center gap-1 text-blue-700 dark:text-blue-300">
+            📅 ปีงบฯ <?= esc($selected_fy) ?> <?= $selected_round === '1' ? '(รอบ 1)' : ($selected_round === '2' ? '(รอบ 2)' : '') ?>
+        </span>
+    <?php endif; ?>
     <?php if(!empty($search)): ?>
-        <span class="px-2.5 py-1 text-[10px] font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg flex items-center gap-1 text-slate-700">
+        <span class="px-2.5 py-1 text-[10px] font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg flex items-center gap-1 text-slate-700 dark:text-slate-300">
             🔍 "<?= esc($search) ?>"
         </span>
     <?php endif; ?>
     <?php if(!empty($category_active)): ?>
-        <span class="px-2.5 py-1 text-[10px] font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg flex items-center gap-1 text-slate-700">
+        <span class="px-2.5 py-1 text-[10px] font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg flex items-center gap-1 text-slate-700 dark:text-slate-300">
             📁 <?= esc($category_active) ?>
         </span>
     <?php endif; ?>
     <?php if(!empty($location_active)): ?>
-        <span class="px-2.5 py-1 text-[10px] font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg flex items-center gap-1 text-slate-700">
+        <span class="px-2.5 py-1 text-[10px] font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg flex items-center gap-1 text-slate-700 dark:text-slate-300">
             📍 <?= esc($location_active) ?>
         </span>
     <?php endif; ?>
     <?php if(!empty($start_date) || !empty($end_date)): ?>
-        <span class="px-2.5 py-1 text-[10px] font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg flex items-center gap-1 text-slate-700">
+        <span class="px-2.5 py-1 text-[10px] font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg flex items-center gap-1 text-slate-700 dark:text-slate-300">
             📅 <?= esc($start_date ?: '...') ?> ถึง <?= esc($end_date ?: '...') ?>
         </span>
     <?php endif; ?>
@@ -334,9 +357,15 @@
                     <option value="">-- กรองประเภทงานทั้งหมด --</option>
                     <?php
                         $categories = [
-                            "🛠️ IT Support & Service", "🎤 งานโสตทัศนศึกษา", "📸 ผลิตสื่อและประชาสัมพันธ์", 
-                            "📊 งานสารสนเทศโรงเรียน", "🤝 สนับสนุนงานฝ่าย/อาคาร", "👥 งานประชุม", 
-                            "📚 การอบรม/พัฒนาตนเอง", "🏛️ งานอื่นๆ ตามคำสั่ง"
+                            "💻 พัฒนาและบำรุงรักษาระบบสารสนเทศ",
+                            "🛠️ IT Support & Service",
+                            "🎤 งานโสตทัศนศึกษา",
+                            "📸 ผลิตสื่อและประชาสัมพันธ์", 
+                            "📊 งานสารสนเทศโรงเรียนและสำนักฯ",
+                            "🤝 สนับสนุนงานฝ่าย/อาคาร",
+                            "👥 งานประชุม", 
+                            "📚 การอบรม/พัฒนาตนเอง",
+                            "🏛️ งานอื่นๆ ตามคำสั่ง"
                         ];
                     ?>
                     <?php foreach($categories as $cat): ?>
@@ -359,14 +388,41 @@
                 </div>
             </div>
 
-            <!-- Date Range -->
+            <!-- Fiscal Year & Round Filter Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-blue-50/40 dark:bg-blue-950/20 border border-blue-100/60 dark:border-blue-900/40 rounded-2xl">
+                <div>
+                    <label class="block text-xs font-bold text-blue-700 dark:text-blue-300 mb-1 flex items-center gap-1">
+                        <i data-lucide="calendar" class="w-3.5 h-3.5"></i> ปีงบประมาณ (อัตโนมัติ)
+                    </label>
+                    <select name="fy" class="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-800 focus:border-blue-500 rounded-xl text-base md:text-xs text-slate-800 dark:text-slate-200 outline-none transition-all">
+                        <option value="">-- กรองทุกปีงบประมาณ --</option>
+                        <?php foreach($available_fys as $fy): ?>
+                            <option value="<?= esc($fy) ?>" <?= ($selected_fy == $fy) ? 'selected' : '' ?>>
+                                ปีงบประมาณ <?= esc($fy) ?> <?= ($fy == $current_fy) ? '(ปัจจุบัน)' : '' ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-purple-700 dark:text-purple-300 mb-1 flex items-center gap-1">
+                        <i data-lucide="clock" class="w-3.5 h-3.5"></i> รอบการประเมิน
+                    </label>
+                    <select name="round" class="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-purple-200 dark:border-purple-800 focus:border-purple-500 rounded-xl text-base md:text-xs text-slate-800 dark:text-slate-200 outline-none transition-all">
+                        <option value="all" <?= ($selected_round === 'all') ? 'selected' : '' ?>>ทุกรอบการประเมิน</option>
+                        <option value="1" <?= ($selected_round === '1') ? 'selected' : '' ?>>รอบที่ 1 (1 ต.ค. - 31 มี.ค.)</option>
+                        <option value="2" <?= ($selected_round === '2') ? 'selected' : '' ?>>รอบที่ 2 (1 เม.ย. - 30 ก.ย.)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Specific Date Range (Optional) -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                    <label class="block text-xs font-bold text-slate-500 mb-1">ตั้งแต่วันที่</label>
+                    <label class="block text-xs font-bold text-slate-500 mb-1">ตั้งแต่วันที่ (ระบุเจาะจง)</label>
                     <input type="text" name="start_date" value="<?= esc($start_date) ?>" placeholder="เริ่มต้น..." class="datetimepicker-be w-full px-3 py-2.5 bg-slate-50 border border-slate-200 focus:border-blue-500 rounded-xl text-base md:text-xs text-slate-800 outline-none transition-all">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-slate-500 mb-1">ถึงวันที่</label>
+                    <label class="block text-xs font-bold text-slate-500 mb-1">ถึงวันที่ (ระบุเจาะจง)</label>
                     <input type="text" name="end_date" value="<?= esc($end_date) ?>" placeholder="สิ้นสุด..." class="datetimepicker-be w-full px-3 py-2.5 bg-slate-50 border border-slate-200 focus:border-blue-500 rounded-xl text-base md:text-xs text-slate-800 outline-none transition-all">
                 </div>
             </div>

@@ -102,6 +102,8 @@ $routes->get('staff/exportExcel', 'Admin::exportExcel');
 // Public routes (No login required)
 $routes->get('itsupport', 'ITSupport::index');
 $routes->get('itsupport/logs', 'ITSupport::index');
+$routes->get('itsupport/portfolio', 'ITSupport::portfolio');
+$routes->get('portfolio', 'ITSupport::portfolio');
 $routes->get('itsupport/view/(:num)', 'ITSupport::view/$1');
 
 // Protected routes (Require login)
@@ -300,5 +302,8 @@ $routes->group('staff/sports', function($routes) {
     $routes->post('certificates/generate-batch', 'Sports\SportsAdminController::generateBatch');
 });
 
-
-
+// IT Support & E-Portfolio Routes
+$routes->get('portfolio', 'ITSupport::portfolio');
+$routes->get('portfolio/(:num)', 'ITSupport::portfolio/$1');
+$routes->get('itsupport/portfolio', 'ITSupport::portfolio');
+$routes->get('itsupport/portfolio/(:num)', 'ITSupport::portfolio/$1');

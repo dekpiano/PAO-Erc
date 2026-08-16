@@ -124,43 +124,95 @@
         }
         * { box-sizing: border-box; }
 
-        /* Dynamic overrides for deep elements under dark mode selector */
-        .dark h2, .dark h3, .dark h1, .dark .text-slate-800 {
-            color: #f8fafc !important;
+        /* Smooth contrast-preserving Dark Mode system */
+        .dark {
+            color-scheme: dark;
         }
-        .dark p, .dark label, .dark .text-slate-500, .dark .text-slate-400 {
-            color: #94a3b8 !important;
+
+        .dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6 {
+            color: #f8fafc;
         }
-        .dark input, .dark textarea, .dark select {
-            background-color: rgba(15, 23, 42, 0.6) !important;
-            border-color: rgba(255, 255, 255, 0.08) !important;
-            color: #cbd5e1 !important;
+
+        /* Auto-adapt cards and surfaces */
+        .dark .bg-white {
+            background-color: rgba(15, 23, 42, 0.85);
+        }
+        .dark .border-slate-100, 
+        .dark .border-slate-200 {
+            border-color: rgba(255, 255, 255, 0.08);
+        }
+
+        /* Form inputs in dark mode */
+        .dark input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]),
+        .dark textarea, 
+        .dark select {
+            background-color: rgba(15, 23, 42, 0.8);
+            border-color: rgba(255, 255, 255, 0.12);
+            color: #f1f5f9;
+        }
+        .dark input::placeholder,
+        .dark textarea::placeholder {
+            color: #64748b;
         }
         .dark select option {
-            background-color: #0f172a !important;
-            color: #cbd5e1 !important;
+            background-color: #0f172a;
+            color: #f1f5f9;
         }
-        .dark table th {
-            color: #94a3b8 !important;
-            border-color: rgba(255, 255, 255, 0.08) !important;
+
+        /* Text Contrast Rules in Dark Mode */
+        .dark .text-slate-900,
+        .dark .text-slate-800 {
+            color: #f8fafc;
         }
-        .dark table td {
-            color: #cbd5e1 !important;
-            border-color: rgba(255, 255, 255, 0.05) !important;
+        .dark .text-slate-700,
+        .dark .text-slate-655,
+        .dark .text-slate-650,
+        .dark .text-slate-600 {
+            color: #cbd5e1;
         }
-        .dark table tr:hover {
-            background-color: rgba(255, 255, 255, 0.02) !important;
+        .dark .text-slate-500,
+        .dark .text-slate-400 {
+            color: #94a3b8;
         }
-        .dark .bg-slate-50, .dark .bg-slate-100 {
-            background-color: rgba(15, 23, 42, 0.6) !important;
+
+        /* Preserved Badges with clear contrast in Dark Mode */
+        .dark .bg-blue-50 {
+            background-color: rgba(30, 58, 138, 0.35);
+            border-color: rgba(59, 130, 246, 0.3);
+            color: #93c5fd;
         }
-        .dark .border-slate-100, .dark .border-slate-200 {
-            border-color: rgba(255, 255, 255, 0.08) !important;
+        .dark .bg-emerald-50 {
+            background-color: rgba(6, 78, 59, 0.35);
+            border-color: rgba(16, 185, 129, 0.3);
+            color: #6ee7b7;
         }
-        .dark .bg-slate-900, .dark .bg-slate-950 {
-            background-color: #020617 !important;
+        .dark .bg-amber-50 {
+            background-color: rgba(120, 53, 15, 0.35);
+            border-color: rgba(245, 158, 11, 0.3);
+            color: #fcd34d;
         }
-        
+        .dark .bg-purple-50 {
+            background-color: rgba(88, 28, 135, 0.35);
+            border-color: rgba(168, 85, 247, 0.3);
+            color: #d8b4fe;
+        }
+        .dark .bg-cyan-50 {
+            background-color: rgba(22, 78, 99, 0.35);
+            border-color: rgba(6, 182, 212, 0.3);
+            color: #67e8f9;
+        }
+        .dark .bg-rose-50 {
+            background-color: rgba(136, 19, 55, 0.35);
+            border-color: rgba(244, 63, 94, 0.3);
+            color: #fda4af;
+        }
+
+        /* Hover states in dark mode */
+        .dark .hover\:bg-slate-50:hover,
+        .dark .hover\:bg-slate-100:hover {
+            background-color: rgba(30, 41, 59, 0.7);
+        }
+
         /* Image Loading Spinner */
         .img-loading-spinner {
             background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 12a9 9 0 1 1-6.219-8.56'%3E%3CanimateTransform attributeName='transform' type='rotate' from='0 12 12' to='360 12 12' dur='1s' repeatCount='indefinite'/%3E%3C/path%3E%3C/svg%3E") !important;
@@ -195,6 +247,11 @@
                 
                 <a href="<?= base_url('itsupport') ?>" class="flex items-center gap-4 px-4 py-3.5 rounded-2xl font-bold text-sm transition-all duration-200 <?= uri_string() == 'itsupport' || uri_string() == 'itsupport/logs' ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-100/50 dark:border-blue-800/30 shadow-md shadow-blue-500/5' : 'text-slate-550 dark:text-slate-400 hover:text-blue-600 hover:bg-slate-50 dark:hover:bg-slate-900/40' ?>">
                     <i data-lucide="history" class="w-5 h-5"></i><span>ไทม์ไลน์งานบริการ</span>
+                </a>
+
+                <a href="<?= base_url('itsupport/portfolio') ?>" class="flex items-center gap-4 px-4 py-3.5 rounded-2xl font-bold text-sm transition-all duration-200 <?= uri_string() == 'itsupport/portfolio' || uri_string() == 'portfolio' ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-100/50 dark:border-blue-800/30 shadow-md shadow-blue-500/5' : 'text-slate-550 dark:text-slate-400 hover:text-blue-600 hover:bg-slate-50 dark:hover:bg-slate-900/40' ?>">
+                    <i data-lucide="award" class="w-5 h-5 text-cyan-500"></i><span>E-Portfolio เจ้าหน้าที่</span>
+                    <span class="ml-auto text-[9px] font-black uppercase px-2 py-0.5 rounded-md bg-cyan-100 dark:bg-cyan-950 text-cyan-700 dark:text-cyan-300">แนะนำ</span>
                 </a>
                 
                 <?php if (isset($can_manage) && $can_manage): ?>
@@ -238,8 +295,20 @@
                     <?php endif; ?>
                     <h1 class="text-xs sm:text-lg font-bold flex items-center gap-1.5 sm:gap-2 truncate">
                         <span class="w-2 h-2 sm:w-2.5 sm:h-2.5 bg-blue-600 rounded-full animate-pulse shadow-glow shrink-0"></span>
-                        <span class="truncate">IT Support</span>
+                        <a href="<?= base_url('itsupport') ?>" class="hover:text-blue-600 transition-colors truncate">IT Support</a>
                     </h1>
+                    
+                    <!-- Top Navigation Link for Quick Access -->
+                    <div class="hidden sm:flex items-center gap-2">
+                        <a href="<?= base_url('itsupport') ?>" class="px-3 py-1.5 rounded-xl <?= uri_string() == 'itsupport' || uri_string() == 'itsupport/logs' ? 'bg-blue-600 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-blue-600' ?> text-xs font-bold transition-all flex items-center gap-1.5 border border-slate-200/50 dark:border-slate-700">
+                            <i data-lucide="history" class="w-3.5 h-3.5"></i>
+                            <span>ไทม์ไลน์งาน</span>
+                        </a>
+                        <a href="<?= base_url('itsupport/portfolio') ?>" class="px-3 py-1.5 rounded-xl <?= uri_string() == 'itsupport/portfolio' || uri_string() == 'portfolio' ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-blue-600' ?> text-xs font-bold transition-all flex items-center gap-1.5 border border-slate-200/50 dark:border-slate-700">
+                            <i data-lucide="award" class="w-3.5 h-3.5 text-cyan-400"></i>
+                            <span>E-Portfolio</span>
+                        </a>
+                    </div>
                 </div>
                 <div class="flex items-center gap-4">
                     <!-- Dark/Light Mode Toggle Button -->
