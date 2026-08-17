@@ -14,15 +14,27 @@ use PhpOffice\PhpSpreadsheet\Style\Border;
 
 class StaffAttendance extends Controller
 {
+    private function checkAccess()
+    {
+        $userRoles = session()->get('u_role') ?? '';
+        $isSuper = (strpos($userRoles, 'superadmin') !== false);
+        $isAdmin = (strpos($userRoles, 'admin') !== false);
+        $isPersonnel = (strpos($userRoles, 'personnel') !== false);
+        $isSummary = (strpos($userRoles, 'summary') !== false);
+
+        if (!$isSuper && !$isAdmin && !$isPersonnel && !$isSummary) {
+            return redirect()->to(base_url('staff'))->with('error', 'คุณไม่มีสิทธิ์เข้าถึงระบบนี้');
+        }
+        return true;
+    }
+
     /**
      * Dashboard สรุปการลงเวลา
      */
     public function index()
     {
-        $userRoles = session()->get('u_role') ?? '';
-        if (strpos($userRoles, 'superadmin') === false && strpos($userRoles, 'personnel') === false) {
-            return redirect()->to(base_url('staff'))->with('error', 'คุณไม่มีสิทธิ์เข้าถึงระบบนี้');
-        }
+        $chk = $this->checkAccess();
+        if ($chk !== true) return $chk;
 
         $model = new AttendanceModel();
         $date = $this->request->getGet('date') ?: date('Y-m-d');
@@ -55,10 +67,8 @@ class StaffAttendance extends Controller
      */
     public function users()
     {
-        $userRoles = session()->get('u_role') ?? '';
-        if (strpos($userRoles, 'superadmin') === false && strpos($userRoles, 'personnel') === false) {
-            return redirect()->to(base_url('staff'))->with('error', 'คุณไม่มีสิทธิ์เข้าถึงระบบนี้');
-        }
+        $chk = $this->checkAccess();
+        if ($chk !== true) return $chk;
 
         $userModel = new UserModel();
         $data['title'] = "ตั้งค่ารหัสสแกนนิ้วบุคลากร | อบจ.นครสวรรค์";
@@ -77,6 +87,9 @@ class StaffAttendance extends Controller
      */
     public function saveUserMapping()
     {
+        $chk = $this->checkAccess();
+        if ($chk !== true) return $chk;
+
         $userModel = new UserModel();
         $userId = $this->request->getPost('u_id');
         $fingerId = $this->request->getPost('finger_id');
@@ -88,10 +101,8 @@ class StaffAttendance extends Controller
 
     public function upload()
     {
-        $userRoles = session()->get('u_role') ?? '';
-        if (strpos($userRoles, 'superadmin') === false && strpos($userRoles, 'personnel') === false) {
-            return redirect()->to(base_url('staff'))->with('error', 'คุณไม่มีสิทธิ์เข้าถึงระบบนี้');
-        }
+        $chk = $this->checkAccess();
+        if ($chk !== true) return $chk;
 
         $data['title'] = "อัปโหลดไฟล์ลงเวลา | อบจ.นครสวรรค์";
         $data['fullname'] = session()->get('u_fullname');
@@ -218,10 +229,8 @@ class StaffAttendance extends Controller
      */
     public function saveManual()
     {
-        $userRoles = session()->get('u_role') ?? '';
-        if (strpos($userRoles, 'superadmin') === false && strpos($userRoles, 'personnel') === false) {
-            return redirect()->to(base_url('staff'))->with('error', 'คุณไม่มีสิทธิ์เข้าถึงระบบนี้');
-        }
+        $chk = $this->checkAccess();
+        if ($chk !== true) return $chk;
 
         $atdModel = new AttendanceModel();
         
@@ -270,6 +279,9 @@ class StaffAttendance extends Controller
      */
     public function report()
     {
+        $chk = $this->checkAccess();
+        if ($chk !== true) return $chk;
+
         $data['title'] = "สรุปรายงานการปฏิบัติงาน | อบจ.นครสวรรค์";
         $data['fullname'] = session()->get('u_fullname');
         return view('staff/attendance_admin/report_hub', $data);
@@ -280,10 +292,8 @@ class StaffAttendance extends Controller
      */
     public function annualReport()
     {
-        $userRoles = session()->get('u_role') ?? '';
-        if (strpos($userRoles, 'superadmin') === false && strpos($userRoles, 'personnel') === false) {
-            return redirect()->to(base_url('staff'))->with('error', 'คุณไม่มีสิทธิ์เข้าถึงระบบนี้');
-        }
+        $chk = $this->checkAccess();
+        if ($chk !== true) return $chk;
 
         $atdModel = new AttendanceModel();
         $userModel = new UserModel();
@@ -353,10 +363,8 @@ class StaffAttendance extends Controller
      */
     public function monthlyReport()
     {
-        $userRoles = session()->get('u_role') ?? '';
-        if (strpos($userRoles, 'superadmin') === false && strpos($userRoles, 'personnel') === false) {
-            return redirect()->to(base_url('staff'))->with('error', 'คุณไม่มีสิทธิ์เข้าถึงระบบนี้');
-        }
+        $chk = $this->checkAccess();
+        if ($chk !== true) return $chk;
 
         $atdModel = new AttendanceModel();
         $userModel = new UserModel();

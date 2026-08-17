@@ -541,7 +541,7 @@
                     &copy; <?= date('Y') ?> SCIENCE WEEK SYSTEM • โรงเรียนสวนกุหลาบวิทยาลัย (จิรประวัติ) นครสวรรค์ &amp; กองการศึกษา อบจ.นครสวรรค์
                 </div>
                 <div class="text-[10px] text-slate-500 flex items-center gap-1">
-                    พัฒนาโดย <a href="https://github.com/dekpiano" target="_blank" class="text-indigo-400 hover:text-indigo-300 font-extrabold transition-colors inline-flex items-center gap-0.5"><i data-lucide="music" class="w-3 h-3"></i> Dekpiano</a>
+                    พัฒนาโดย <a href="https://erc.nsnpao.go.th/itsupport/portfolio" target="_blank" class="text-indigo-400 hover:text-indigo-300 font-extrabold transition-colors inline-flex items-center gap-0.5"><i data-lucide="music" class="w-3 h-3"></i> Dekpiano</a>
                 </div>
             </div>
             <div class="flex flex-col sm:flex-row items-center gap-4">

@@ -1,7 +1,8 @@
 <?= $this->extend('staff/layout/main') ?>
 
 <?= $this->section('content') ?>
-<?= view('sports/admin/layout/nav') ?>
+<?php $activeCompYear = isset($activeYear) ? (int)$activeYear : (int)(session()->get('sports_active_year') ?: 2569); ?>
+<?= view('sports/admin/layout/nav', ['activeYear' => $activeCompYear]) ?>
 
 <div class="space-y-6">
     <!-- Header with Create Action -->
@@ -108,9 +109,21 @@
                             <h3 class="text-base font-black text-slate-900 group-hover:text-emerald-700 transition-colors line-clamp-2">
                                 <?= esc($c['cert_title']) ?>
                             </h3>
-                            <p class="text-xs text-slate-400 mt-1">
-                                รุ่น: <strong class="text-slate-600"><?= $c['sport_name'] ? esc($c['sport_name']) . ' - ' . esc($c['category_name']) : 'ทุกรุ่นการแข่งขัน (General)' ?></strong>
-                            </p>
+                            <div class="mt-2">
+                                <?php if (!empty($c['sport_name'])): ?>
+                                    <div class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-emerald-50 text-emerald-950 border border-emerald-200 text-xs font-black">
+                                        <i data-lucide="trophy" class="w-3 h-3 text-emerald-600"></i>
+                                        <span>กีฬา: <?= esc($c['sport_name']) ?></span>
+                                    </div>
+                                    <div class="text-xs text-slate-500 font-bold mt-1">
+                                        รุ่น: <span class="text-slate-700"><?= (mb_strpos(trim($c['category_name']), 'รุ่น') === 0 ? mb_substr(trim($c['category_name']), 4) : esc($c['category_name'])) ?></span>
+                                    </div>
+                                <?php else: ?>
+                                    <div class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200 text-xs font-bold">
+                                        <span>ทุกรุ่นการแข่งขัน (General)</span>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
                         </div>
 
                         <div class="bg-slate-50 p-3 rounded-2xl text-[11px] space-y-1.5 text-slate-600 border border-slate-100">

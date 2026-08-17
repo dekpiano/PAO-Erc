@@ -86,10 +86,19 @@
                                         <p class="text-xs font-bold text-slate-600 mt-0.5"><?= esc($m['school_name']) ?></p>
                                     </div>
 
-                                    <div class="bg-slate-50 p-3 rounded-2xl text-[11px] space-y-1 text-slate-500">
-                                        <div>กีฬา: <strong class="text-slate-700"><?= esc($m['sport_name']) ?></strong></div>
-                                        <div>รุ่น/ประเภท: <strong class="text-slate-700">รุ่น <?= esc($m['category_name']) ?> (<?= $genderText ?>)</strong></div>
-                                        <div>รหัสทีม: <strong class="font-mono text-slate-700"><?= esc($m['team_code']) ?></strong></div>
+                                    <div class="bg-slate-50/90 p-3.5 rounded-2xl text-xs space-y-1.5 border border-slate-100">
+                                        <div class="flex items-center gap-1.5">
+                                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-emerald-100 text-emerald-950 font-black text-[11px]">
+                                                <i data-lucide="trophy" class="w-3 h-3 text-emerald-700"></i>
+                                                <span>กีฬา: <?= esc($m['sport_name']) ?></span>
+                                            </span>
+                                        </div>
+                                        <div class="text-[11px] text-slate-600 font-bold">
+                                            รุ่น: <strong class="text-slate-800"><?= (mb_strpos(trim($m['category_name']), 'รุ่น') === 0 ? mb_substr(trim($m['category_name']), 4) : esc($m['category_name'])) ?> (<?= $genderText ?>)</strong>
+                                        </div>
+                                        <div class="text-[11px] text-slate-500">
+                                            สังกัด: <span class="text-slate-700"><?= esc($m['team_name'] ?: $m['school_name']) ?></span>
+                                        </div>
                                     </div>
                                 </div>
 

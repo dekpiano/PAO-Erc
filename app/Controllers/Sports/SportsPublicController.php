@@ -34,23 +34,87 @@ class SportsPublicController extends BaseController
         return $code;
     }
 
+    public function getSystemActiveYear(): int
+    {
+        $db = \Config\Database::connect();
+        try {
+            if ($db->tableExists('Tb_Sports_Settings')) {
+                $row = $db->table('Tb_Sports_Settings')->where('setting_key', 'active_comp_year')->get()->getRow();
+                if ($row && !empty($row->setting_value) && is_numeric($row->setting_value)) {
+                    return (int)$row->setting_value;
+                }
+            }
+        } catch (\Throwable $e) {}
+
+        try {
+            if ($db->tableExists('Tb_Sports_Categories')) {
+                $latest = $db->table('Tb_Sports_Categories')->selectMax('comp_year')->get()->getRow();
+                if (!empty($latest) && !empty($latest->comp_year)) {
+                    return (int)$latest->comp_year;
+                }
+            }
+        } catch (\Throwable $e) {}
+
+        return (int)date('Y') + 543;
+    }
+
+    public function getActiveYear(): int
+    {
+        $getYear = $this->request->getGet('year');
+        if ($getYear && is_numeric($getYear)) {
+            return (int)$getYear;
+        }
+        return $this->getSystemActiveYear();
+    }
+
+    public function getAllCompYears(): array
+    {
+        $db = \Config\Database::connect();
+        $years = [];
+        try {
+            if ($db->tableExists('Tb_Sports_Categories')) {
+                $res = $db->query("SELECT DISTINCT comp_year FROM Tb_Sports_Categories WHERE comp_year IS NOT NULL AND comp_year > 0 UNION SELECT DISTINCT comp_year FROM Tb_Sports_Teams WHERE comp_year IS NOT NULL AND comp_year > 0 ORDER BY comp_year DESC")->getResultArray();
+                $years = array_column($res, 'comp_year');
+            }
+        } catch (\Throwable $e) {}
+
+        $activeSysYear = $this->getSystemActiveYear();
+        if (!in_array($activeSysYear, $years)) {
+            $years[] = $activeSysYear;
+        }
+        rsort($years, SORT_NUMERIC);
+        return array_values(array_unique(array_map('intval', $years)));
+    }
+
     // Public Home
     public function index()
     {
         $db = \Config\Database::connect();
-        $categories = $db->table('Tb_Sports_Categories as c')
-                         ->select('c.*, COUNT(t.team_id) as registered_teams')
-                         ->join('Tb_Sports_Teams as t', 't.category_id = c.category_id AND t.status != "cancelled"', 'left')
-                         ->where('c.status !=', 'draft')
-                         ->groupBy('c.category_id')
-                         ->orderBy('c.sport_name', 'ASC')
-                         ->orderBy('c.category_name', 'ASC')
-                         ->get()
-                         ->getResultArray();
+        $activeYear = $this->getActiveYear();
+        $systemDefaultYear = $this->getSystemActiveYear();
+        $availableYears = $this->getAllCompYears();
+
+        $builder = $db->table('Tb_Sports_Categories as c')
+                      ->select('c.*, COUNT(t.team_id) as registered_teams')
+                      ->join('Tb_Sports_Teams as t', 't.category_id = c.category_id AND t.status != "cancelled"', 'left')
+                      ->where('c.status !=', 'draft');
+
+        if ($db->fieldExists('comp_year', 'Tb_Sports_Categories')) {
+            $builder->where('c.comp_year', $activeYear);
+        }
+
+        $categories = $builder->groupBy('c.category_id')
+                             ->orderBy('c.sport_name', 'ASC')
+                             ->orderBy('c.category_name', 'ASC')
+                             ->get()
+                             ->getResultArray();
 
         $data = [
-            'title'      => 'ระบบลงทะเบียนแข่งขันกีฬา อบจ.นครสวรรค์ เกมส์',
-            'categories' => $categories
+            'title'             => 'ระบบลงทะเบียนแข่งขันกีฬา อบจ.นครสวรรค์ เกมส์ ประจำปี ' . $activeYear,
+            'categories'        => $categories,
+            'activeCompYear'    => $activeYear,
+            'systemDefaultYear' => $systemDefaultYear,
+            'availableYears'    => $availableYears
         ];
 
         return view('sports/public/index', $data);
@@ -137,14 +201,58 @@ class SportsPublicController extends BaseController
         }
 
         // Count athlete and coach members
+        $compYear = (int)($category['comp_year'] ?? 2569);
+        $db = \Config\Database::connect();
+
+        // Count athlete and coach members & Validate duplicates
         $members = $this->request->getPost('members') ?: [];
         $athleteCount = 0;
         $coachCount = 0;
+        $seenAthletes = [];
 
         foreach ($members as $m) {
             if (empty($m['first_name']) || empty($m['last_name'])) continue;
-            if (($m['member_type'] ?? 'athlete') === 'athlete') {
+            $mType = $m['member_type'] ?? 'athlete';
+            $fName = trim($m['first_name']);
+            $lName = trim($m['last_name']);
+            $idCard = trim($m['id_card'] ?? '');
+
+            if ($mType === 'athlete') {
                 $athleteCount++;
+                $key = mb_strtolower($fName . ' ' . $lName);
+
+                if (in_array($key, $seenAthletes)) {
+                    return redirect()->back()->withInput()->with('error', "⚠️ พบรายชื่อนักกีฬา \"{$fName} {$lName}\" ซ้ำกันมากกว่า 1 ครั้งในแบบฟอร์ม");
+                }
+                $seenAthletes[] = $key;
+
+                // Check duplicate athlete in database for the same competition year
+                $dupBuilder = $db->table('Tb_Sports_Members as mem')
+                                 ->join('Tb_Sports_Teams as t', 't.team_id = mem.team_id')
+                                 ->join('Tb_Sports_Categories as c', 'c.category_id = mem.category_id', 'left')
+                                 ->where('mem.member_type', 'athlete')
+                                 ->where('t.status !=', 'cancelled')
+                                 ->where('mem.comp_year', $compYear);
+
+                if (!empty($idCard)) {
+                    $dupBuilder->groupStart()
+                               ->where('mem.id_card', $idCard)
+                               ->orGroupStart()
+                                   ->where('mem.first_name', $fName)
+                                   ->where('mem.last_name', $lName)
+                               ->groupEnd()
+                               ->groupEnd();
+                } else {
+                    $dupBuilder->where('mem.first_name', $fName)
+                               ->where('mem.last_name', $lName);
+                }
+
+                $dup = $dupBuilder->select('mem.*, t.team_name, t.school_name, c.sport_name, c.category_name')->get()->getRowArray();
+                if ($dup) {
+                    $teamTitle = $dup['team_name'] ?: $dup['school_name'];
+                    $sportTitle = ($dup['sport_name'] ?? '') . ' (' . ($dup['category_name'] ?? '') . ')';
+                    return redirect()->back()->withInput()->with('error', "⚠️ ไม่สามารถลงทะเบียนได้: นักกีฬา \"{$fName} {$lName}\" มีรายชื่อลงแข่งขันในปี {$compYear} แล้ว ในทีม \"{$teamTitle}\" ({$sportTitle})");
+                }
             } else {
                 $coachCount++;
             }
@@ -171,6 +279,7 @@ class SportsPublicController extends BaseController
 
         $teamData = [
             'team_code'       => $teamCode,
+            'comp_year'       => $compYear,
             'category_id'     => $categoryId,
             'school_name'     => $schoolName,
             'team_name'       => $teamName,
@@ -225,12 +334,10 @@ class SportsPublicController extends BaseController
                         return redirect()->back()->withInput()->with('error', '⚠️ นักกีฬา ' . $m['first_name'] . ' ' . $m['last_name'] . ' วันเกิดไม่ถูกต้อง (คำนวณอายุได้ 0 ปี)');
                     }
                     if ($age < $effectiveMin) {
-                        // Rollback team
                         $this->teamModel->delete($teamId);
                         return redirect()->back()->withInput()->with('error', '⚠️ นักกีฬา ' . $m['first_name'] . ' ' . $m['last_name'] . ' มีอายุ ' . $age . ' ปี ซึ่งน้อยกว่าเกณฑ์ขั้นต่ำของการแข่งขัน (' . $effectiveMin . ' ปี)');
                     }
                     if ($targetAgeMax < 99 && $age > $targetAgeMax) {
-                        // Rollback team
                         $this->teamModel->delete($teamId);
                         return redirect()->back()->withInput()->with('error', '⚠️ นักกีฬา ' . $m['first_name'] . ' ' . $m['last_name'] . ' มีอายุ ' . $age . ' ปี ซึ่งเกินเกณฑ์สูงสุดของรุ่น ' . $category['category_name'] . ' (กำหนดอายุไม่เกิน ' . $targetAgeMax . ' ปี)');
                     }
@@ -238,6 +345,7 @@ class SportsPublicController extends BaseController
 
                 $this->memberModel->insert([
                     'team_id'       => $teamId,
+                    'comp_year'     => $compYear,
                     'category_id'   => $categoryId,
                     'member_type'   => $memberType,
                     'prefix'        => $m['prefix'] ?? 'นาย',
@@ -287,13 +395,19 @@ class SportsPublicController extends BaseController
     public function results()
     {
         $db = \Config\Database::connect();
+        $activeYear = $this->getActiveYear();
+        $availableYears = $this->getAllCompYears();
         $categoryId = $this->request->getGet('category_id');
 
-        $categories = $db->table('Tb_Sports_Categories')
+        $catBuilder = $db->table('Tb_Sports_Categories')
                          ->orderBy('sport_name', 'ASC')
-                         ->orderBy('category_name', 'ASC')
-                         ->get()
-                         ->getResultArray();
+                         ->orderBy('category_name', 'ASC');
+
+        if ($db->fieldExists('comp_year', 'Tb_Sports_Categories')) {
+            $catBuilder->where('comp_year', $activeYear);
+        }
+
+        $categories = $catBuilder->get()->getResultArray();
 
         $selectedCategory = null;
         $teamsWithAwards = null;
@@ -328,11 +442,13 @@ class SportsPublicController extends BaseController
         }
 
         $data = [
-            'title'            => 'ประกาศผลการแข่งขันกีฬา - อบจ.นครสวรรค์ เกมส์ 2569',
+            'title'            => 'ประกาศผลการแข่งขันกีฬา - อบจ.นครสวรรค์ เกมส์ ประจำปี ' . $activeYear,
             'categories'       => $categories,
             'selectedCategory' => $selectedCategory,
             'teams'            => $teamsWithAwards,
-            'categoryId'       => $categoryId
+            'categoryId'       => $categoryId,
+            'activeCompYear'   => $activeYear,
+            'availableYears'   => $availableYears
         ];
 
         return view('sports/public/results', $data);

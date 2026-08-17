@@ -14,6 +14,7 @@ class SportsTeamModel extends Model
     protected $protectFields    = true;
     protected $allowedFields    = [
         'team_code',
+        'comp_year',
         'category_id',
         'school_name',
         'team_name',

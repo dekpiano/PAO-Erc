@@ -1,8 +1,9 @@
 <?= $this->extend('staff/layout/main') ?>
 
 <?= $this->section('content') ?>
+<?php $activeCompYear = isset($activeYear) ? (int)$activeYear : (int)(session()->get('sports_active_year') ?: 2569); ?>
 <div class="space-y-6">
-    <?= view('sports/admin/layout/nav') ?>
+    <?= view('sports/admin/layout/nav', ['activeYear' => $activeCompYear]) ?>
 
     <!-- Header with Filter -->
     <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-4">
@@ -15,10 +16,18 @@
                 <h1 class="text-xl sm:text-2xl font-black text-slate-900">ตรวจสอบทีมและรายชื่อนักกีฬา</h1>
                 <p class="text-xs sm:text-sm text-slate-400 mt-0.5">ตรวจสอบเอกสารหลักฐาน, อนุมัติสิทธิ์การแข่งขัน, และพิมพ์เอกสารประจำทีม</p>
             </div>
+            <div>
+                <a href="<?= base_url('staff/sports/export-excel?year=' . $activeCompYear) ?>" 
+                   class="px-4 py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-2xl font-bold text-xs flex items-center gap-2 transition-all">
+                    <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-600"></i>
+                    <span>ส่งออกข้อมูล Excel (ปี <?= $activeCompYear ?>)</span>
+                </a>
+            </div>
         </div>
 
         <!-- Filter Form -->
         <form method="GET" action="<?= base_url('staff/sports/teams') ?>" class="grid grid-cols-1 sm:grid-cols-4 gap-3 pt-2 border-t border-slate-100">
+            <input type="hidden" name="year" value="<?= $activeCompYear ?>">
             <div>
                 <label class="block text-[11px] font-bold text-slate-500 mb-1">ชนิดกีฬา / รุ่น</label>
                 <select name="category_id" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-medium focus:ring-2 focus:ring-emerald-500">
@@ -71,15 +80,15 @@
     <div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-left text-xs text-slate-600">
-                <thead class="bg-slate-50 text-slate-700 uppercase font-semibold border-b border-slate-100">
+                <thead class="bg-gradient-to-r from-emerald-800 via-teal-800 to-emerald-900 text-white font-black text-xs tracking-wider uppercase border-b-2 border-emerald-400">
                     <tr>
-                        <th class="px-6 py-4">รหัสทีม</th>
-                        <th class="px-6 py-4">โรงเรียน / สังกัด</th>
-                        <th class="px-6 py-4">กีฬา / รุ่น</th>
-                        <th class="px-6 py-4">ผู้ประสานงาน</th>
-                        <th class="px-6 py-4 text-center">สมาชิก (คน)</th>
-                        <th class="px-6 py-4 text-center">สถานะ</th>
-                        <th class="px-6 py-4 text-center">การกระทำ</th>
+                        <th class="px-6 py-4 text-white">รหัสทีม</th>
+                        <th class="px-6 py-4 text-white">โรงเรียน / สังกัด</th>
+                        <th class="px-6 py-4 text-white">กีฬา / รุ่น</th>
+                        <th class="px-6 py-4 text-emerald-100">ผู้ประสานงาน</th>
+                        <th class="px-6 py-4 text-center text-emerald-100">สมาชิก (คน)</th>
+                        <th class="px-6 py-4 text-center text-emerald-100">สถานะ</th>
+                        <th class="px-6 py-4 text-center text-emerald-200">การจัดการ</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
@@ -103,9 +112,13 @@
                                     </div>
                                 </td>
                                 <td class="px-6 py-4">
-                                    <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-800">
-                                        <?= esc($t['sport_name']) ?> (<?= esc($t['category_name']) ?>)
-                                    </span>
+                                    <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-950 border border-emerald-300/80 rounded-xl text-xs font-black shadow-xs">
+                                        <i data-lucide="trophy" class="w-3.5 h-3.5 text-emerald-600 shrink-0"></i>
+                                        <span><?= esc($t['sport_name']) ?></span>
+                                    </div>
+                                    <div class="text-[11px] font-bold text-slate-600 mt-1 ml-0.5">
+                                        <?= (mb_strpos(trim($t['category_name']), 'รุ่น') === 0 ? '' : 'รุ่น ') . esc($t['category_name']) ?> (<?= $t['category_gender'] === 'female' ? 'หญิง' : ($t['category_gender'] === 'mixed' ? 'ผสม' : 'ชาย') ?>)
+                                    </div>
                                 </td>
                                 <td class="px-6 py-4">
                                     <div class="font-semibold text-slate-800"><?= esc($t['contact_name']) ?></div>

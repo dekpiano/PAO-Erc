@@ -13,6 +13,7 @@ class SportsCertificateModel extends Model
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
     protected $allowedFields    = [
+        'comp_year',
         'category_id',
         'target_type',       // all, athlete, coach
         'award_level',       // all, champion, 1st_runner_up, 2nd_runner_up, 3rd_runner_up, participant

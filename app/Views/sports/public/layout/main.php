@@ -160,7 +160,7 @@
                     </div>
                     <div>
                         <span class="text-lg font-black tracking-tight text-slate-900 leading-none block">
-                            อบจ.นครสวรรค์ เกมส์ 2569
+                            อบจ.นครสวรรค์ เกมส์ <?= !empty($activeCompYear) ? esc($activeCompYear) : '' ?>
                         </span>
                         <p class="text-[11px] font-bold text-emerald-600 tracking-wide mt-1">
                             ระบบลงทะเบียนแข่งขันกีฬา อบจ.นครสวรรค์
@@ -223,15 +223,29 @@
     </main>
 
     <!-- Sports Footer -->
-    <footer class="bg-slate-900 text-white py-8 border-t border-slate-800 mt-12">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-xl bg-emerald-600 flex items-center justify-center">
-                    <i data-lucide="trophy" class="w-4 h-4 text-white"></i>
+    <footer class="bg-slate-900 text-white py-10 border-t border-slate-800 mt-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-6">
+            <div class="flex items-center gap-3.5">
+                <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center shadow-md shadow-emerald-500/20 text-white">
+                    <i data-lucide="trophy" class="w-5 h-5"></i>
                 </div>
-                <div class="text-xs">
-                &copy; <?= date('Y') + 543 ?> PAO Sports System. All rights reserved.
-            </p>
+                <div>
+                    <h5 class="text-sm font-black text-white tracking-tight">ระบบลงทะเบียนการแข่งขันกีฬา อบจ.นครสวรรค์ เกมส์</h5>
+                    <p class="text-xs text-slate-400">องค์การบริหารส่วนจังหวัดนครสวรรค์</p>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-xs text-slate-400">
+                <span>&copy; <?= date('Y') + 543 ?> PAO Sports System. All rights reserved.</span>
+                <span class="hidden sm:inline text-slate-600">•</span>
+                <div class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-800/80 border border-slate-700/80 rounded-xl text-slate-300">
+                    <i data-lucide="code" class="w-3.5 h-3.5 text-emerald-400"></i>
+                    <span>Developed with ❤️ by</span>
+                    <a href="https://erc.nsnpao.go.th/itsupport/portfolio" target="_blank" class="text-emerald-400 hover:text-emerald-300 font-bold flex items-center gap-1 transition-colors">
+                        <i data-lucide="music" class="w-3 h-3"></i> Dekpiano
+                    </a>
+                </div>
+            </div>
         </div>
     </footer>
 

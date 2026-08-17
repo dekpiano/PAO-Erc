@@ -1,8 +1,9 @@
 <?= $this->extend('staff/layout/main') ?>
 
 <?= $this->section('content') ?>
+<?php $activeCompYear = isset($activeYear) ? (int)$activeYear : (int)(session()->get('sports_active_year') ?: 2569); ?>
 <div class="space-y-6">
-    <?= view('sports/admin/layout/nav') ?>
+    <?= view('sports/admin/layout/nav', ['activeYear' => $activeCompYear]) ?>
 
     <!-- Header -->
     <div class="bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 rounded-3xl p-6 md:p-8 text-white shadow-xl shadow-emerald-900/10 relative overflow-hidden">
@@ -12,10 +13,10 @@
         <div class="space-y-1">
             <span class="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-200">
                 <i data-lucide="shield-check" class="w-4 h-4"></i>
-                <span>ระบบบริหารจัดการกีฬาสำหรับเจ้าหน้าที่</span>
+                <span>ระบบบริหารจัดการกีฬาสำหรับเจ้าหน้าที่ • ข้อมูลประจำปี <?= esc($activeCompYear) ?></span>
             </span>
-            <h1 class="text-2xl md:text-3xl font-black tracking-tight">ระบบจัดการแข่งขันกีฬา อบจ.นครสวรรค์ เกมส์</h1>
-            <p class="text-xs md:text-sm text-emerald-100 font-light">ภาพรวมสถิติการรับสมัคร ทีม และนักกีฬาทั้งหมด</p>
+            <h1 class="text-2xl md:text-3xl font-black tracking-tight">ระบบจัดการแข่งขันกีฬา อบจ.นครสวรรค์ เกมส์ (<?= esc($activeCompYear) ?>)</h1>
+            <p class="text-xs md:text-sm text-emerald-100 font-light">ภาพรวมสถิติการรับสมัคร ทีม และนักกีฬาทั้งหมด ประจำปีการแข่งขัน <?= esc($activeCompYear) ?></p>
         </div>
     </div>
 
@@ -106,14 +107,14 @@
 
         <div class="overflow-x-auto">
             <table class="w-full text-left text-xs text-slate-600">
-                <thead class="bg-slate-50 text-slate-700 uppercase font-semibold border-b border-slate-100">
+                <thead class="bg-gradient-to-r from-emerald-800 via-teal-800 to-emerald-900 text-white font-black text-xs tracking-wider uppercase border-b-2 border-emerald-400">
                     <tr>
-                        <th class="px-5 py-3.5">รหัสทีม</th>
-                        <th class="px-5 py-3.5">โรงเรียน / ทีม</th>
-                        <th class="px-5 py-3.5">กีฬา / รุ่น</th>
-                        <th class="px-5 py-3.5">ผู้ประสานงาน</th>
-                        <th class="px-5 py-3.5 text-center">สถานะ</th>
-                        <th class="px-5 py-3.5 text-center">การกระทำ</th>
+                        <th class="px-5 py-4 text-white">รหัสทีม</th>
+                        <th class="px-5 py-4 text-white">โรงเรียน / ทีม</th>
+                        <th class="px-5 py-4 text-white">กีฬา / รุ่น</th>
+                        <th class="px-5 py-4 text-emerald-100">ผู้ประสานงาน</th>
+                        <th class="px-5 py-4 text-center text-emerald-100">สถานะ</th>
+                        <th class="px-5 py-4 text-center text-emerald-200">การจัดการ</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
@@ -137,9 +138,13 @@
                                     <?php endif; ?>
                                 </td>
                                 <td class="px-5 py-3.5">
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-slate-100 text-slate-800">
-                                        <?= esc($t['sport_name']) ?> (<?= esc($t['category_name']) ?>)
-                                    </span>
+                                    <div class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 text-emerald-950 border border-emerald-300/80 rounded-lg text-xs font-black">
+                                        <i data-lucide="trophy" class="w-3.5 h-3.5 text-emerald-600 shrink-0"></i>
+                                        <span><?= esc($t['sport_name']) ?></span>
+                                    </div>
+                                    <div class="text-[10px] font-bold text-slate-500 mt-0.5 ml-0.5">
+                                        <?= (mb_strpos(trim($t['category_name']), 'รุ่น') === 0 ? '' : 'รุ่น ') . esc($t['category_name']) ?>
+                                    </div>
                                 </td>
                                 <td class="px-5 py-3.5">
                                     <div class="font-medium text-slate-700"><?= esc($t['contact_name']) ?></div>

@@ -14,6 +14,7 @@ class SportsMemberModel extends Model
     protected $protectFields    = true;
     protected $allowedFields    = [
         'team_id',
+        'comp_year',
         'category_id',
         'member_type',      // athlete, coach, manager, assistant
         'prefix',

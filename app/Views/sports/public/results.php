@@ -15,14 +15,27 @@
                     <i data-lucide="trophy" class="w-3.5 h-3.5"></i>
                     <span>Competition Results & Standings</span>
                 </div>
-                <h1 class="text-2xl sm:text-3xl font-black tracking-tight">ประกาศผลการแข่งขันและทำเนียบรางวัล</h1>
-                <p class="text-emerald-100 text-xs sm:text-sm">ค้นหาและดูผลการแข่งขันกีฬา อบจ.นครสวรรค์ เกมส์ 2569 ชิงชนะเลิศ แยกตามชนิดกีฬาและรุ่นอายุ</p>
+                <h1 class="text-2xl sm:text-3xl font-black tracking-tight">ประกาศผลการแข่งขันและทำเนียบรางวัล (<?= esc($activeCompYear ?? '') ?>)</h1>
+                <p class="text-emerald-100 text-xs sm:text-sm">ค้นหาและดูผลการแข่งขันกีฬา อบจ.นครสวรรค์ เกมส์ ประจำปี <?= esc($activeCompYear ?? '') ?> ชิงชนะเลิศ แยกตามชนิดกีฬาและรุ่นอายุ</p>
             </div>
+            <?php if (!empty($availableYears) && count($availableYears) > 1): ?>
+                <div class="flex items-center gap-2 bg-white/20 backdrop-blur-md px-3.5 py-2 rounded-2xl border border-white/30 self-start md:self-auto">
+                    <span class="text-xs font-bold text-emerald-100">ปีการแข่งขัน:</span>
+                    <select onchange="window.location.href='<?= base_url('sports/results?year=') ?>' + this.value" class="bg-transparent text-xs font-black text-white outline-none cursor-pointer">
+                        <?php foreach ($availableYears as $yr): ?>
+                            <option value="<?= $yr ?>" class="text-slate-900" <?= $yr == $activeCompYear ? 'selected' : '' ?>>
+                                ปี <?= $yr ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+            <?php endif; ?>
         </div>
 
         <!-- Search / Category Selector Card -->
         <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-100 shadow-sm space-y-4">
             <form method="GET" action="<?= base_url('sports/results') ?>" class="space-y-4">
+                <input type="hidden" name="year" value="<?= esc($activeCompYear ?? 2569) ?>">
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-2">
                         <i data-lucide="filter" class="w-3.5 h-3.5 inline mr-1 text-emerald-600"></i>
@@ -30,10 +43,10 @@
                     </label>
                     <div class="relative">
                         <select name="category_id" required class="w-full pl-4 pr-10 py-3.5 rounded-2xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-bold text-sm bg-slate-50 focus:bg-white transition-all appearance-none cursor-pointer">
-                            <option value="">-- กรุณาเลือกชนิดกีฬาและรุ่นการแข่งขัน --</option>
+                            <option value="">-- กรุณาเลือกชนิดกีฬาและรุ่นการแข่งขัน (ปี <?= esc($activeCompYear ?? '') ?>) --</option>
                             <?php foreach ($categories as $cat): ?>
                                 <option value="<?= $cat['category_id'] ?>" <?= $categoryId == $cat['category_id'] ? 'selected' : '' ?>>
-                                    <?= esc($cat['sport_name']) ?> - <?= esc($cat['category_name']) ?> (<?= $cat['category_gender'] === 'female' ? 'หญิง' : ($cat['category_gender'] === 'mixed' ? 'ผสม' : 'ชาย') ?>)
+                                    <?= esc($cat['sport_name']) ?> - <?= (mb_strpos(trim($cat['category_name']), 'รุ่น') === 0 ? '' : 'รุ่น ') . esc($cat['category_name']) ?> (<?= $cat['category_gender'] === 'female' ? 'หญิง' : ($cat['category_gender'] === 'mixed' ? 'ผสม' : 'ชาย') ?>)
                                 </option>
                             <?php endforeach; ?>
                         </select>
@@ -67,9 +80,12 @@
                         <i data-lucide="medal" class="w-5 h-5"></i>
                     </div>
                     <div>
-                        <span class="text-[11px] font-bold text-emerald-600 uppercase tracking-wider block">ผลการแข่งขัน</span>
+                        <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-emerald-50 text-emerald-950 border border-emerald-200 text-xs font-black tracking-wide mb-1">
+                            <i data-lucide="trophy" class="w-3.5 h-3.5 text-emerald-600"></i>
+                            <span>กีฬา: <?= esc($selectedCategory['sport_name']) ?></span>
+                        </div>
                         <h2 class="text-base sm:text-lg font-black text-slate-900 leading-tight">
-                            <?= esc($selectedCategory['sport_name']) ?> - รุ่น <?= esc($selectedCategory['category_name']) ?> (<?= $selectedCategory['category_gender'] === 'female' ? 'หญิง' : ($selectedCategory['category_gender'] === 'mixed' ? 'ผสม' : 'ชาย') ?>)
+                            <?= (mb_strpos(trim($selectedCategory['category_name']), 'รุ่น') === 0 ? '' : 'รุ่น ') . esc($selectedCategory['category_name']) ?> (<?= $selectedCategory['category_gender'] === 'female' ? 'หญิง' : ($selectedCategory['category_gender'] === 'mixed' ? 'ผสม' : 'ชาย') ?>)
                         </h2>
                     </div>
                 </div>

@@ -39,8 +39,11 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-white border-t border-slate-200 py-6 text-center text-xs font-bold text-slate-400">
+    <footer class="bg-white border-t border-slate-200 py-6 text-center text-xs font-bold text-slate-400 space-y-1">
         <p>© <?= date('Y') ?> กองการศึกษา ศาสนา และวัฒนธรรม องค์การบริหารส่วนจังหวัดนครสวรรค์</p>
+        <p class="text-[11px] text-slate-400 font-medium">
+            Developed with ❤️ by <a href="https://erc.nsnpao.go.th/itsupport/portfolio" target="_blank" class="text-blue-600 hover:text-blue-700 font-bold inline-flex items-center gap-1 transition-colors"><i data-lucide="music" class="w-3 h-3"></i> Dekpiano</a>
+        </p>
     </footer>
 
     <script>

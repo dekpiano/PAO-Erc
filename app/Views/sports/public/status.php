@@ -49,12 +49,16 @@
                         <?php foreach ($results as $r): ?>
                             <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                 <div class="space-y-2">
-                                    <div class="flex items-center gap-2">
+                                    <div class="flex items-center flex-wrap gap-2">
                                         <span class="font-mono font-bold text-xs bg-slate-900 text-white px-3 py-1 rounded-xl">
                                             <?= esc($r['team_code']) ?>
                                         </span>
-                                        <span class="text-xs font-bold px-3 py-1 bg-indigo-50 text-indigo-700 rounded-xl">
-                                            <?= esc($r['sport_name']) ?> (<?= esc($r['category_name']) ?>)
+                                        <span class="inline-flex items-center gap-1.5 text-xs font-black px-3 py-1 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl shadow-xs">
+                                            <i data-lucide="trophy" class="w-3.5 h-3.5 text-amber-300"></i>
+                                            <span>กีฬา: <?= esc($r['sport_name']) ?></span>
+                                        </span>
+                                        <span class="text-xs font-bold px-3 py-1 bg-slate-100 text-slate-700 rounded-xl border border-slate-200">
+                                            <?= (mb_strpos(trim($r['category_name']), 'รุ่น') === 0 ? '' : 'รุ่น ') . esc($r['category_name']) ?>
                                         </span>
                                     </div>
                                     <h3 class="font-black text-slate-900 text-base"><?= esc($r['school_name']) ?></h3>

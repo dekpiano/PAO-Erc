@@ -286,7 +286,7 @@
                 </div>
                 <div class="flex items-center gap-1">
                     <span>Developed by</span>
-                    <a href="https://github.com/dekpiano" target="_blank"
+                    <a href="https://erc.nsnpao.go.th/itsupport/portfolio" target="_blank"
                         class="text-blue-400 hover:text-blue-300 transition-colors font-bold flex items-center gap-1">
                         <i data-lucide="music" class="w-3 h-3"></i> Dekpiano
                     </a>

@@ -264,6 +264,8 @@ $routes->group('sports', function($routes) {
 // Admin / Staff Routes
 $routes->group('staff/sports', function($routes) {
     $routes->get('/', 'Sports\SportsAdminController::index');
+    $routes->get('set-year/(:num)', 'Sports\SportsAdminController::setYear/$1');
+    $routes->post('set-system-year', 'Sports\SportsAdminController::setSystemYear');
     
     // Categories CRUD
     $routes->get('categories', 'Sports\SportsAdminController::categories');
@@ -278,6 +280,7 @@ $routes->group('staff/sports', function($routes) {
     $routes->post('teams/update-status/(:num)', 'Sports\SportsAdminController::teamUpdateStatus/$1');
     $routes->get('teams/edit/(:num)', 'Sports\SportsAdminController::teamEdit/$1');
     $routes->post('teams/update/(:num)', 'Sports\SportsAdminController::teamUpdate/$1');
+    $routes->post('teams/member-create/(:num)', 'Sports\SportsAdminController::memberCreate/$1');
     $routes->post('teams/member-update/(:num)', 'Sports\SportsAdminController::memberUpdate/$1');
     $routes->get('teams/member-delete/(:num)', 'Sports\SportsAdminController::memberDelete/$1');
     $routes->get('teams/delete/(:num)', 'Sports\SportsAdminController::teamDelete/$1');

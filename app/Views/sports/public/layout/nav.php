@@ -5,7 +5,7 @@
                 <i data-lucide="trophy" class="w-5 h-5"></i>
             </div>
             <div>
-                <span class="text-sm font-black text-slate-900 leading-none block">อบจ.คัพ 2569</span>
+                <span class="text-sm font-black text-slate-900 leading-none block">อบจ.นครสวรรค์ เกมส์ <?= !empty($activeCompYear) ? esc($activeCompYear) : '' ?></span>
                 <span class="text-[10px] font-bold text-emerald-600 uppercase tracking-wider block mt-0.5">ระบบลงทะเบียนการแข่งขันกีฬา</span>
             </div>
         </a>

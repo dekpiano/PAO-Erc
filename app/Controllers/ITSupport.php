@@ -133,9 +133,10 @@ class ITSupport extends BaseController
     {
         $userRoles = session()->get('u_role') ?? '';
         $isSuper = (strpos($userRoles, 'superadmin') !== false);
+        $isAdmin = (strpos($userRoles, 'admin') !== false);
         $isIT = (strpos($userRoles, 'it_support') !== false);
 
-        if (!$isSuper && !$isIT) {
+        if (!$isSuper && !$isAdmin && !$isIT) {
             return redirect()->to(base_url('staff'))->with('error', 'คุณไม่มีสิทธิ์เข้าใช้ระบบ IT Support');
         }
         return true;
@@ -149,8 +150,9 @@ class ITSupport extends BaseController
     {
         $userRoles = session()->get('u_role') ?? '';
         $isSuper = (strpos($userRoles, 'superadmin') !== false);
+        $isAdmin = (strpos($userRoles, 'admin') !== false);
         $isIT = (strpos($userRoles, 'it_support') !== false);
-        $data['can_manage'] = ($isSuper || $isIT);
+        $data['can_manage'] = ($isSuper || $isAdmin || $isIT);
 
         $searchTerm = $this->request->getGet('search');
         $category = $this->request->getGet('category');

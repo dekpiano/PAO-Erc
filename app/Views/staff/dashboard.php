@@ -160,53 +160,119 @@
 
             <?php 
                 $userRoles = session()->get('u_role') ?? ''; 
-                $isAdmin = (strpos($userRoles, 'admin') !== false || strpos($userRoles, 'superadmin') !== false);
-                $isSuper = (strpos($userRoles, 'superadmin') !== false);
+                $rolesArr  = array_filter(array_map('trim', explode(',', $userRoles)));
+                $isSuper   = in_array('superadmin', $rolesArr) || strpos($userRoles, 'superadmin') !== false;
+                $isAdmin   = $isSuper || in_array('admin', $rolesArr) || strpos($userRoles, 'admin') !== false;
+
+                $hasRole = function($role) use ($isAdmin, $rolesArr, $userRoles) {
+                    if ($isAdmin) return true;
+                    if (in_array($role, $rolesArr)) return true;
+                    if (strpos($userRoles, $role) !== false) return true;
+                    return false;
+                };
+
+                $hasAnyAdminRole = $isAdmin || $hasRole('personnel') || $hasRole('summary') || $hasRole('head') || $hasRole('news') || $hasRole('scholarships') || $hasRole('scholarship') || $hasRole('forms') || $hasRole('science_week') || $hasRole('sports') || $hasRole('it_support') || $hasRole('settings');
                 
-                if($isAdmin || strpos($userRoles, 'news') !== false || strpos($userRoles, 'personnel') !== false || strpos($userRoles, 'summary') !== false):
+                if($hasAnyAdminRole):
             ?>
-            <!-- Admin Shortcuts -->
+            <!-- Admin & Management Shortcuts -->
             <div class="pt-4" data-aos="fade-up" data-aos-delay="300">
                 <h3 class="text-xs font-black text-rose-500 uppercase tracking-widest mb-4 flex items-center gap-2">
-                    <i data-lucide="shield-check" class="w-4 h-4"></i> ระบบจัดการ (แอดมิน)
+                    <i data-lucide="shield-check" class="w-4 h-4"></i> ระบบจัดการที่ได้รับมอบหมาย
                 </h3>
-                <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                    <?php /* 
-                    <?php if($isSuper || strpos($userRoles, 'summary') !== false): ?>
-                    <a href="<?= base_url('staff/admin-summary') ?>" class="p-4 bg-white hover:bg-slate-900 hover:text-white rounded-[1.5rem] border border-slate-200 group transition-all duration-300 flex flex-col items-center justify-center text-center gap-2 shadow-sm">
-                        <div class="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center group-hover:bg-slate-800">
-                            <i data-lucide="bar-chart-3" class="w-5 h-5 text-slate-600 group-hover:text-white"></i>
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                    
+                    <?php if($hasRole('summary')): ?>
+                    <a href="<?= base_url('staff/attendance-admin') ?>" class="p-4 bg-white hover:bg-slate-900 hover:text-white rounded-[1.5rem] border border-slate-200 group transition-all duration-300 flex flex-col items-center justify-center text-center gap-2 shadow-sm">
+                        <div class="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center group-hover:bg-slate-800">
+                            <i data-lucide="calendar-check" class="w-5 h-5 text-blue-600 group-hover:text-white"></i>
                         </div>
-                        <span class="text-[10px] font-black uppercase tracking-wider">สรุปเวลาทำงาน</span>
+                        <span class="text-[10px] font-black uppercase tracking-wider">จัดการเวลาเข้างาน</span>
                     </a>
                     <?php endif; ?>
-                    */ ?>
 
-                    <?php if($isSuper || strpos($userRoles, 'personnel') !== false): ?>
+                    <?php if($hasRole('personnel')): ?>
                     <a href="<?= base_url('staff/personnel') ?>" class="p-4 bg-white hover:bg-slate-900 hover:text-white rounded-[1.5rem] border border-slate-200 group transition-all duration-300 flex flex-col items-center justify-center text-center gap-2 shadow-sm">
-                        <div class="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center group-hover:bg-slate-800">
-                            <i data-lucide="users" class="w-5 h-5 text-slate-600 group-hover:text-white"></i>
+                        <div class="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center group-hover:bg-slate-800">
+                            <i data-lucide="users" class="w-5 h-5 text-indigo-600 group-hover:text-white"></i>
                         </div>
                         <span class="text-[10px] font-black uppercase tracking-wider">จัดการบุคลากร</span>
                     </a>
                     <?php endif; ?>
 
-                    <?php if($isAdmin): ?>
+                    <?php if($isAdmin || $hasRole('head')): ?>
                     <a href="<?= base_url('staff/leave/admin') ?>" class="p-4 bg-white hover:bg-slate-900 hover:text-white rounded-[1.5rem] border border-slate-200 group transition-all duration-300 flex flex-col items-center justify-center text-center gap-2 shadow-sm">
-                        <div class="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center group-hover:bg-slate-800">
-                            <i data-lucide="clipboard-check" class="w-5 h-5 text-slate-600 group-hover:text-white"></i>
+                        <div class="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center group-hover:bg-slate-800">
+                            <i data-lucide="clipboard-check" class="w-5 h-5 text-emerald-600 group-hover:text-white"></i>
                         </div>
                         <span class="text-[10px] font-black uppercase tracking-wider">อนุมัติการลา</span>
                     </a>
                     <?php endif; ?>
 
-                    <?php if($isSuper): ?>
+                    <?php if($hasRole('news')): ?>
+                    <a href="<?= base_url('staff/news') ?>" class="p-4 bg-white hover:bg-slate-900 hover:text-white rounded-[1.5rem] border border-slate-200 group transition-all duration-300 flex flex-col items-center justify-center text-center gap-2 shadow-sm">
+                        <div class="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center group-hover:bg-slate-800">
+                            <i data-lucide="megaphone" class="w-5 h-5 text-amber-600 group-hover:text-white"></i>
+                        </div>
+                        <span class="text-[10px] font-black uppercase tracking-wider">จัดการข่าวสาร</span>
+                    </a>
+                    <?php endif; ?>
+
+                    <?php if($hasRole('scholarships') || $hasRole('scholarship')): ?>
+                    <a href="<?= base_url('staff/scholarships') ?>" class="p-4 bg-white hover:bg-slate-900 hover:text-white rounded-[1.5rem] border border-slate-200 group transition-all duration-300 flex flex-col items-center justify-center text-center gap-2 shadow-sm">
+                        <div class="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center group-hover:bg-slate-800">
+                            <i data-lucide="graduation-cap" class="w-5 h-5 text-amber-600 group-hover:text-white"></i>
+                        </div>
+                        <span class="text-[10px] font-black uppercase tracking-wider">จัดการทุนการศึกษา</span>
+                    </a>
+                    <?php endif; ?>
+
+                    <?php if($hasRole('forms')): ?>
+                    <a href="<?= base_url('staff/forms') ?>" class="p-4 bg-white hover:bg-slate-900 hover:text-white rounded-[1.5rem] border border-slate-200 group transition-all duration-300 flex flex-col items-center justify-center text-center gap-2 shadow-sm">
+                        <div class="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center group-hover:bg-slate-800">
+                            <i data-lucide="file-check-2" class="w-5 h-5 text-indigo-500 group-hover:text-white"></i>
+                        </div>
+                        <span class="text-[10px] font-black uppercase tracking-wider">แบบสอบถาม & เกียรติบัตร</span>
+                    </a>
+                    <?php endif; ?>
+
+                    <?php if($hasRole('science_week')): ?>
+                    <a href="<?= base_url('science-week/staff') ?>" class="p-4 bg-white hover:bg-slate-900 hover:text-white rounded-[1.5rem] border border-slate-200 group transition-all duration-300 flex flex-col items-center justify-center text-center gap-2 shadow-sm">
+                        <div class="w-10 h-10 bg-purple-50 rounded-xl flex items-center justify-center group-hover:bg-slate-800">
+                            <i data-lucide="orbit" class="w-5 h-5 text-purple-600 group-hover:text-white"></i>
+                        </div>
+                        <span class="text-[10px] font-black uppercase tracking-wider">สัปดาห์วิทยาศาสตร์</span>
+                    </a>
+                    <?php endif; ?>
+
+                    <?php if($hasRole('sports')): ?>
+                    <a href="<?= base_url('staff/sports') ?>" class="p-4 bg-white hover:bg-slate-900 hover:text-white rounded-[1.5rem] border border-slate-200 group transition-all duration-300 flex flex-col items-center justify-center text-center gap-2 shadow-sm">
+                        <div class="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center group-hover:bg-slate-800">
+                            <i data-lucide="trophy" class="w-5 h-5 text-emerald-600 group-hover:text-white"></i>
+                        </div>
+                        <span class="text-[10px] font-black uppercase tracking-wider">จัดการแข่งขันกีฬา</span>
+                    </a>
+                    <?php endif; ?>
+
+                    <?php if($hasRole('it_support')): ?>
+                    <a href="<?= base_url('itsupport') ?>" class="p-4 bg-white hover:bg-slate-900 hover:text-white rounded-[1.5rem] border border-slate-200 group transition-all duration-300 flex flex-col items-center justify-center text-center gap-2 shadow-sm">
+                        <div class="w-10 h-10 bg-teal-50 rounded-xl flex items-center justify-center group-hover:bg-slate-800">
+                            <i data-lucide="wrench" class="w-5 h-5 text-teal-600 group-hover:text-white"></i>
+                        </div>
+                        <span class="text-[10px] font-black uppercase tracking-wider">จัดการ IT Support</span>
+                    </a>
+                    <?php endif; ?>
+
+                    <?php if($isSuper || $isAdmin): ?>
                     <a href="<?= base_url('staff/permissions') ?>" class="p-4 bg-white hover:bg-slate-900 hover:text-white rounded-[1.5rem] border border-slate-200 group transition-all duration-300 flex flex-col items-center justify-center text-center gap-2 shadow-sm">
-                        <div class="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center group-hover:bg-slate-800">
-                            <i data-lucide="key" class="w-5 h-5 text-slate-600 group-hover:text-white"></i>
+                        <div class="w-10 h-10 bg-rose-50 rounded-xl flex items-center justify-center group-hover:bg-slate-800">
+                            <i data-lucide="key" class="w-5 h-5 text-rose-600 group-hover:text-white"></i>
                         </div>
                         <span class="text-[10px] font-black uppercase tracking-wider">สิทธิ์การใช้งาน</span>
                     </a>
+                    <?php endif; ?>
+
+                    <?php if($isSuper || $hasRole('settings')): ?>
                     <a href="<?= base_url('staff/settings') ?>" class="p-4 bg-white hover:bg-slate-900 hover:text-white rounded-[1.5rem] border border-slate-200 group transition-all duration-300 flex flex-col items-center justify-center text-center gap-2 shadow-sm">
                         <div class="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center group-hover:bg-slate-800">
                             <i data-lucide="settings" class="w-5 h-5 text-slate-600 group-hover:text-white"></i>
@@ -214,6 +280,7 @@
                         <span class="text-[10px] font-black uppercase tracking-wider">ตั้งค่าระบบ</span>
                     </a>
                     <?php endif; ?>
+
                 </div>
             </div>
             <?php endif; ?>

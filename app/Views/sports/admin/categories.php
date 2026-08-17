@@ -1,8 +1,9 @@
 <?= $this->extend('staff/layout/main') ?>
 
 <?= $this->section('content') ?>
+<?php $activeCompYear = isset($activeYear) ? (int)$activeYear : (int)(session()->get('sports_active_year') ?: 2569); ?>
 <div class="space-y-6">
-    <?= view('sports/admin/layout/nav') ?>
+    <?= view('sports/admin/layout/nav', ['activeYear' => $activeCompYear]) ?>
 
     <!-- Header with Action -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
@@ -41,15 +42,15 @@
     <div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-left text-xs text-slate-600">
-                <thead class="bg-slate-50 text-slate-700 uppercase font-semibold border-b border-slate-100">
+                <thead class="bg-gradient-to-r from-emerald-800 via-teal-800 to-emerald-900 text-white font-black text-xs tracking-wider uppercase border-b-2 border-emerald-400">
                     <tr>
-                        <th class="px-6 py-4">ชนิดกีฬา</th>
-                        <th class="px-6 py-4">รุ่น / ประเภท</th>
-                        <th class="px-6 py-4 text-center">เพศ</th>
-                        <th class="px-6 py-4 text-center">จำนวนผู้เล่น (คน)</th>
-                        <th class="px-6 py-4 text-center">ทีมสมัครแล้ว</th>
-                        <th class="px-6 py-4 text-center">สถานะรับสมัคร</th>
-                        <th class="px-6 py-4 text-center">การกระทำ</th>
+                        <th class="px-6 py-4 text-white">ชนิดกีฬา</th>
+                        <th class="px-6 py-4 text-white">รุ่น / ประเภท</th>
+                        <th class="px-6 py-4 text-center text-emerald-100">เพศ</th>
+                        <th class="px-6 py-4 text-center text-emerald-100">จำนวนผู้เล่น (คน)</th>
+                        <th class="px-6 py-4 text-center text-emerald-100">ทีมสมัครแล้ว</th>
+                        <th class="px-6 py-4 text-center text-emerald-100">สถานะรับสมัคร</th>
+                        <th class="px-6 py-4 text-center text-emerald-200">การจัดการ</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
@@ -67,8 +68,11 @@
                         <?php foreach ($categories as $c): ?>
                             <tr class="hover:bg-slate-50/80 transition-colors">
                                 <td class="px-6 py-4">
-                                    <div class="font-black text-slate-900 text-sm"><?= esc($c['sport_name']) ?></div>
-                                    <div class="text-[11px] text-slate-400 font-medium mt-0.5">ปีการแข่งขัน <?= esc($c['comp_year']) ?></div>
+                                    <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border border-emerald-500/30 rounded-xl text-emerald-950 font-black text-sm">
+                                        <i data-lucide="trophy" class="w-4 h-4 text-emerald-600 shrink-0"></i>
+                                        <span class="tracking-wide"><?= esc($c['sport_name']) ?></span>
+                                    </div>
+                                    <div class="text-[11px] text-slate-400 font-bold mt-1 ml-1">ปี <?= esc($c['comp_year']) ?></div>
                                 </td>
                                 <td class="px-6 py-4">
                                     <div class="font-bold text-slate-800"><?= esc($c['category_name']) ?></div>
@@ -147,7 +151,12 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">ปีการแข่งขัน <span class="text-rose-500">*</span></label>
+                    <input type="number" name="comp_year" id="f_comp_year" value="<?= $activeCompYear ?>" min="2500" max="2700" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs font-black text-emerald-700 bg-emerald-50/40">
+                </div>
+
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1.5">เพศ</label>
                     <select name="category_gender" id="f_category_gender" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs font-medium">
@@ -251,6 +260,7 @@
         document.getElementById('modalTitle').innerText = 'เพิ่มชนิดกีฬาและรุ่นการแข่งขัน';
         document.getElementById('categoryForm').action = '<?= base_url('staff/sports/categories/store') ?>';
         document.getElementById('categoryForm').reset();
+        document.getElementById('f_comp_year').value = '<?= $activeCompYear ?>';
         document.getElementById('f_age_min').value = 0;
         document.getElementById('f_age_max').value = 99;
         document.getElementById('f_max_teams').value = 0;
@@ -272,6 +282,7 @@
         document.getElementById('categoryForm').action = '<?= base_url('staff/sports/categories/update') ?>/' + c.category_id;
         document.getElementById('f_sport_name').value = c.sport_name || '';
         document.getElementById('f_category_name').value = c.category_name || '';
+        document.getElementById('f_comp_year').value = c.comp_year || '<?= $activeCompYear ?>';
         document.getElementById('f_category_gender').value = c.category_gender || 'male';
         document.getElementById('f_category_type').value = c.category_type || 'team';
         document.getElementById('f_status').value = c.status || 'open';

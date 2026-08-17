@@ -14,16 +14,17 @@
                     <i data-lucide="arrow-left" class="w-4 h-4"></i>
                     <span>กลับหน้ารายการกีฬา</span>
                 </a>
-                <div class="flex items-center gap-2">
-                    <span class="px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-xs font-extrabold uppercase">
-                        <?= esc($category['sport_name']) ?>
+                <div class="flex items-center flex-wrap gap-2">
+                    <span class="px-3.5 py-1.5 bg-white text-emerald-950 shadow-md shadow-emerald-950/20 rounded-xl text-sm font-black flex items-center gap-1.5">
+                        <i data-lucide="trophy" class="w-4 h-4 text-emerald-600"></i>
+                        <span>กีฬา: <?= esc($category['sport_name']) ?></span>
                     </span>
-                    <span class="px-3 py-1 bg-amber-400 text-slate-950 rounded-full text-xs font-black">
+                    <span class="px-3 py-1.5 bg-amber-400 text-slate-950 rounded-xl text-xs font-black">
                         <?= $category['category_gender'] === 'female' ? 'หญิง' : ($category['category_gender'] === 'mixed' ? 'ผสม' : 'ชาย') ?>
                     </span>
                 </div>
-                <h1 class="text-2xl sm:text-3xl font-black tracking-tight">ลงทะเบียนทีม:
-                    <?= esc($category['category_name']) ?>
+                <h1 class="text-2xl sm:text-3xl font-black tracking-tight pt-1">
+                    <?= (mb_strpos(trim($category['category_name']), 'รุ่น') === 0 ? '' : 'รุ่น ') . esc($category['category_name']) ?>
                 </h1>
                 <p class="text-emerald-100 text-xs sm:text-sm">กรอกข้อมูลโรงเรียน/สังกัด ผู้ประสานงาน
                     และรายชื่อนักกีฬาประจำทีม</p>
@@ -55,7 +56,7 @@
                         <?php if ($dispAgeMin > 0 && $dispAgeMax < 99): ?>
                             <?= $dispAgeMin ?> - <?= $dispAgeMax ?> ปี
                         <?php elseif ($dispAgeMax < 99): ?>
-                            อายุไม่เกิน <?= $dispAgeMax ?> ปี (รุ่น <?= esc($category['category_name']) ?>)
+                            อายุไม่เกิน <?= $dispAgeMax ?> ปี (<?= (mb_strpos(trim($category['category_name']), 'รุ่น') === 0 ? '' : 'รุ่น ') . esc($category['category_name']) ?>)
                         <?php elseif ($dispAgeMin > 0): ?>
                             ตั้งแต่ <?= $dispAgeMin ?> ปีขึ้นไป
                         <?php else: ?>
