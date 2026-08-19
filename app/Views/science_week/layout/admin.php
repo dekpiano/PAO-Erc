@@ -140,6 +140,10 @@
                         <i data-lucide="star" class="w-5 h-5 text-amber-400"></i><span>จัดการแบบประเมิน</span>
                     </a>
 
+                    <a href="<?= base_url('science-week/staff/report') ?>" class="flex items-center gap-4 px-4 py-3.5 rounded-xl font-bold text-sm transition-all duration-200 <?= strpos(uri_string(), 'science-week/staff/report') !== false ? 'sidebar-item-active' : 'text-slate-400 hover:text-slate-100 hover:bg-slate-900/30' ?>">
+                        <i data-lucide="file-bar-chart-2" class="w-5 h-5 text-pink-400"></i><span>รายงานสรุป & ทำเล่ม</span>
+                    </a>
+
                     <!-- Group 3: System Settings -->
                     <div class="text-[9px] font-black text-slate-500 uppercase tracking-widest px-4 pt-4 mb-2">ตั้งค่าระบบแอดมิน</div>
 

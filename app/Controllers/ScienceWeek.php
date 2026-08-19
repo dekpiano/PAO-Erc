@@ -20,6 +20,7 @@ class ScienceWeek extends BaseController
     protected $compModel;
     protected $schModel;
     protected $evalModel;
+    protected $studentStaffModel;
 
     public function __construct()
     {
@@ -27,6 +28,7 @@ class ScienceWeek extends BaseController
         $this->compModel = new ScienceWeekCompetitionModel();
         $this->schModel = new ScienceWeekScheduleModel();
         $this->evalModel = new ScienceWeekEvaluationModel();
+        $this->studentStaffModel = new ScienceWeekStudentStaffModel();
 
         // Automatically verify and update database table schema for rules, links, and custom fields
         $db = \Config\Database::connect();
@@ -5157,6 +5159,358 @@ class ScienceWeek extends BaseController
         }
 
         return $this->response->setJSON(['status' => 'success', 'data' => $data]);
+    }
+
+    /**
+     * ดึงและประมวลผลข้อมูลสถิติสรุปงานทั้งหมด สำหรับทำ Dashboard และเล่มรายงาน
+     */
+    private function getReportSummaryData($selectedYear)
+    {
+        $db = \Config\Database::connect();
+        $formConfig = $this->getEvaluationConfig();
+
+        // 1. สถิติภาพรวมการแข่งขัน
+        $competitions = $this->compModel->where('comp_year', $selectedYear)->findAll();
+        $totalCompetitions = count($competitions);
+
+        $registrations = $this->regModel->where('reg_year', $selectedYear)->findAll();
+        $totalTeams = count($registrations);
+        $approvedTeams = 0;
+        $totalStudents = 0;
+        $totalTeachers = 0;
+        $compStats = [];
+        $levelStats = [];
+
+        foreach ($competitions as $c) {
+            $compStats[$c['comp_name']] = [
+                'name' => $c['comp_name'],
+                'level' => $c['comp_level'],
+                'total_teams' => 0,
+                'approved_teams' => 0,
+                'students' => 0,
+                'teachers' => 0
+            ];
+            $lvl = $c['comp_level'] ?: 'ทั่วไป';
+            if (!isset($levelStats[$lvl])) {
+                $levelStats[$lvl] = ['teams' => 0, 'students' => 0];
+            }
+        }
+
+        foreach ($registrations as $r) {
+            $isApproved = in_array($r['reg_status'], ['approved', 'approved_reserve']);
+            if ($isApproved) {
+                $approvedTeams++;
+            }
+
+            $students = json_decode($r['reg_members'] ?? '', true) ?: [];
+            $teachers = json_decode($r['reg_advisors'] ?? '', true) ?: [];
+            $sCount = is_array($students) ? count($students) : 0;
+            $tCount = is_array($teachers) ? count($teachers) : 0;
+
+            $totalStudents += $sCount;
+            $totalTeachers += $tCount;
+
+            $cType = $r['reg_competition_type'] ?? '';
+            if (isset($compStats[$cType])) {
+                $compStats[$cType]['total_teams']++;
+                if ($isApproved) $compStats[$cType]['approved_teams']++;
+                $compStats[$cType]['students'] += $sCount;
+                $compStats[$cType]['teachers'] += $tCount;
+
+                $lvl = $compStats[$cType]['level'] ?: 'ทั่วไป';
+                $levelStats[$lvl]['teams']++;
+                $levelStats[$lvl]['students'] += $sCount;
+            }
+        }
+
+        // 2. สถิติแบบประเมินความพึงพอใจ
+        $allEvals = $this->evalModel->where('eval_year', $selectedYear)->findAll();
+        $totalEvals = count($allEvals);
+        $totalClaimed = 0;
+        $commentsCount = 0;
+        $allCommentsList = [];
+
+        $questionRawScores = [];
+        foreach ($formConfig['questions'] as $q) {
+            $questionRawScores[$q['key']] = [];
+        }
+
+        $ratingDist = [5 => 0, 4 => 0, 3 => 0, 2 => 0, 1 => 0];
+        $occupationCounts = [];
+        $genderCounts = [];
+        $ageCounts = [];
+        $provinceCounts = [];
+        $schoolCounts = [];
+        $allAvgRatings = [];
+
+        foreach ($allEvals as $ev) {
+            $students = json_decode($ev['eval_students'] ?? '', true) ?: [];
+            if (!empty($students)) {
+                $totalClaimed += count($students);
+            }
+
+            $fb = json_decode($ev['eval_feedback'] ?? '', true) ?: [];
+            $ratings = $fb['ratings'] ?? [];
+            $comments = trim($fb['comments'] ?? '');
+
+            $evalSum = 0;
+            $evalCount = 0;
+            if (!empty($ratings) && is_array($ratings)) {
+                foreach ($ratings as $qKey => $val) {
+                    $val = (float)$val;
+                    if ($val > 0) {
+                        if (!isset($questionRawScores[$qKey])) {
+                            $questionRawScores[$qKey] = [];
+                        }
+                        $questionRawScores[$qKey][] = $val;
+                        $evalSum += $val;
+                        $evalCount++;
+                    }
+                }
+            }
+
+            $avgScore = $evalCount > 0 ? ($evalSum / $evalCount) : 0;
+
+            if (!empty($comments) && $comments !== '-') {
+                $commentsCount++;
+                $cFields = $fb['custom_fields'] ?? $fb['fields'] ?? [];
+                $cName = !empty($students) ? implode(', ', $students) : ($ev['eval_name'] ?: 'ผู้ประเมินทั่วไป');
+                
+                // ตรวจจับข้อความเชิงชื่นชม/ประทับใจ
+                $isPraise = false;
+                $praiseKeywords = ['ดี', 'ยอดเยี่ยม', 'ประทับใจ', 'สนุก', 'ชอบ', 'ขอบคุณ', 'จัดงานได้ดี', 'ได้ความรู้', 'พัฒนา', 'เยี่ยม', 'มีประโยชน์', 'สร้างสรรค์', 'คุ้มค่า', 'น่าสนใจ'];
+                foreach ($praiseKeywords as $kw) {
+                    if (mb_stripos($comments, $kw) !== false) {
+                        $isPraise = true;
+                        break;
+                    }
+                }
+                if ($avgScore >= 4.0) {
+                    $isPraise = true;
+                }
+
+                $allCommentsList[] = [
+                    'code' => $ev['eval_code'],
+                    'name' => $cName,
+                    'comment' => $comments,
+                    'avg_score' => $avgScore,
+                    'is_praise' => $isPraise,
+                    'date' => date('d/m/Y H:i', strtotime($ev['eval_created_at'])),
+                    'province' => !empty($ev['eval_province']) ? $ev['eval_province'] : ($cFields['province'] ?? '-'),
+                    'occupation' => !empty($ev['eval_occupation']) ? $ev['eval_occupation'] : ($cFields['occupation'] ?? '-')
+                ];
+            }
+
+            $evalSum = 0;
+            $evalCount = 0;
+            if (!empty($ratings) && is_array($ratings)) {
+                foreach ($ratings as $qKey => $val) {
+                    $val = (float)$val;
+                    if ($val > 0) {
+                        if (!isset($questionRawScores[$qKey])) {
+                            $questionRawScores[$qKey] = [];
+                        }
+                        $questionRawScores[$qKey][] = $val;
+                        $evalSum += $val;
+                        $evalCount++;
+                    }
+                }
+            }
+
+            if ($evalCount > 0) {
+                $avgScore = $evalSum / $evalCount;
+                $allAvgRatings[] = $avgScore;
+                if ($avgScore >= 4.5) $ratingDist[5]++;
+                elseif ($avgScore >= 3.5) $ratingDist[4]++;
+                elseif ($avgScore >= 2.5) $ratingDist[3]++;
+                elseif ($avgScore >= 1.5) $ratingDist[2]++;
+                else $ratingDist[1]++;
+            }
+
+            $cFields = $fb['custom_fields'] ?? $fb['fields'] ?? [];
+
+            $occRaw = !empty($ev['eval_occupation']) ? $ev['eval_occupation'] : ($cFields['occupation'] ?? $cFields['eval_occupation'] ?? null);
+            $occ = !empty($occRaw) ? trim($occRaw) : 'ไม่ระบุ';
+            $occupationCounts[$occ] = ($occupationCounts[$occ] ?? 0) + 1;
+
+            $genRaw = !empty($ev['eval_gender']) ? $ev['eval_gender'] : ($cFields['gender'] ?? $cFields['eval_gender'] ?? null);
+            $gen = !empty($genRaw) ? trim($genRaw) : 'ไม่ระบุ';
+            $genderCounts[$gen] = ($genderCounts[$gen] ?? 0) + 1;
+
+            $ageRaw = !empty($ev['eval_age']) ? $ev['eval_age'] : ($cFields['age'] ?? $cFields['eval_age'] ?? null);
+            $age = !empty($ageRaw) ? trim($ageRaw) : 'ไม่ระบุ';
+            $ageCounts[$age] = ($ageCounts[$age] ?? 0) + 1;
+
+            $provRaw = !empty($ev['eval_province']) ? $ev['eval_province'] : ($cFields['province'] ?? $cFields['eval_province'] ?? null);
+            $prov = !empty($provRaw) ? trim($provRaw) : 'ไม่ระบุ';
+            $provinceCounts[$prov] = ($provinceCounts[$prov] ?? 0) + 1;
+
+            $schRaw = !empty($ev['eval_school']) ? $ev['eval_school'] : ($cFields['school'] ?? $cFields['eval_school'] ?? null);
+            if (!empty($schRaw) && $schRaw !== '-') {
+                $sch = trim($schRaw);
+                $schoolCounts[$sch] = ($schoolCounts[$sch] ?? 0) + 1;
+            }
+        }
+
+        // ฟังก์ชันคำนวณระดับความพึงพอใจ
+        $getQualityText = function($score) {
+            if ($score >= 4.50) return ['text' => 'มากที่สุด', 'color' => 'emerald', 'bg' => 'bg-emerald-500/20 text-emerald-300'];
+            if ($score >= 3.50) return ['text' => 'มาก', 'color' => 'indigo', 'bg' => 'bg-indigo-500/20 text-indigo-300'];
+            if ($score >= 2.50) return ['text' => 'ปานกลาง', 'color' => 'amber', 'bg' => 'bg-amber-500/20 text-amber-300'];
+            if ($score >= 1.50) return ['text' => 'น้อย', 'color' => 'orange', 'bg' => 'bg-orange-500/20 text-orange-300'];
+            return ['text' => 'น้อยที่สุด', 'color' => 'rose', 'bg' => 'bg-rose-500/20 text-rose-300'];
+        };
+
+        // คำนวณ Mean, SD, ร้อยละรายข้อ
+        $questionStats = [];
+        $totalSumAll = 0;
+        $totalCountAll = 0;
+
+        foreach ($formConfig['questions'] as $q) {
+            $qKey = $q['key'];
+            $scores = $questionRawScores[$qKey] ?? [];
+            $n = count($scores);
+
+            if ($n > 0) {
+                $mean = array_sum($scores) / $n;
+                // คำนวณ SD (Sample Standard Deviation)
+                $variance = 0.0;
+                foreach ($scores as $s) {
+                    $variance += pow($s - $mean, 2);
+                }
+                $sd = $n > 1 ? sqrt($variance / ($n - 1)) : 0.0;
+                $pct = ($mean / 5.0) * 100;
+                $qual = $getQualityText($mean);
+
+                $totalSumAll += array_sum($scores);
+                $totalCountAll += $n;
+            } else {
+                $mean = 0.0;
+                $sd = 0.0;
+                $pct = 0.0;
+                $qual = $getQualityText(0);
+            }
+
+            $questionStats[] = [
+                'key' => $qKey,
+                'label' => $q['label'],
+                'mean' => round($mean, 2),
+                'sd' => round($sd, 2),
+                'percentage' => round($pct, 2),
+                'count' => $n,
+                'quality' => $qual['text'],
+                'quality_info' => $qual
+            ];
+        }
+
+        // คำนวณภาพรวมทั้งหมด
+        $grandMean = $totalCountAll > 0 ? ($totalSumAll / $totalCountAll) : 0.0;
+        // Overall S.D.
+        $grandVariance = 0.0;
+        foreach ($questionRawScores as $scores) {
+            foreach ($scores as $s) {
+                $grandVariance += pow($s - $grandMean, 2);
+            }
+        }
+        $grandSd = $totalCountAll > 1 ? sqrt($grandVariance / ($totalCountAll - 1)) : 0.0;
+        $grandPct = ($grandMean / 5.0) * 100;
+        $grandQuality = $getQualityText($grandMean);
+
+        arsort($provinceCounts);
+        arsort($schoolCounts);
+        arsort($occupationCounts);
+        arsort($genderCounts);
+        arsort($ageCounts);
+
+        // 3. สถิตินักเรียนช่วยงาน (Student Staff)
+        $studentStaffCount = $this->studentStaffModel->where('staff_year', $selectedYear)->countAllResults();
+
+        // 4. สถิติกำหนดการกิจกรรม (Schedules)
+        $scheduleCount = $this->schModel->where('sch_year', $selectedYear)->countAllResults();
+
+        // 5. คำนวณยอดรวมสุทธิภาพรวมทุกด้าน (Grand Aggregated Totals)
+        // รวมผู้รับเกียรติบัตรทั้งหมด = ผู้รับเกียรติบัตรจากแบบประเมิน (เคลมสิทธิ์) + นักเรียนช่วยงาน + นักเรียนแข่งขัน + ครูผู้ฝึกสอน
+        $totalCertificatesAll = $totalClaimed + $studentStaffCount + $totalStudents + $totalTeachers;
+        // ยอดรวมผู้มีส่วนร่วมในโครงการทั้งหมด = ผู้ทำแบบประเมิน + ผู้รับเกียรติบัตร (เคลมสิทธิ์) + นักเรียนแข่งขัน + ครูผู้ฝึกสอน + นักเรียนช่วยงาน
+        $grandTotalPeople = $totalEvals + $totalClaimed + $totalStudents + $totalTeachers + $studentStaffCount;
+
+        return [
+            'selected_year' => $selectedYear,
+            'summary_overview' => [
+                'grand_total_people' => $grandTotalPeople,           // ยอดผู้มีส่วนร่วมทั้งหมด
+                'total_evaluations' => $totalEvals,                  // ผู้ทำแบบประเมิน
+                'total_certificates_all' => $totalCertificatesAll,   // ผู้รับเกียรติบัตรทุกประเภทรวมกัน
+                'total_eval_claimed' => $totalClaimed,               // รับเกียรติบัตรผ่านแบบประเมิน (เคลมสิทธิ์)
+                'total_competitors' => $totalStudents,               // ผู้สมัครแข่งขัน (นักเรียน)
+                'total_coaches' => $totalTeachers,                   // ครูผู้ฝึกสอน/โค้ช
+                'total_teams' => $totalTeams,                        // จำนวนทีมแข่งขัน
+                'approved_teams' => $approvedTeams,                  // ทีมที่ผ่านการอนุมัติ
+                'total_student_staff' => $studentStaffCount,         // นักเรียนช่วยงาน (Staff)
+                'total_competitions' => $totalCompetitions           // จำนวนรายการแข่งขัน
+            ],
+            'competitions' => [
+                'total_count' => $totalCompetitions,
+                'total_teams' => $totalTeams,
+                'approved_teams' => $approvedTeams,
+                'total_students' => $totalStudents,
+                'total_teachers' => $totalTeachers,
+                'list_stats' => $compStats,
+                'level_stats' => $levelStats
+            ],
+            'evaluations' => [
+                'total_count' => $totalEvals,
+                'total_claimed' => $totalClaimed,
+                'comments_count' => $commentsCount,
+                'grand_mean' => round($grandMean, 2),
+                'grand_sd' => round($grandSd, 2),
+                'grand_percentage' => round($grandPct, 2),
+                'grand_quality' => $grandQuality,
+                'question_stats' => $questionStats,
+                'rating_dist' => $ratingDist,
+                'occupation_counts' => $occupationCounts,
+                'gender_counts' => $genderCounts,
+                'age_counts' => $ageCounts,
+                'top_provinces' => array_slice($provinceCounts, 0, 8, true),
+                'top_schools' => array_slice($schoolCounts, 0, 10, true),
+                'comments' => $allCommentsList
+            ],
+            'other_stats' => [
+                'student_staff_count' => $studentStaffCount,
+                'schedule_count' => $scheduleCount
+            ]
+        ];
+    }
+
+    /**
+     * หน้าแดชบอร์ดรายงานสรุปผลงานและการประเมิน (Summary Report Dashboard)
+     */
+    public function reportDashboard()
+    {
+        $access = $this->checkAccess();
+        if ($access !== true)
+            return $access;
+
+        $selectedYear = $this->getSelectedYear();
+        $data = $this->getReportSummaryData($selectedYear);
+        $data['title'] = "แดชบอร์ดรายงานสรุปผลงานสัปดาห์วิทยาศาสตร์ ประจำปีการศึกษา {$selectedYear} | อบจ.นครสวรรค์";
+
+        return view('science_week/report_dashboard', $data);
+    }
+
+    /**
+     * หน้าพิมพ์และจัดทำเล่มรายงานสรุปผลงาน (Printable Summary Report Book)
+     */
+    public function reportBook()
+    {
+        $access = $this->checkAccess();
+        if ($access !== true)
+            return $access;
+
+        $selectedYear = $this->getSelectedYear();
+        $data = $this->getReportSummaryData($selectedYear);
+        $data['title'] = "เล่มรายงานสรุปผลการจัดงานสัปดาห์วิทยาศาสตร์ ประจำปีการศึกษา {$selectedYear}";
+
+        return view('science_week/report_book', $data);
     }
 }
 

@@ -14,8 +14,14 @@
     </div>
     
     <div class="flex flex-wrap gap-3 w-full md:w-auto">
-        <a href="<?= base_url('science-week/staff/evaluations/create') ?>" class="w-full md:w-auto justify-center px-5 py-3 rounded-2xl bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white font-bold text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 shadow-lg shadow-indigo-950/20">
-            <i data-lucide="settings" class="w-4 h-4 text-cyan-300"></i> ตั้งค่าโครงสร้างฟอร์มประเมิน
+        <a href="<?= base_url('science-week/staff/report') ?>" class="w-full sm:w-auto justify-center px-4 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 shadow-lg shadow-indigo-950/20">
+            <i data-lucide="bar-chart-2" class="w-4 h-4 text-cyan-300"></i> แดชบอร์ดสรุปงาน
+        </a>
+        <a href="<?= base_url('science-week/staff/report/book') ?>" target="_blank" class="w-full sm:w-auto justify-center px-4 py-3 rounded-2xl bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 shadow-lg shadow-indigo-950/20">
+            <i data-lucide="book-open" class="w-4 h-4 text-amber-300"></i> ทำเล่มรายงาน (Print)
+        </a>
+        <a href="<?= base_url('science-week/staff/evaluations/create') ?>" class="w-full sm:w-auto justify-center px-4 py-3 rounded-2xl bg-slate-800 hover:bg-slate-750 text-slate-200 font-bold text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 border border-slate-700">
+            <i data-lucide="settings" class="w-4 h-4 text-slate-400"></i> ตั้งค่าฟอร์ม
         </a>
     </div>
 </div>

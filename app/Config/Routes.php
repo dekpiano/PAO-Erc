@@ -202,6 +202,10 @@ $routes->group('science-week/staff', ['filter' => 'auth'], function($routes) {
     $routes->post('evaluations/update/(:num)', 'ScienceWeek::evalUpdate/$1');
     $routes->get('evaluations/delete/(:num)', 'ScienceWeek::evalDelete/$1');
 
+    // Summary Reports & Book Generator
+    $routes->get('report', 'ScienceWeek::reportDashboard');
+    $routes->get('report/book', 'ScienceWeek::reportBook');
+
     // Student Staff CRUD
     $routes->get('student-staff/print', 'ScienceWeek::studentStaffPrint');
     $routes->get('student-staff/export', 'ScienceWeek::studentStaffExport');
