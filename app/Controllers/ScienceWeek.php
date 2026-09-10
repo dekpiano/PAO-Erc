@@ -5508,7 +5508,7 @@ class ScienceWeek extends BaseController
 
         $selectedYear = $this->getSelectedYear();
         $data = $this->getReportSummaryData($selectedYear);
-        $data['title'] = "เล่มรายงานสรุปผลการจัดงานสัปดาห์วิทยาศาสตร์ ประจำปีการศึกษา {$selectedYear}";
+        $data['title'] = "เล่มรายงานสรุปผลการจัดงานสัปดาห์วิทยาศาสตร์";
 
         return view('science_week/report_book', $data);
     }

@@ -190,7 +190,7 @@ class SportsPublicController extends BaseController
         $schoolName   = trim($this->request->getPost('school_name'));
         $teamName     = trim($this->request->getPost('team_name')) ?: $schoolName;
         $district     = trim($this->request->getPost('district'));
-        $province     = trim($this->request->getPost('province')) ?: 'ชลบุรี';
+        $province     = trim($this->request->getPost('province')) ?: 'นครสวรรค์';
         $contactName  = trim($this->request->getPost('contact_name'));
         $contactPhone = trim($this->request->getPost('contact_phone'));
         $contactEmail = trim($this->request->getPost('contact_email'));
@@ -226,13 +226,15 @@ class SportsPublicController extends BaseController
                 }
                 $seenAthletes[] = $key;
 
-                // Check duplicate athlete in database for the same competition year
+                // Check duplicate athlete in database for the same category and competition year
+                // (Athletes are allowed to compete in multiple categories/sports, but cannot be registered in the same category)
                 $dupBuilder = $db->table('Tb_Sports_Members as mem')
                                  ->join('Tb_Sports_Teams as t', 't.team_id = mem.team_id')
                                  ->join('Tb_Sports_Categories as c', 'c.category_id = mem.category_id', 'left')
                                  ->where('mem.member_type', 'athlete')
                                  ->where('t.status !=', 'cancelled')
-                                 ->where('mem.comp_year', $compYear);
+                                 ->where('mem.comp_year', $compYear)
+                                 ->where('mem.category_id', $categoryId);
 
                 if (!empty($idCard)) {
                     $dupBuilder->groupStart()
@@ -251,7 +253,7 @@ class SportsPublicController extends BaseController
                 if ($dup) {
                     $teamTitle = $dup['team_name'] ?: $dup['school_name'];
                     $sportTitle = ($dup['sport_name'] ?? '') . ' (' . ($dup['category_name'] ?? '') . ')';
-                    return redirect()->back()->withInput()->with('error', "⚠️ ไม่สามารถลงทะเบียนได้: นักกีฬา \"{$fName} {$lName}\" มีรายชื่อลงแข่งขันในปี {$compYear} แล้ว ในทีม \"{$teamTitle}\" ({$sportTitle})");
+                    return redirect()->back()->withInput()->with('error', "⚠️ ไม่สามารถลงทะเบียนได้: นักกีฬา \"{$fName} {$lName}\" มีรายชื่อลงแข่งขันในรุ่นนี้แล้ว ({$sportTitle}) ในทีม \"{$teamTitle}\"");
                 }
             } else {
                 $coachCount++;

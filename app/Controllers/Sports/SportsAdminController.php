@@ -699,15 +699,17 @@ class SportsAdminController extends BaseController
             }
         }
 
-        // Duplicate athlete check within the same comp_year
+        // Duplicate athlete check within the same category and comp_year
         if ($memberType === 'athlete') {
             $db = \Config\Database::connect();
+            $categoryId = (int)($team['category_id'] ?? 0);
             $dupBuilder = $db->table('Tb_Sports_Members as m')
                              ->join('Tb_Sports_Teams as t', 't.team_id = m.team_id')
                              ->join('Tb_Sports_Categories as c', 'c.category_id = m.category_id', 'left')
                              ->where('m.member_type', 'athlete')
                              ->where('t.status !=', 'cancelled')
-                             ->where('m.comp_year', $compYear);
+                             ->where('m.comp_year', $compYear)
+                             ->where('m.category_id', $categoryId);
 
             if (!empty($idCard)) {
                 $dupBuilder->groupStart()
@@ -726,7 +728,7 @@ class SportsAdminController extends BaseController
             if ($dup) {
                 $teamTitle = $dup['team_name'] ?: $dup['school_name'];
                 $sportTitle = ($dup['sport_name'] ?? '') . ' (' . ($dup['category_name'] ?? '') . ')';
-                return redirect()->back()->withInput()->with('error', "⚠️ ไม่สามารถเพิ่มได้: นักกีฬา \"{$prefix}{$firstName} {$lastName}\" มีรายชื่อลงแข่งขันในปี {$compYear} แล้ว ในทีม \"{$teamTitle}\" ({$sportTitle})");
+                return redirect()->back()->withInput()->with('error', "⚠️ ไม่สามารถเพิ่มได้: นักกีฬา \"{$prefix}{$firstName} {$lastName}\" มีรายชื่อลงแข่งขันในรุ่นนี้แล้ว ({$sportTitle}) ในทีม \"{$teamTitle}\"");
             }
         }
 
@@ -812,16 +814,18 @@ class SportsAdminController extends BaseController
             }
         }
 
-        // Duplicate athlete check in the same comp_year excluding current record
+        // Duplicate athlete check in the same category & comp_year excluding current record
         if ($memberType === 'athlete') {
             $db = \Config\Database::connect();
+            $categoryId = (int)($member['category_id'] ?? ($team['category_id'] ?? 0));
             $dupBuilder = $db->table('Tb_Sports_Members as m')
                              ->join('Tb_Sports_Teams as t', 't.team_id = m.team_id')
                              ->join('Tb_Sports_Categories as c', 'c.category_id = m.category_id', 'left')
                              ->where('m.member_id !=', $memberId)
                              ->where('m.member_type', 'athlete')
                              ->where('t.status !=', 'cancelled')
-                             ->where('m.comp_year', $compYear);
+                             ->where('m.comp_year', $compYear)
+                             ->where('m.category_id', $categoryId);
 
             if (!empty($idCard)) {
                 $dupBuilder->groupStart()
@@ -840,7 +844,7 @@ class SportsAdminController extends BaseController
             if ($dup) {
                 $teamTitle = $dup['team_name'] ?: $dup['school_name'];
                 $sportTitle = ($dup['sport_name'] ?? '') . ' (' . ($dup['category_name'] ?? '') . ')';
-                return redirect()->back()->withInput()->with('error', "⚠️ ไม่สามารถแก้ไขได้: นักกีฬา \"{$prefix}{$firstName} {$lastName}\" มีรายชื่อลงแข่งขันในปี {$compYear} แล้ว ในทีม \"{$teamTitle}\" ({$sportTitle})");
+                return redirect()->back()->withInput()->with('error', "⚠️ ไม่สามารถแก้ไขได้: นักกีฬา \"{$prefix}{$firstName} {$lastName}\" มีรายชื่อลงแข่งขันในรุ่นนี้แล้ว ({$sportTitle}) ในทีม \"{$teamTitle}\"");
             }
         }
 

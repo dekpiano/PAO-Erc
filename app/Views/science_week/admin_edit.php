@@ -307,7 +307,7 @@ if ($comp && !empty($comp['comp_member_custom_fields'])) {
                                 <div class="flex-1 flex gap-2 items-center flex-wrap sm:flex-nowrap">
                                     <div class="w-full sm:w-28 shrink-0">
                                         <?php $known = in_array($a['prefix'], ['เด็กชาย', 'เด็กหญิง', 'นาย', 'นางสาว', 'นาง', 'ดร.']); ?>
-                                        <select name="advisor_prefixes[]" class="w-full px-3 py-2.5 neon-input rounded-xl text-xs outline-none">
+                                        <select name="advisor_prefixes[<?= $idx ?>]" class="w-full px-3 py-2.5 neon-input rounded-xl text-xs outline-none prefix-select">
                                             <option value="" disabled <?= empty($a['prefix']) ? 'selected' : '' ?>>คำนำหน้า</option>
                                             <option value="นาย" <?= $a['prefix'] === 'นาย' ? 'selected' : '' ?>>นาย</option>
                                             <option value="นางสาว" <?= $a['prefix'] === 'นางสาว' ? 'selected' : '' ?>>นางสาว</option>
@@ -318,10 +318,10 @@ if ($comp && !empty($comp['comp_member_custom_fields'])) {
                                     </div>
                                     <?php if (!empty($a['prefix']) && !$known): ?>
                                         <div class="w-full sm:w-28 shrink-0 custom-prefix-wrapper">
-                                            <input type="text" name="advisor_prefixes[]" value="<?= esc($a['prefix']) ?>" placeholder="ระบุเอง..." class="w-full px-3 py-2.5 neon-input rounded-xl text-xs outline-none">
+                                            <input type="text" name="advisor_prefixes[<?= $idx ?>]" value="<?= esc($a['prefix']) ?>" placeholder="ระบุเอง..." class="w-full px-3 py-2.5 neon-input rounded-xl text-xs outline-none">
                                         </div>
                                     <?php endif; ?>
-                                    <input type="text" name="advisor_names[]" required value="<?= esc($a['name']) ?>" placeholder="ชื่อ-นามสกุล..." class="flex-1 w-full px-3 py-2.5 neon-input rounded-xl text-xs sm:text-sm font-bold outline-none name-input-el">
+                                    <input type="text" name="advisor_names[<?= $idx ?>]" required value="<?= esc($a['name']) ?>" placeholder="ชื่อ-นามสกุล..." class="flex-1 w-full px-3 py-2.5 neon-input rounded-xl text-xs sm:text-sm font-bold outline-none name-input-el">
                                     <button type="button" class="remove-btn p-2.5 text-rose-450 hover:text-white hover:bg-rose-500 rounded-xl border border-transparent hover:border-rose-600 transition-colors">
                                         <i data-lucide="trash-2" class="w-4.5 h-4.5"></i>
                                     </button>

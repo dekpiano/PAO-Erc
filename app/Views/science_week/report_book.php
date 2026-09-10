@@ -89,7 +89,7 @@
                     <i data-lucide="arrow-left" class="w-4 h-4"></i> กลับหน้าแดชบอร์ด
                 </a>
                 <span class="text-xs text-slate-400 border-l border-slate-700 pl-3 hidden sm:inline">
-                    เอกสารเล่มรายงานสรุปผลงาน ประจำปีการศึกษา <?= esc($selected_year) ?>
+                    เอกสารเล่มรายงานสรุปผลงาน
                 </span>
             </div>
             <div class="flex items-center gap-3">
@@ -123,8 +123,7 @@
                 เล่มรายงานสรุปผลการดำเนินงาน
             </span>
             <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 leading-snug">
-                โครงการจัดงานสัปดาห์วิทยาศาสตร์<br>
-                <span class="text-indigo-600">ประจำปีการศึกษา <?= esc($selected_year) ?></span>
+                โครงการจัดงานสัปดาห์วิทยาศาสตร์
             </h1>
             <div class="w-24 h-1.5 bg-gradient-to-r from-indigo-500 to-purple-500 mx-auto mt-6 rounded-full"></div>
             <p class="text-sm text-slate-600 mt-6 max-w-md mx-auto leading-relaxed">
@@ -144,7 +143,7 @@
         <div>
             <!-- Header on each inner page -->
             <div class="flex justify-between items-center pb-4 mb-6 border-b border-slate-200 text-xs text-slate-400">
-                <span class="font-bold text-indigo-900">รายงานสรุปผลโครงการสัปดาห์วิทยาศาสตร์ ประจำปีการศึกษา <?= esc($selected_year) ?></span>
+                <span class="font-bold text-indigo-900">รายงานสรุปผลโครงการสัปดาห์วิทยาศาสตร์</span>
                 <span>ส่วนที่ 1: บทสรุปภาพรวมสถิติ</span>
             </div>
 
@@ -154,7 +153,7 @@
             </h2>
 
             <p class="text-xs sm:text-sm text-slate-600 leading-relaxed indent-8 mb-6 text-justify">
-                การจัดโครงการสัปดาห์วิทยาศาสตร์ ประจำปีการศึกษา <?= esc($selected_year) ?> โดยองค์การบริหารส่วนจังหวัดนครสวรรค์ 
+                การจัดโครงการสัปดาห์วิทยาศาสตร์ โดยองค์การบริหารส่วนจังหวัดนครสวรรค์ 
                 มีวัตถุประสงค์เพื่อส่งเสริมทักษะทางวิทยาศาสตร์ เทคโนโลยี และนวัตกรรมให้แก่นักเรียน นักศึกษา และประชาชนทั่วไป 
                 ผลการดำเนินงานและการจัดเก็บข้อมูลสถิติ มีรายละเอียดสรุปสำคัญดังนี้:
             </p>
@@ -278,7 +277,7 @@
         <div>
             <!-- Header -->
             <div class="flex justify-between items-center pb-4 mb-6 border-b border-slate-200 text-xs text-slate-400">
-                <span class="font-bold text-indigo-900">รายงานสรุปผลโครงการสัปดาห์วิทยาศาสตร์ ประจำปีการศึกษา <?= esc($selected_year) ?></span>
+                <span class="font-bold text-indigo-900">รายงานสรุปผลโครงการสัปดาห์วิทยาศาสตร์</span>
                 <span>ส่วนที่ 2: สถิติผลการประเมิน</span>
             </div>
 
@@ -336,7 +335,7 @@
             <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700 space-y-2 text-justify leading-relaxed">
                 <p>
                     <strong>การแปลผลข้อมูล:</strong> จากตารางสรุปผลการประเมินความพึงพอใจของผู้เข้าร่วมโครงการสัปดาห์วิทยาศาสตร์ 
-                    ประจำปีการศึกษา <?= esc($selected_year) ?> จำนวนทั้งสิ้น <strong><?= number_format($evaluations['total_count']) ?></strong> ชุด 
+                    จำนวนทั้งสิ้น <strong><?= number_format($evaluations['total_count']) ?></strong> ชุด 
                     พบว่าผู้เข้าร่วมกิจกรรมมีความพึงพอใจในภาพรวมอยู่ในระดับ <strong>"<?= $evaluations['grand_quality']['text'] ?>"</strong> 
                     โดยมีค่าเฉลี่ยรวมเท่ากับ <strong><?= number_format($evaluations['grand_mean'], 2) ?></strong> (S.D. = <?= number_format($evaluations['grand_sd'], 2) ?>) 
                     คิดเป็นร้อยละ <strong><?= number_format($evaluations['grand_percentage'], 2) ?>%</strong>
@@ -356,7 +355,7 @@
         <div>
             <!-- Header -->
             <div class="flex justify-between items-center pb-4 mb-6 border-b border-slate-200 text-xs text-slate-400">
-                <span class="font-bold text-indigo-900">รายงานสรุปผลโครงการสัปดาห์วิทยาศาสตร์ ประจำปีการศึกษา <?= esc($selected_year) ?></span>
+                <span class="font-bold text-indigo-900">รายงานสรุปผลโครงการสัปดาห์วิทยาศาสตร์</span>
                 <span>ส่วนที่ 3: สถิติการแข่งขัน & ข้อเสนอแนะ</span>
             </div>
 
@@ -467,7 +466,7 @@
         <div>
             <!-- Header -->
             <div class="flex justify-between items-center pb-4 mb-6 border-b border-slate-200 text-xs text-slate-400">
-                <span class="font-bold text-indigo-900">รายงานสรุปผลโครงการสัปดาห์วิทยาศาสตร์ ประจำปีการศึกษา <?= esc($selected_year) ?></span>
+                <span class="font-bold text-indigo-900">รายงานสรุปผลโครงการสัปดาห์วิทยาศาสตร์</span>
                 <span>ส่วนที่ 4: บทสรุปผลการดำเนินงานทั้งหมด</span>
             </div>
 
@@ -521,7 +520,7 @@
                     <i data-lucide="file-check-2" class="w-4 h-4 text-indigo-600"></i> สรุปผลสัมฤทธิ์และข้อสรุปโครงการ
                 </h3>
                 <p class="indent-8">
-                    โครงการจัดงานสัปดาห์วิทยาศาสตร์ ประจำปีการศึกษา <strong><?= esc($selected_year) ?></strong> ดำเนินการโดย 
+                    โครงการจัดงานสัปดาห์วิทยาศาสตร์ ดำเนินการโดย 
                     <strong>กองการศึกษา ศาสนาและวัฒนธรรม องค์การบริหารส่วนจังหวัดนครสวรรค์</strong> ได้บรรลุตามวัตถุประสงค์และเป้าหมายที่กำหนดไว้อย่างมีประสิทธิภาพ 
                     โดยมีผู้มีส่วนร่วมในโครงการรวมทั้งสิ้น <strong><?= number_format($summary_overview['grand_total_people']) ?></strong> คน 
                     ซึ่งครอบคลุมทั้งนักเรียนผู้เข้าแข่งขัน <strong><?= number_format($summary_overview['total_competitors']) ?></strong> คน, 

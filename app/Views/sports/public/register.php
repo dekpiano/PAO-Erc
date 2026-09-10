@@ -67,6 +67,10 @@
                 <div class="text-emerald-100">ผู้เล่น: <strong><?= $category['min_players'] ?> -
                         <?= $category['max_players'] ?></strong> คน | โค้ช: <strong><?= $category['min_coaches'] ?> -
                         <?= $category['max_coaches'] ?></strong> คน</div>
+                <div class="text-[11px] text-emerald-200 font-medium flex items-center gap-1 pt-0.5">
+                    <span class="inline-block w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                    <span>นักกีฬา 1 คนลงได้หลายรายการ (ห้ามซ้ำในรุ่นเดียวกัน)</span>
+                </div>
                 <?php if (!empty($category['rules_detail'])): ?>
                     <div class="pt-1.5 mt-1.5 border-t border-white/10 text-[11px] text-emerald-200 leading-snug">
                         📝 <strong>กติกา:</strong> <?= esc($category['rules_detail']) ?>
@@ -182,7 +186,7 @@
                                     กำหนด <?= $category['min_players'] ?> - <?= $category['max_players'] ?> คน
                                 </span>
                             </h2>
-                            <p class="text-xs text-slate-400">กรอกข้อมูลนักกีฬาประจำทีม ตรวจสอบคำนำหน้า ชื่อ นามสกุล และระดับชั้นเรียน</p>
+                            <p class="text-xs text-slate-400">กรอกข้อมูลนักกีฬาประจำทีม (นักกีฬา 1 คนสามารถลงแข่งขันได้หลายรายการ โดยห้ามซ้ำในรุ่นเดียวกัน)</p>
                         </div>
                     </div>
 
