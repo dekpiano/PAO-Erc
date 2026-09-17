@@ -237,7 +237,7 @@ foreach ($fields as $f) {
         <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex items-center justify-between">
             <div>
                 <p class="text-xs font-extrabold text-slate-400 uppercase tracking-wider mb-1">จำนวนผู้ตอบทั้งหมด</p>
-                <h3 class="text-3xl font-black text-slate-900"><?= number_format($totalSubmissions) ?> <span class="text-xs font-bold text-slate-400">คน</span></h3>
+                <h3 class="text-3xl font-black text-slate-900"><span id="kpi-total-subs"><?= number_format($totalSubmissions) ?></span> <span class="text-xs font-bold text-slate-400">คน</span></h3>
             </div>
             <div class="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center shadow-inner">
                 <i data-lucide="users" class="w-7 h-7"></i>
@@ -259,7 +259,7 @@ foreach ($fields as $f) {
         <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex items-center justify-between">
             <div>
                 <p class="text-xs font-extrabold text-slate-400 uppercase tracking-wider mb-1">เกียรติบัตรที่ออกแล้ว</p>
-                <h3 class="text-3xl font-black text-amber-600"><?= number_format($certCount) ?> <span class="text-xs font-bold text-slate-400">ใบ</span></h3>
+                <h3 class="text-3xl font-black text-amber-600"><span id="kpi-total-certs"><?= number_format($certCount) ?></span> <span class="text-xs font-bold text-slate-400">ใบ</span></h3>
             </div>
             <div class="w-14 h-14 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center shadow-inner">
                 <i data-lucide="award" class="w-7 h-7"></i>
@@ -485,18 +485,24 @@ foreach ($fields as $f) {
                             <?php foreach ($questionFields as $f): ?>
                                 <th class="p-4 min-w-[180px]"><?= esc($f['field_label']) ?></th>
                             <?php endforeach; ?>
+                            <th class="p-4 w-20 text-center">จัดการ</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
                         <?php if (empty($submissions)): ?>
                             <tr>
-                                <td colspan="<?= 2 + count($questionFields) ?>" class="p-12 text-center text-slate-400 font-bold">
+                                <td colspan="<?= 3 + count($questionFields) ?>" class="p-12 text-center text-slate-400 font-bold">
                                     ยังไม่มีการส่งแบบสอบถาม
                                 </td>
                             </tr>
                         <?php else: ?>
                             <?php foreach ($submissions as $idx => $sub): ?>
-                                <tr class="hover:bg-slate-50/80 transition-colors response-row">
+                                <?php 
+                                $responderLabel = !empty($sub['sub_responder_name']) 
+                                    ? $sub['sub_responder_name'] 
+                                    : 'ลำดับที่ ' . ($idx + 1) . ' (' . date('d/m/Y H:i', strtotime($sub['sub_submitted_at'])) . ')';
+                                ?>
+                                <tr class="hover:bg-slate-50/80 transition-colors response-row" id="sub-row-<?= $sub['sub_id'] ?>">
                                     <td class="p-4 text-center font-bold text-slate-400"><?= $idx + 1 ?></td>
                                     <td class="p-4 whitespace-nowrap text-slate-500 font-semibold"><?= date('d/m/Y H:i', strtotime($sub['sub_submitted_at'])) ?></td>
                                     <?php foreach ($questionFields as $f): ?>
@@ -512,6 +518,11 @@ foreach ($fields as $f) {
                                             ?>
                                         </td>
                                     <?php endforeach; ?>
+                                    <td class="p-4 text-center whitespace-nowrap">
+                                        <button type="button" onclick="confirmDeleteResponse(<?= $sub['sub_id'] ?>, '<?= esc($responderLabel, 'js') ?>')" title="ลบข้อมูลคำตอบนี้" class="p-2 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl transition-all border border-rose-200 inline-flex items-center justify-center hover:scale-110 shadow-sm group">
+                                            <i data-lucide="trash-2" class="w-4 h-4 group-hover:text-rose-700"></i>
+                                        </button>
+                                    </td>
                                 </tr>
                             <?php endforeach; ?>
                         <?php endif; ?>
@@ -530,7 +541,7 @@ foreach ($fields as $f) {
                     <input type="text" id="cert-search" oninput="filterCertTable()" placeholder="ค้นหาตามชื่อผู้รับเกียรติบัตร หรือรหัสเกียรติบัตร..." class="w-full text-xs font-bold bg-transparent focus:outline-none text-slate-700">
                 </div>
                 <div class="text-xs font-bold text-amber-700 bg-amber-50 px-3 py-1.5 rounded-xl border border-amber-200 shrink-0">
-                    ออกเกียรติบัตรแล้ว <strong><?= number_format($certCount) ?></strong> ใบ
+                    ออกเกียรติบัตรแล้ว <strong id="badge-total-certs"><?= number_format($certCount) ?></strong> ใบ
                 </div>
             </div>
 
@@ -560,7 +571,7 @@ foreach ($fields as $f) {
                                 </tr>
                             <?php else: ?>
                                 <?php $cIdx = 1; foreach ($certList as $sub): ?>
-                                    <tr class="hover:bg-amber-50/30 transition-colors cert-row">
+                                    <tr class="hover:bg-amber-50/30 transition-colors cert-row" id="cert-row-<?= $sub['sub_id'] ?>">
                                         <td class="p-4 text-center font-bold text-slate-400"><?= $cIdx++ ?></td>
                                         <td class="p-4 whitespace-nowrap text-slate-500 font-semibold"><?= date('d/m/Y H:i', strtotime($sub['sub_submitted_at'])) ?></td>
                                         <td class="p-4 font-bold text-slate-900 whitespace-nowrap search-cert-name">
@@ -573,9 +584,14 @@ foreach ($fields as $f) {
                                             <?= esc($sub['sub_cert_code']) ?>
                                         </td>
                                         <td class="p-4 text-center whitespace-nowrap">
-                                            <a href="<?= base_url("forms/certificate/{$sub['sub_id']}") ?>" target="_blank" class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-bold text-[11px] inline-flex items-center gap-1.5 shadow-sm transition-all hover:scale-105">
-                                                <i data-lucide="download" class="w-3.5 h-3.5"></i> เปิดดู / ดาวน์โหลด
-                                            </a>
+                                            <div class="inline-flex items-center gap-1.5 justify-center">
+                                                <a href="<?= base_url("forms/certificate/{$sub['sub_id']}") ?>" target="_blank" class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-bold text-[11px] inline-flex items-center gap-1.5 shadow-sm transition-all hover:scale-105">
+                                                    <i data-lucide="download" class="w-3.5 h-3.5"></i> เปิดดู / ดาวน์โหลด
+                                                </a>
+                                                <button type="button" onclick="confirmDeleteResponse(<?= $sub['sub_id'] ?>, '<?= esc($sub['sub_responder_name'] ?: 'เกียรติบัตรนี้', 'js') ?>')" title="ลบข้อมูลคำตอบและเกียรติบัตรนี้" class="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl transition-all border border-rose-200 inline-flex items-center justify-center hover:scale-110 shadow-sm">
+                                                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
@@ -592,6 +608,8 @@ foreach ($fields as $f) {
 
 <?= $this->section('scripts') ?>
 <script>
+    let currentTab = 'summary';
+
     function confirmClearResponses(formId) {
         Swal.fire({
             title: 'ยืนยันการลบข้อมูลคำตอบทั้งหมด?',
@@ -609,11 +627,143 @@ foreach ($fields as $f) {
         });
     }
 
+    function confirmDeleteResponse(subId, label) {
+        const displayLabel = label ? `<strong>${label}</strong>` : 'รายการนี้';
+        Swal.fire({
+            title: 'ยืนยันการลบคำตอบ?',
+            html: `คุณต้องการลบข้อมูลคำตอบของ ${displayLabel} หรือไม่?<br><span class="text-xs text-rose-500 font-semibold mt-2 inline-block">⚠️ ข้อมูลคำตอบนี้จะถูกลบถาวรและไม่สามารถเรียกคืนได้</span>`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: 'ใช่, ลบคำตอบนี้',
+            cancelButtonText: 'ยกเลิก'
+        }).then((res) => {
+            if (res.isConfirmed) {
+                // Dim rows immediately to give instant visual feedback
+                const subRow = document.getElementById('sub-row-' + subId);
+                const certRow = document.getElementById('cert-row-' + subId);
+                if (subRow) subRow.style.opacity = '0.4';
+                if (certRow) certRow.style.opacity = '0.4';
+
+                fetch('<?= base_url('staff/forms/delete-response/') ?>' + subId, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        // Toast notification (non-intrusive, no page reload)
+                        const Toast = Swal.mixin({
+                            toast: true,
+                            position: 'top-end',
+                            showConfirmButton: false,
+                            timer: 2000,
+                            timerProgressBar: true
+                        });
+                        Toast.fire({
+                            icon: 'success',
+                            title: data.message || 'ลบข้อมูลคำตอบเรียบร้อยแล้ว'
+                        });
+
+                        // 1. Remove from responses table smoothly
+                        if (subRow) {
+                            subRow.style.transition = 'all 0.3s ease';
+                            subRow.style.opacity = '0';
+                            subRow.style.transform = 'scale(0.95)';
+                            setTimeout(() => {
+                                subRow.remove();
+                                // Renumber rows in responses-table
+                                const rows = document.querySelectorAll('#responses-table tbody tr.response-row');
+                                rows.forEach((r, i) => {
+                                    const numTd = r.querySelector('td:first-child');
+                                    if (numTd) numTd.textContent = i + 1;
+                                });
+                                if (rows.length === 0) {
+                                    const tbody = document.querySelector('#responses-table tbody');
+                                    if (tbody) {
+                                        const colCount = <?= 3 + count($questionFields) ?>;
+                                        tbody.innerHTML = `<tr><td colspan="${colCount}" class="p-12 text-center text-slate-400 font-bold">ยังไม่มีการส่งแบบสอบถาม</td></tr>`;
+                                    }
+                                }
+                            }, 300);
+                        }
+
+                        // 2. Remove from cert table smoothly if exists
+                        if (certRow) {
+                            certRow.style.transition = 'all 0.3s ease';
+                            certRow.style.opacity = '0';
+                            certRow.style.transform = 'scale(0.95)';
+                            setTimeout(() => {
+                                certRow.remove();
+                                // Renumber rows in cert-table
+                                const cRows = document.querySelectorAll('#cert-table tbody tr.cert-row');
+                                cRows.forEach((r, i) => {
+                                    const numTd = r.querySelector('td:first-child');
+                                    if (numTd) numTd.textContent = i + 1;
+                                });
+                                if (cRows.length === 0) {
+                                    const tbody = document.querySelector('#cert-table tbody');
+                                    if (tbody) {
+                                        tbody.innerHTML = `<tr><td colspan="5" class="p-12 text-center text-slate-400 font-bold">ยังไม่มีประวัติการกดรับเกียรติบัตรในแบบสอบถามนี้</td></tr>`;
+                                    }
+                                }
+                            }, 300);
+
+                            // Update cert counters
+                            const certKpi = document.getElementById('kpi-total-certs');
+                            if (certKpi) {
+                                let val = parseInt(certKpi.textContent.replace(/,/g, '')) || 0;
+                                if (val > 0) certKpi.textContent = (val - 1).toLocaleString();
+                            }
+                            const certBadge = document.getElementById('badge-total-certs');
+                            if (certBadge) {
+                                let val = parseInt(certBadge.textContent.replace(/,/g, '')) || 0;
+                                if (val > 0) certBadge.textContent = (val - 1).toLocaleString();
+                            }
+                        }
+
+                        // 3. Update total respondents KPI counter
+                        const totalSubsKpi = document.getElementById('kpi-total-subs');
+                        if (totalSubsKpi) {
+                            let val = parseInt(totalSubsKpi.textContent.replace(/,/g, '')) || 0;
+                            if (val > 0) totalSubsKpi.textContent = (val - 1).toLocaleString();
+                        }
+
+                    } else {
+                        // Restore opacity if failed
+                        if (subRow) subRow.style.opacity = '1';
+                        if (certRow) certRow.style.opacity = '1';
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'ผิดพลาด',
+                            text: data.message || 'เกิดข้อผิดพลาดในการลบ'
+                        });
+                    }
+                })
+                .catch(() => {
+                    if (subRow) subRow.style.opacity = '1';
+                    if (certRow) certRow.style.opacity = '1';
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'ผิดพลาด',
+                        text: 'ไม่สามารถติดต่อเซิร์ฟเวอร์ได้'
+                    });
+                });
+            }
+        });
+    }
+
     if (typeof ChartDataLabels !== 'undefined') {
         Chart.register(ChartDataLabels);
     }
 
     function switchTab(tab) {
+        currentTab = tab;
         const summaryBtn = document.getElementById('tab-summary-btn');
         const tableBtn = document.getElementById('tab-table-btn');
         const certBtn = document.getElementById('tab-cert-btn');
@@ -633,7 +783,21 @@ foreach ($fields as $f) {
         if (summaryContent) summaryContent.classList.toggle('hidden', tab !== 'summary');
         if (tableContent) tableContent.classList.toggle('hidden', tab !== 'table');
         if (certContent) certContent.classList.toggle('hidden', tab !== 'cert');
+
+        if (window.history.replaceState) {
+            const url = new URL(window.location.href);
+            url.searchParams.set('tab', tab);
+            window.history.replaceState(null, '', url.toString());
+        }
     }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const tab = urlParams.get('tab');
+        if (tab && ['summary', 'table', 'cert'].includes(tab)) {
+            switchTab(tab);
+        }
+    });
 
     function filterCertTable() {
         const query = document.getElementById('cert-search')?.value.toLowerCase() || '';

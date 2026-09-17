@@ -241,6 +241,7 @@ $routes->group('staff/forms', function($routes) {
     $routes->get('delete/(:num)', 'Forms\FormAdminController::delete/$1');
     $routes->get('responses/(:num)', 'Forms\FormAdminController::responses/$1');
     $routes->get('clear-responses/(:num)', 'Forms\FormAdminController::clearResponses/$1');
+    $routes->match(['get', 'post'], 'delete-response/(:num)', 'Forms\FormAdminController::deleteResponse/$1');
     $routes->match(['get', 'post'], 'toggle-status/(:num)', 'Forms\FormAdminController::toggleStatus/$1');
     $routes->match(['get', 'post'], 'toggle-share/(:num)', 'Forms\FormAdminController::toggleShare/$1');
     $routes->get('get-permissions/(:num)', 'Forms\FormAdminController::getPermissions/$1');

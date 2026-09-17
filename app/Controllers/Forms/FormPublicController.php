@@ -90,16 +90,29 @@ class FormPublicController extends BaseController
 
         // Validate required fields
         foreach ($fields as $f) {
+            if ($f['field_type'] === 'section') {
+                continue;
+            }
+
             if ($f['field_is_required'] == 1) {
                 $val = $answers[$f['field_id']] ?? null;
                 if (is_array($val)) {
-                    $val = implode(', ', $val);
-                }
-                if (is_null($val) || trim($val) === '') {
-                    return $this->response->setJSON([
-                        'status'  => 'error',
-                        'message' => "กรุณาตอบคำถาม: {$f['field_label']}"
-                    ]);
+                    $filtered = array_filter($val, function($item) {
+                        return !is_null($item) && trim((string)$item) !== '';
+                    });
+                    if (empty($filtered)) {
+                        return $this->response->setJSON([
+                            'status'  => 'error',
+                            'message' => "กรุณาตอบคำถาม: {$f['field_label']}"
+                        ]);
+                    }
+                } else {
+                    if (is_null($val) || trim((string)$val) === '') {
+                        return $this->response->setJSON([
+                            'status'  => 'error',
+                            'message' => "กรุณาตอบคำถาม: {$f['field_label']}"
+                        ]);
+                    }
                 }
             }
         }
@@ -115,6 +128,10 @@ class FormPublicController extends BaseController
         ]);
 
         foreach ($fields as $f) {
+            if ($f['field_type'] === 'section') {
+                continue;
+            }
+
             $val = $answers[$f['field_id']] ?? null;
             if (is_array($val)) {
                 $val = implode(', ', $val);

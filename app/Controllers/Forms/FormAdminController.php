@@ -606,7 +606,7 @@ class FormAdminController extends BaseController
                 'field_label'       => $label,
                 'field_type'        => $f['type'] ?? 'text',
                 'field_options'     => $opts,
-                'field_is_required' => !empty($f['is_required']) ? 1 : 0,
+                'field_is_required' => (($f['type'] ?? '') === 'section') ? 0 : (!empty($f['is_required']) ? 1 : 0),
                 'field_sort_order'  => $idx + 1
             ];
 
@@ -726,6 +726,42 @@ class FormAdminController extends BaseController
         }
 
         return redirect()->to(base_url("staff/forms/responses/{$formId}"))->with('success', 'ลบข้อมูลการตอบทั้งหมดเรียบร้อยแล้ว');
+    }
+
+    public function deleteResponse($subId)
+    {
+        $chk = $this->checkAccess();
+        if ($chk !== true) return $chk;
+
+        $sub = $this->subModel->find($subId);
+        if (!$sub) {
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON(['status' => 'error', 'message' => 'ไม่พบข้อมูลคำตอบ']);
+            }
+            return redirect()->back()->with('error', 'ไม่พบข้อมูลคำตอบ');
+        }
+
+        $formId = $sub['sub_form_id'];
+        $form = $this->formModel->find($formId);
+        if (!$form || !$this->verifyOwnership($form)) {
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON(['status' => 'error', 'message' => 'คุณไม่มีสิทธิ์จัดการข้อมูลนี้']);
+            }
+            return redirect()->to(base_url('staff/forms'))->with('error', 'คุณไม่มีสิทธิ์จัดการข้อมูลนี้');
+        }
+
+        // Delete associated answers and submission record
+        $this->ansModel->where('ans_sub_id', $subId)->delete();
+        $this->subModel->delete($subId);
+
+        if ($this->request->isAJAX()) {
+            return $this->response->setJSON([
+                'status'  => 'success',
+                'message' => 'ลบข้อมูลคำตอบเรียบร้อยแล้ว'
+            ]);
+        }
+
+        return redirect()->to(base_url("staff/forms/responses/{$formId}?tab=table"))->with('success', 'ลบข้อมูลคำตอบเรียบร้อยแล้ว');
     }
 
     public function exportExcel($formId)
