@@ -253,6 +253,24 @@
                     <i data-lucide="award" class="w-5 h-5 text-cyan-500"></i><span>E-Portfolio เจ้าหน้าที่</span>
                     <span class="ml-auto text-[9px] font-black uppercase px-2 py-0.5 rounded-md bg-cyan-100 dark:bg-cyan-950 text-cyan-700 dark:text-cyan-300">แนะนำ</span>
                 </a>
+
+                <a href="<?= base_url('itsupport/mou') ?>" class="flex items-center gap-4 px-4 py-3.5 rounded-2xl font-bold text-sm transition-all duration-200 <?= uri_string() == 'itsupport/mou' || uri_string() == 'mou' || strpos(uri_string(), 'itsupport/mou') === 0 || strpos(uri_string(), 'mou') === 0 ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-100/50 dark:border-blue-800/30 shadow-md shadow-blue-500/5' : 'text-slate-550 dark:text-slate-400 hover:text-blue-600 hover:bg-slate-50 dark:hover:bg-slate-900/40' ?>">
+                    <i data-lucide="file-signature" class="w-5 h-5 text-indigo-500"></i><span>ข้อตกลงการปฏิบัติงาน (MOU)</span>
+                    <span class="ml-auto text-[9px] font-black uppercase px-2 py-0.5 rounded-md bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300">KPIs</span>
+                </a>
+                
+                <?php if (session()->get('isLoggedIn')): ?>
+                <a href="<?= base_url('itsupport/contract-renewal') ?>" class="flex items-center gap-4 px-4 py-3.5 rounded-2xl font-bold text-sm transition-all duration-200 <?= uri_string() == 'itsupport/contract-renewal' || uri_string() == 'contract-renewal' || strpos(uri_string(), 'itsupport/contract-renewal') === 0 || strpos(uri_string(), 'contract-renewal') === 0 ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-100/50 dark:border-blue-800/30 shadow-md shadow-blue-500/5' : 'text-slate-550 dark:text-slate-400 hover:text-blue-600 hover:bg-slate-50 dark:hover:bg-slate-900/40' ?>">
+                    <i data-lucide="file-text" class="w-5 h-5 text-emerald-500"></i><span>แจ้งความประสงค์ต่อสัญญา</span>
+                    <span class="ml-auto text-[9px] font-black uppercase px-2 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300">แบบฟอร์ม</span>
+                </a>
+                <?php endif; ?>
+
+
+                <a href="<?= base_url('itsupport/self-report') ?>" class="flex items-center gap-4 px-4 py-3.5 rounded-2xl font-bold text-sm transition-all duration-200 <?= uri_string() == 'itsupport/self-report' || uri_string() == 'self-report' || strpos(uri_string(), 'itsupport/self-report') === 0 || strpos(uri_string(), 'self-report') === 0 ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-100/50 dark:border-blue-800/30 shadow-md shadow-blue-500/5' : 'text-slate-550 dark:text-slate-400 hover:text-blue-600 hover:bg-slate-50 dark:hover:bg-slate-900/40' ?>">
+                    <i data-lucide="clipboard-check" class="w-5 h-5 text-rose-500"></i><span>แบบรายงานตนเอง (รอบ 2)</span>
+                    <span class="ml-auto text-[9px] font-black uppercase px-2 py-0.5 rounded-md bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300">ปี 69</span>
+                </a>
                 
                 <?php if (isset($can_manage) && $can_manage): ?>
                 <a href="<?= base_url('itsupport/dashboard') ?>" class="flex items-center gap-4 px-4 py-3.5 rounded-2xl font-bold text-sm transition-all duration-200 <?= uri_string() == 'itsupport/dashboard' ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-100/50 dark:border-blue-800/30 shadow-md shadow-blue-500/5' : 'text-slate-550 dark:text-slate-400 hover:text-blue-600 hover:bg-slate-50 dark:hover:bg-slate-900/40' ?>">
@@ -308,6 +326,16 @@
                             <i data-lucide="award" class="w-3.5 h-3.5 text-cyan-400"></i>
                             <span>E-Portfolio</span>
                         </a>
+                        <a href="<?= base_url('itsupport/mou') ?>" class="px-3 py-1.5 rounded-xl <?= uri_string() == 'itsupport/mou' || uri_string() == 'mou' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-indigo-600' ?> text-xs font-bold transition-all flex items-center gap-1.5 border border-slate-200/50 dark:border-slate-700">
+                            <i data-lucide="file-signature" class="w-3.5 h-3.5 text-indigo-400"></i>
+                            <span>ข้อตกลง MOU</span>
+                        </a>
+                        <?php if (session()->get('isLoggedIn')): ?>
+                        <a href="<?= base_url('itsupport/contract-renewal') ?>" class="px-3 py-1.5 rounded-xl <?= uri_string() == 'itsupport/contract-renewal' || uri_string() == 'contract-renewal' ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-emerald-600' ?> text-xs font-bold transition-all flex items-center gap-1.5 border border-slate-200/50 dark:border-slate-700">
+                            <i data-lucide="file-text" class="w-3.5 h-3.5 text-emerald-400"></i>
+                            <span>ต่อสัญญาจ้าง</span>
+                        </a>
+                        <?php endif; ?>
                     </div>
                 </div>
                 <div class="flex items-center gap-4">

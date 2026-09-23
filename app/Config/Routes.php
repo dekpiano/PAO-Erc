@@ -104,6 +104,16 @@ $routes->get('itsupport', 'ITSupport::index');
 $routes->get('itsupport/logs', 'ITSupport::index');
 $routes->get('itsupport/portfolio', 'ITSupport::portfolio');
 $routes->get('portfolio', 'ITSupport::portfolio');
+$routes->get('itsupport/mou', 'ITSupport::mou');
+$routes->get('mou', 'ITSupport::mou');
+$routes->get('itsupport/contract-renewal', 'ITSupport::contractRenewal');
+$routes->get('contract-renewal', 'ITSupport::contractRenewal');
+$routes->get('itsupport/self-report', 'ITSupport::selfReport');
+$routes->get('itsupport/self-report/(:any)', 'ITSupport::selfReport/$1');
+$routes->get('self-report', 'ITSupport::selfReport');
+$routes->get('self-report/(:any)', 'ITSupport::selfReport/$1');
+$routes->get('itsupport/self-report-export', 'ITSupport::exportSelfReportDocx');
+$routes->get('self-report-export', 'ITSupport::exportSelfReportDocx');
 $routes->get('itsupport/view/(:num)', 'ITSupport::view/$1');
 
 // Protected routes (Require login)
@@ -310,8 +320,22 @@ $routes->group('staff/sports', function($routes) {
     $routes->post('certificates/generate-batch', 'Sports\SportsAdminController::generateBatch');
 });
 
-// IT Support & E-Portfolio Routes
+// IT Support, E-Portfolio & MOU Routes
 $routes->get('portfolio', 'ITSupport::portfolio');
 $routes->get('portfolio/(:num)', 'ITSupport::portfolio/$1');
 $routes->get('itsupport/portfolio', 'ITSupport::portfolio');
 $routes->get('itsupport/portfolio/(:num)', 'ITSupport::portfolio/$1');
+$routes->get('mou', 'ITSupport::mou');
+$routes->get('mou/(:num)', 'ITSupport::mou/$1');
+$routes->get('itsupport/mou', 'ITSupport::mou');
+$routes->get('itsupport/mou/(:num)', 'ITSupport::mou/$1');
+$routes->get('contract-renewal', 'ITSupport::contractRenewal');
+$routes->get('contract-renewal/(:any)', 'ITSupport::contractRenewal/$1');
+$routes->get('itsupport/contract-renewal', 'ITSupport::contractRenewal');
+$routes->get('itsupport/contract-renewal/(:any)', 'ITSupport::contractRenewal/$1');
+$routes->get('self-report', 'ITSupport::selfReport');
+$routes->get('self-report/(:segment)', 'ITSupport::selfReport/$1');
+$routes->get('itsupport/self-report', 'ITSupport::selfReport');
+$routes->get('itsupport/self-report/(:segment)', 'ITSupport::selfReport/$1');
+$routes->get('self-report-export', 'ITSupport::exportSelfReportDocx');
+$routes->get('itsupport/self-report-export', 'ITSupport::exportSelfReportDocx');

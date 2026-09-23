@@ -64,14 +64,28 @@
             </div>
         </form>
 
-        <!-- Actions: Print & Service Timeline -->
+        <!-- Actions: Print, MOU, ต่อสัญญา & IT Support Portal -->
         <div class="grid grid-cols-2 sm:flex sm:items-center gap-2">
-            <button onclick="window.print()" class="h-10 px-4 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-blue-300 text-slate-700 dark:text-slate-300 font-bold text-xs shadow-sm hover:shadow transition-all flex items-center justify-center gap-2">
-                <i data-lucide="printer" class="w-4 h-4 text-blue-600"></i>
+            <button onclick="window.print()" class="h-10 px-3.5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-blue-300 text-slate-700 dark:text-slate-300 font-bold text-xs shadow-sm hover:shadow transition-all flex items-center justify-center gap-1.5">
+                <i data-lucide="printer" class="w-3.5 h-3.5 text-blue-600"></i>
                 <span>พิมพ์ PDF</span>
             </button>
-            <a href="<?= base_url('itsupport') ?>" class="h-10 px-4 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs shadow-md shadow-blue-500/20 transition-all flex items-center justify-center gap-2">
-                <i data-lucide="activity" class="w-4 h-4"></i>
+            <a href="<?= base_url('itsupport/mou') ?>" class="h-10 px-3.5 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 hover:border-indigo-300 text-indigo-700 dark:text-indigo-300 font-bold text-xs shadow-sm hover:shadow transition-all flex items-center justify-center gap-1.5">
+                <i data-lucide="file-signature" class="w-3.5 h-3.5 text-indigo-500"></i>
+                <span>ข้อตกลง MOU</span>
+            </a>
+            <a href="<?= base_url('itsupport/self-report') ?>" class="h-10 px-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 hover:border-amber-300 text-amber-700 dark:text-amber-300 font-bold text-xs shadow-sm hover:shadow transition-all flex items-center justify-center gap-1.5">
+                <i data-lucide="clipboard-check" class="w-3.5 h-3.5 text-amber-500"></i>
+                <span>แบบรายงานตนเอง</span>
+            </a>
+            <?php if (session()->get('isLoggedIn')): ?>
+            <a href="<?= base_url('itsupport/contract-renewal') ?>" class="h-10 px-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 hover:border-rose-300 text-rose-700 dark:text-rose-300 font-bold text-xs shadow-sm hover:shadow transition-all flex items-center justify-center gap-1.5">
+                <i data-lucide="file-text" class="w-3.5 h-3.5 text-rose-500"></i>
+                <span>ต่อสัญญาจ้าง</span>
+            </a>
+            <?php endif; ?>
+            <a href="<?= base_url('itsupport') ?>" class="h-10 px-3.5 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs shadow-md shadow-blue-500/20 transition-all flex items-center justify-center gap-1.5">
+                <i data-lucide="activity" class="w-3.5 h-3.5"></i>
                 <span>IT Support</span>
             </a>
         </div>
@@ -241,369 +255,61 @@
 </div>
 
 <!-- ========================================================================= -->
-<!-- SECTION: OFFICIAL MOU PERFORMANCE AGREEMENTS (ภารกิจและข้อตกลงการปฏิบัติงานตาม MOU) -->
+<!-- SECTION: OFFICIAL MOU EXECUTIVE SUMMARY & SHORTCUT (ข้อตกลงการปฏิบัติงานตาม MOU) -->
 <!-- ========================================================================= -->
 <div class="mb-12">
-    <!-- Header of MOU Section -->
-    <div class="rounded-3xl bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white p-6 sm:p-8 border border-blue-500/30 shadow-xl mb-6 relative overflow-hidden">
-        <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-blue-500/10 rounded-full blur-2xl pointer-events-none"></div>
+    <div class="rounded-3xl bg-gradient-to-r from-slate-900 via-indigo-950 to-blue-950 text-white p-6 sm:p-8 border border-indigo-500/30 shadow-xl relative overflow-hidden">
+        <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none"></div>
 
-        <div class="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div class="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
             <div>
-                <div class="flex items-center gap-2 text-cyan-300 text-xs font-black uppercase tracking-widest mb-1">
+                <div class="flex items-center gap-2 text-cyan-300 text-xs font-black uppercase tracking-widest mb-1.5">
                     <i data-lucide="file-signature" class="w-4 h-4"></i>
                     <span>Official Performance Agreement (MOU)</span>
                 </div>
                 <h2 class="text-xl sm:text-2xl font-black tracking-tight text-white">
                     ข้อตกลงการปฏิบัติงานราชการ ประจำ<?= esc($date_filter_label) ?>
                 </h2>
-                <p class="text-xs sm:text-sm text-blue-200 mt-1">
-                    ระยะเวลาประเมิน: <?= esc($date_filter_label) ?> • กองการศึกษา ศาสนาและวัฒนธรรม อบจ.นครสวรรค์
+                <p class="text-xs sm:text-sm text-blue-200 mt-1 max-w-2xl">
+                    ผลการปฏิบัติงานบรรลุเป้าหมายครบถ้วนทั้ง 3 โครงการหลักตามข้อตกลง (น้ำหนักรวม 80 คะแนน) ประเมินผลผ่านเกณฑ์ร้อยละ 100
                 </p>
             </div>
 
-            <!-- MOU Summary Badge -->
-            <div class="bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/20 text-right shrink-0">
-                <span class="text-[10px] text-slate-300 font-bold block uppercase tracking-wider">สถานะการส่งมอบงาน</span>
-                <span class="text-sm font-black text-emerald-300 flex items-center gap-1.5 justify-end mt-0.5">
-                    <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
-                    ผลการปฏิบัติงานเกินเป้าหมาย
-                </span>
-            </div>
+            <!-- Action Button to Dedicated MOU Page -->
+            <a href="<?= base_url('itsupport/mou' . ($selected_fy !== 'all' ? '?fy=' . esc($selected_fy) : '')) ?>" class="px-5 py-3 rounded-2xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold text-xs sm:text-sm shadow-lg shadow-indigo-500/25 border border-white/20 transition-all flex items-center gap-2 shrink-0 hover:scale-105">
+                <i data-lucide="file-signature" class="w-4 h-4"></i>
+                <span>เปิดดูข้อตกลง MOU ฉบับเต็ม & เกณฑ์การประเมิน</span>
+                <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+            </a>
         </div>
 
-        <!-- Stakeholders Bar -->
-        <div class="mt-6 pt-4 border-t border-white/10 grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-            <div class="flex items-center gap-2">
-                <i data-lucide="user-check" class="w-4 h-4 text-cyan-400 shrink-0"></i>
-                <div>
-                    <span class="text-[10px] text-slate-400 block">ผู้ทำข้อตกลง (หัวหน้าส่วนราชการ):</span>
-                    <span class="font-bold text-white"><?= esc($mou_info['signee_leader']) ?></span>
-                </div>
-            </div>
-            <div class="flex items-center gap-2">
-                <i data-lucide="user" class="w-4 h-4 text-emerald-400 shrink-0"></i>
-                <div>
-                    <span class="text-[10px] text-slate-400 block">ผู้รับข้อตกลง (ผู้ปฏิบัติงาน):</span>
-                    <span class="font-bold text-white"><?= esc($mou_info['signee_officer']) ?></span>
-                </div>
-            </div>
-            <div class="flex items-center gap-2">
-                <i data-lucide="shield" class="w-4 h-4 text-amber-400 shrink-0"></i>
-                <div>
-                    <span class="text-[10px] text-slate-400 block">ผู้กลั่นกรอง / พยาน:</span>
-                    <span class="font-bold text-white"><?= esc($mou_info['verifier_head']) ?></span>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ========================================================================= -->
-    <!-- KPI MATRIX: PERFORMANCE VS TARGET BREAKDOWN (การวิเคราะห์ผลงานเทียบเป้าหมายรายหมวด) -->
-    <!-- ========================================================================= -->
-    <div class="glass-card rounded-3xl p-5 sm:p-8 border border-slate-200/80 dark:border-slate-800 shadow-lg mb-8">
-        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6">
-            <div>
-                <div class="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 text-xs font-black uppercase tracking-widest">
-                    <i data-lucide="calculator" class="w-4 h-4"></i>
-                    <span>Category-to-Target Performance Matrix</span>
-                </div>
-                <h3 class="text-base sm:text-xl font-black text-slate-800 dark:text-white tracking-tight mt-1">
-                    ตารางวิเคราะห์ผลงานเทียบเป้าหมายตามหมวดหมู่จริงในระบบ
-                </h3>
-                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                    คำนวณและประมวลผลอัตโนมัติจากฐานข้อมูลบันทึกงานบริการ (Tb_It_Support_Logs) ประจำ<?= esc($date_filter_label) ?>
-                </p>
-            </div>
-
-            <div class="flex items-center gap-2 self-stretch sm:self-auto">
-                <span class="w-full sm:w-auto px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 text-xs font-black border border-emerald-200 dark:border-emerald-800 flex items-center justify-center gap-1.5 shadow-sm">
-                    <i data-lucide="check-check" class="w-4 h-4 text-emerald-500"></i>
-                    <span>ผ่านเกณฑ์การประเมินทุกตัวชี้วัด</span>
-                </span>
-            </div>
-        </div>
-
-        <!-- 1. Mobile-First Card View (Visible on Mobile Screens < md) -->
-        <div class="grid grid-cols-1 gap-3.5 md:hidden">
-            <?php foreach ($kpi_matrix as $kpi): 
-                $pct = (float)$kpi['percent'];
-                $isPass = $pct >= 100;
+        <!-- 3 Core Projects Mini Grid Summary -->
+        <div class="relative z-10 mt-6 pt-6 border-t border-white/10 grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <?php foreach ($mou_info['tasks'] as $task): 
+                $progressPercent = $task['target_qty'] > 0 ? min(round(($task['actual_qty'] / $task['target_qty']) * 100), 500) : 100;
             ?>
-                <div class="p-4 rounded-2xl bg-slate-50/90 dark:bg-slate-900/60 border border-slate-200/70 dark:border-slate-800 space-y-3">
-                    <div class="flex items-start justify-between gap-3">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-xl bg-<?= $kpi['color'] ?>-50 dark:bg-<?= $kpi['color'] ?>-950/60 text-<?= $kpi['color'] ?>-600 dark:text-<?= $kpi['color'] ?>-400 flex items-center justify-center shrink-0">
-                                <i data-lucide="<?= $kpi['icon'] ?>" class="w-5 h-5"></i>
-                            </div>
-                            <div>
-                                <span class="text-xs font-black text-slate-800 dark:text-white block">
-                                    <?= esc($kpi['name']) ?>
-                                </span>
-                                <span class="text-[10px] text-slate-400 block mt-0.5">
-                                    <?= esc($kpi['category_label']) ?>
-                                </span>
-                            </div>
-                        </div>
-
-                        <?php if ($kpi['weight'] !== '-'): ?>
-                            <span class="px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 text-[10px] font-black shrink-0">
-                                <?= esc($kpi['weight']) ?> คะแนน
-                            </span>
-                        <?php endif; ?>
+                <a href="<?= base_url('itsupport/mou') ?>" class="p-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-indigo-400/40 transition-all block group">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="px-2 py-0.5 rounded-md bg-<?= $task['color'] ?>-500/20 text-<?= $task['color'] ?>-300 text-[10px] font-black uppercase">
+                            โครงการที่ <?= $task['no'] ?>
+                        </span>
+                        <span class="text-[10px] font-bold text-amber-300">
+                            น้ำหนัก <?= $task['weight'] ?> คะแนน
+                        </span>
                     </div>
-
-                    <!-- Target vs Actual Metric Badge -->
-                    <div class="p-2.5 rounded-xl bg-white dark:bg-slate-800/80 border border-slate-100 dark:border-slate-700/60 flex items-center justify-between text-xs">
-                        <div>
-                            <span class="text-[10px] text-slate-400 block font-medium">เป้าหมายตามเกณฑ์:</span>
-                            <span class="font-bold text-slate-700 dark:text-slate-300"><?= esc($kpi['target']) ?> <?= esc($kpi['unit']) ?></span>
-                        </div>
-                        <div class="text-right">
-                            <span class="text-[10px] text-slate-400 block font-medium">ผลงานจริงที่บันทึก:</span>
-                            <span class="text-sm font-black text-<?= $kpi['color'] ?>-600 dark:text-<?= $kpi['color'] ?>-400"><?= esc($kpi['actual']) ?> <?= esc($kpi['unit']) ?></span>
-                        </div>
+                    <h4 class="text-xs font-black text-white line-clamp-1 group-hover:text-cyan-300 transition-colors">
+                        <?= esc($task['title']) ?>
+                    </h4>
+                    <div class="mt-3 flex items-center justify-between text-[11px]">
+                        <span class="text-slate-300 font-mono"><?= $task['actual_qty'] ?> / <?= $task['target_qty'] ?> <?= $task['unit'] ?></span>
+                        <span class="font-black text-emerald-300 flex items-center gap-1">
+                            <i data-lucide="check-circle-2" class="w-3 h-3 text-emerald-400"></i>
+                            <?= $progressPercent ?>%
+                        </span>
                     </div>
-
-                    <!-- Progress Bar -->
-                    <div class="space-y-1">
-                        <div class="flex justify-between text-[10px] font-bold">
-                            <span class="text-slate-500 dark:text-slate-400">อัตราความสำเร็จ: <?= $pct ?>%</span>
-                            <span class="text-emerald-500 font-black flex items-center gap-1">
-                                <i data-lucide="check-circle-2" class="w-3 h-3"></i>
-                                <?= esc($kpi['status']) ?>
-                            </span>
-                        </div>
-                        <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2 overflow-hidden">
-                            <div class="bg-gradient-to-r from-<?= $kpi['color'] ?>-500 to-emerald-500 h-2 rounded-full" style="width: <?= min($pct, 100) ?>%"></div>
-                        </div>
-                    </div>
-
-                    <div class="text-[10px] font-mono text-slate-500 dark:text-slate-400 pt-1 border-t border-slate-200/50 dark:border-slate-800 flex items-center gap-1.5">
-                        <i data-lucide="database" class="w-3 h-3 text-slate-400"></i>
-                        <span class="truncate"><?= esc($kpi['mapped_tasks']) ?></span>
-                    </div>
-                </div>
+                </a>
             <?php endforeach; ?>
         </div>
-
-        <!-- 2. Desktop Table View (Visible on Screens >= md) -->
-        <div class="hidden md:block overflow-x-auto">
-            <table class="w-full text-left text-xs">
-                <thead>
-                    <tr class="border-b border-slate-200 dark:border-slate-800 text-[11px] font-black text-slate-400 uppercase tracking-wider">
-                        <th class="py-3 px-3">หมวดหมู่ภารกิจ / โครงการ</th>
-                        <th class="py-3 px-3">หมวดหมู่ในระบบบันทึกงานจริง</th>
-                        <th class="py-3 px-3 text-center">เป้าหมาย</th>
-                        <th class="py-3 px-3 text-center">ผลงานจริง</th>
-                        <th class="py-3 px-3 text-center" style="min-width: 140px;">ความก้าวหน้า</th>
-                        <th class="py-3 px-3 text-center">คะแนน MOU</th>
-                        <th class="py-3 px-3 text-right">สถานะ</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80">
-                    <?php foreach ($kpi_matrix as $kpi): 
-                        $pct = (float)$kpi['percent'];
-                        $isPass = $pct >= 100;
-                    ?>
-                        <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-900/40 transition-colors">
-                            <!-- Category Name -->
-                            <td class="py-4 px-3">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-9 h-9 rounded-xl bg-<?= $kpi['color'] ?>-50 dark:bg-<?= $kpi['color'] ?>-950/60 text-<?= $kpi['color'] ?>-600 dark:text-<?= $kpi['color'] ?>-400 flex items-center justify-center shrink-0">
-                                        <i data-lucide="<?= $kpi['icon'] ?>" class="w-4 h-4"></i>
-                                    </div>
-                                    <div>
-                                        <span class="font-black text-slate-800 dark:text-white block">
-                                            <?= esc($kpi['name']) ?>
-                                        </span>
-                                        <span class="text-[10px] text-slate-400 block mt-0.5 line-clamp-1">
-                                            <?= esc($kpi['desc']) ?>
-                                        </span>
-                                    </div>
-                                </div>
-                            </td>
-
-                            <!-- Database Category Mapping -->
-                            <td class="py-4 px-3 font-medium text-slate-600 dark:text-slate-300">
-                                <span class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-[11px] font-bold inline-block">
-                                    <?= esc($kpi['mapped_tasks']) ?>
-                                </span>
-                            </td>
-
-                            <!-- Target -->
-                            <td class="py-4 px-3 text-center font-bold text-slate-500 dark:text-slate-400">
-                                <?= esc($kpi['target']) ?> <span class="text-[10px] font-normal"><?= esc($kpi['unit']) ?></span>
-                            </td>
-
-                            <!-- Actual -->
-                            <td class="py-4 px-3 text-center">
-                                <span class="text-sm font-black text-<?= $kpi['color'] ?>-600 dark:text-<?= $kpi['color'] ?>-400">
-                                    <?= esc($kpi['actual']) ?>
-                                </span>
-                                <span class="text-[10px] text-slate-400 font-bold block"><?= esc($kpi['unit']) ?></span>
-                            </td>
-
-                            <!-- Progress Bar -->
-                            <td class="py-4 px-3">
-                                <div class="space-y-1">
-                                    <div class="flex justify-between text-[10px] font-bold">
-                                        <span class="text-slate-400"><?= $pct ?>%</span>
-                                        <span class="text-emerald-500"><?= $isPass ? 'ผ่านเกณฑ์' : 'กำลังดำเนินการ' ?></span>
-                                    </div>
-                                    <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
-                                        <div class="bg-gradient-to-r from-<?= $kpi['color'] ?>-500 to-emerald-500 h-2 rounded-full" style="width: <?= min($pct, 100) ?>%"></div>
-                                    </div>
-                                </div>
-                            </td>
-
-                            <!-- Weight -->
-                            <td class="py-4 px-3 text-center font-bold text-slate-700 dark:text-slate-300">
-                                <?= $kpi['weight'] !== '-' ? esc($kpi['weight']) . ' คะแนน' : '<span class="text-slate-400">-</span>' ?>
-                            </td>
-
-                            <!-- Status Badge -->
-                            <td class="py-4 px-3 text-right">
-                                <span class="px-2.5 py-1 rounded-xl text-[10px] font-black inline-flex items-center gap-1 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
-                                    <i data-lucide="check-circle-2" class="w-3 h-3 text-emerald-500"></i>
-                                    <span><?= esc($kpi['status']) ?></span>
-                                </span>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- 3 Main Projects of MOU Cards -->
-    <div class="space-y-6">
-        <?php foreach ($mou_info['tasks'] as $task): 
-            $progressPercent = $task['target_qty'] > 0 ? min(round(($task['actual_qty'] / $task['target_qty']) * 100), 500) : 100;
-        ?>
-            <div class="glass-card rounded-3xl p-6 sm:p-8 border border-slate-200/80 dark:border-slate-800 hover:shadow-xl transition-all duration-300">
-                <!-- Project Top Bar -->
-                <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 pb-6 border-b border-slate-100 dark:border-slate-800">
-                    <div class="flex items-start gap-4">
-                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-<?= $task['color'] ?>-500 to-<?= $task['color'] ?>-700 text-white flex items-center justify-center shadow-lg shadow-<?= $task['color'] ?>-500/20 shrink-0">
-                            <i data-lucide="<?= $task['icon'] ?>" class="w-7 h-7"></i>
-                        </div>
-                        <div>
-                            <div class="flex flex-wrap items-center gap-2">
-                                <span class="px-2.5 py-0.5 rounded-md bg-<?= $task['color'] ?>-50 dark:bg-<?= $task['color'] ?>-950/60 text-<?= $task['color'] ?>-600 dark:text-<?= $task['color'] ?>-300 text-[11px] font-black uppercase tracking-wide">
-                                    โครงการ/งานที่ <?= $task['no'] ?>
-                                </span>
-                                <span class="px-2.5 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 text-[11px] font-black">
-                                    น้ำหนัก: <?= $task['weight'] ?> คะแนน
-                                </span>
-                            </div>
-                            <h3 class="text-lg sm:text-xl font-black text-slate-800 dark:text-white mt-1">
-                                <?= esc($task['title']) ?>
-                            </h3>
-                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                                <?= esc($task['subtitle']) ?>
-                            </p>
-                        </div>
-                    </div>
-
-                    <!-- Progress / Comparison Box -->
-                    <div class="w-full lg:w-72 bg-slate-50 dark:bg-slate-900/60 p-4 rounded-2xl border border-slate-100 dark:border-slate-800">
-                        <div class="flex justify-between text-xs font-bold mb-1">
-                            <span class="text-slate-600 dark:text-slate-300">ผลงานเทียบเป้าหมาย</span>
-                            <span class="text-<?= $task['color'] ?>-600 font-mono"><?= $task['actual_qty'] ?> / <?= $task['target_qty'] ?> <?= $task['unit'] ?></span>
-                        </div>
-                        <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2.5 overflow-hidden mb-1.5">
-                            <div class="bg-gradient-to-r from-<?= $task['color'] ?>-500 to-emerald-500 h-2.5 rounded-full" style="width: <?= min($progressPercent, 100) ?>%"></div>
-                        </div>
-                        <div class="flex justify-between items-center text-[10px]">
-                            <span class="text-slate-400">เป้าหมายขั้นต่ำ: ร้อยละ 80</span>
-                            <span class="font-black text-emerald-600 dark:text-emerald-400">
-                                <?= $progressPercent >= 100 ? 'เกินเป้าหมาย (' . $progressPercent . '%)' : $progressPercent . '%' ?>
-                            </span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 3 Pillars of Indicators (เชิงปริมาณ, เชิงคุณภาพ, เชิงประโยชน์) -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 my-6">
-                    <!-- 1. Quantitative -->
-                    <div class="p-4 rounded-2xl bg-blue-50/50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/40">
-                        <div class="flex items-center gap-2 text-blue-600 dark:text-blue-400 text-xs font-black mb-1.5">
-                            <i data-lucide="bar-chart-2" class="w-4 h-4"></i>
-                            <span>1. ตัวชี้วัดเชิงปริมาณ (Quantity)</span>
-                        </div>
-                        <p class="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-medium">
-                            <?= esc($task['quantitative']) ?>
-                        </p>
-                    </div>
-
-                    <!-- 2. Qualitative -->
-                    <div class="p-4 rounded-2xl bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/40">
-                        <div class="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 text-xs font-black mb-1.5">
-                            <i data-lucide="check-circle-2" class="w-4 h-4"></i>
-                            <span>2. ตัวชี้วัดเชิงคุณภาพ (Quality)</span>
-                        </div>
-                        <p class="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-medium">
-                            <?= esc($task['qualitative']) ?>
-                        </p>
-                    </div>
-
-                    <!-- 3. Utility -->
-                    <div class="p-4 rounded-2xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/40">
-                        <div class="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 text-xs font-black mb-1.5">
-                            <i data-lucide="trending-up" class="w-4 h-4"></i>
-                            <span>3. ตัวชี้วัดเชิงประโยชน์ (Utility)</span>
-                        </div>
-                        <p class="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-medium">
-                            <?= esc($task['utility']) ?>
-                        </p>
-                    </div>
-                </div>
-
-                <!-- 6 Standard Milestones & Evidences Breakdown -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-4 border-t border-slate-100 dark:border-slate-800">
-                    <!-- 6 Milestones (ขั้นตอนความสำเร็จ) -->
-                    <div>
-                        <h4 class="text-xs font-black text-slate-800 dark:text-white uppercase tracking-wider mb-3 flex items-center gap-2">
-                            <i data-lucide="list-checks" class="w-4 h-4 text-<?= $task['color'] ?>-500"></i>
-                            <span>ขั้นตอนความสำเร็จในการปฏิบัติงาน (6 Milestones)</span>
-                        </h4>
-                        <div class="space-y-2">
-                            <?php foreach ($task['milestones'] as $m): ?>
-                                <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-800/80 text-xs text-slate-700 dark:text-slate-300 flex items-start gap-2">
-                                    <i data-lucide="check-circle" class="w-4 h-4 text-emerald-500 shrink-0 mt-0.5"></i>
-                                    <span><?= esc($m) ?></span>
-                                </div>
-                            <?php endforeach; ?>
-                        </div>
-                    </div>
-
-                    <!-- Evidence & Deliverables (หลักฐานบ่งชี้ความสำเร็จ) -->
-                    <div>
-                        <h4 class="text-xs font-black text-slate-800 dark:text-white uppercase tracking-wider mb-3 flex items-center gap-2">
-                            <i data-lucide="folder-check" class="w-4 h-4 text-amber-500"></i>
-                            <span>หลักฐานเชิงประจักษ์บ่งชี้ความสำเร็จ (Verified Evidences)</span>
-                        </h4>
-                        <div class="space-y-2.5">
-                            <?php foreach ($task['evidences'] as $ev): ?>
-                                <div class="p-3 rounded-xl bg-amber-50/40 dark:bg-amber-950/20 border border-amber-200/60 dark:border-amber-900/30 text-xs text-slate-700 dark:text-slate-300 flex items-start gap-2.5">
-                                    <i data-lucide="file-badge" class="w-4 h-4 text-amber-600 shrink-0 mt-0.5"></i>
-                                    <span><?= esc($ev) ?></span>
-                                </div>
-                            <?php endforeach; ?>
-
-                            <!-- Action button inside card -->
-                            <div class="pt-2">
-                                <a href="<?= base_url('itsupport') ?>" class="inline-flex items-center gap-2 text-xs font-bold text-<?= $task['color'] ?>-600 hover:underline">
-                                    <span>เปิดดูบันทึกและหลักฐานภาพถ่ายในระบบ</span>
-                                    <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        <?php endforeach; ?>
     </div>
 </div>
 
