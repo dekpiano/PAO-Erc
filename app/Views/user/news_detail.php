@@ -49,7 +49,17 @@
 
             <!-- Article Content -->
             <article class="prose prose-lg max-w-none text-slate-700 font-medium leading-[1.8] mb-20" data-aos="fade-up">
-                <?= nl2br($news['news_content']) ?>
+                <?php 
+                    $content = $news['news_content'];
+                    if (strpos($content, '<a ') === false) {
+                        $content = preg_replace_callback('/(https?:\/\/[^\s<]+|www\.[^\s<]+)/i', function($m) {
+                            $u = $m[1];
+                            $h = (strpos($u, 'http') === 0) ? $u : 'https://' . $u;
+                            return '<a href="' . htmlspecialchars($h, ENT_QUOTES) . '" target="_blank" rel="noopener noreferrer" class="text-blue-600 font-bold underline hover:text-blue-800 break-all">' . htmlspecialchars($u) . '</a>';
+                        }, $content);
+                    }
+                ?>
+                <?= nl2br($content) ?>
             </article>
 
             <!-- Photo Gallery Section -->

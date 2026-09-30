@@ -116,9 +116,10 @@ class Staff extends BaseController
         // Release session lock to prevent 504 during image processing
         session_write_close();
         
-        // Handle Cover Image (Normal or Chunked)
+        // Handle Cover Image (Normal, Chunked, or Remote FB URL)
         $coverName = null;
         $tempCover = $this->request->getPost('temp_cover');
+        $fbCoverUrl = $this->request->getPost('fb_cover_url');
         
         if ($tempCover) {
             $coverName = $tempCover;
@@ -131,6 +132,9 @@ class Staff extends BaseController
         } elseif ($coverFile && $coverFile->isValid() && !$coverFile->hasMoved()) {
             $coverName = $coverFile->getRandomName();
             $coverFile->move(FCPATH . 'uploads/news/covers/', $coverName);
+        } elseif (!empty($fbCoverUrl) && filter_var($fbCoverUrl, FILTER_VALIDATE_URL)) {
+            $importer = new \App\Libraries\FacebookImporter();
+            $coverName = $importer->downloadAndSaveImage($fbCoverUrl, 'covers');
         }
 
         // Save Main News
@@ -156,7 +160,7 @@ class Staff extends BaseController
             return redirect()->back()->withInput()->with('error', 'ไม่สามารถบันทึกข้อมูลได้: ' . $e->getMessage());
         }
 
-        // Handle Gallery Images (Normal or Chunked)
+        // Handle Gallery Images (Normal, Chunked, or Remote FB URLs)
         $tempGallery = $this->request->getPost('temp_gallery');
         if ($tempGallery && is_array($tempGallery)) {
             foreach ($tempGallery as $tempName) {
@@ -170,6 +174,22 @@ class Staff extends BaseController
                         'gal_news_id' => $newsId,
                         'gal_image' => $tempName
                     ]);
+                }
+            }
+        }
+
+        $fbGalleryUrls = $this->request->getPost('fb_gallery_urls');
+        if (!empty($fbGalleryUrls) && is_array($fbGalleryUrls)) {
+            $importer = new \App\Libraries\FacebookImporter();
+            foreach ($fbGalleryUrls as $gUrl) {
+                if (filter_var($gUrl, FILTER_VALIDATE_URL)) {
+                    $galFilename = $importer->downloadAndSaveImage($gUrl, 'gallery');
+                    if ($galFilename) {
+                        $galleryModel->insert([
+                            'gal_news_id' => $newsId,
+                            'gal_image' => $galFilename
+                        ]);
+                    }
                 }
             }
         }
@@ -188,6 +208,10 @@ class Staff extends BaseController
                 }
             }
         }
+
+        // Clean old temp files
+        $importer = new \App\Libraries\FacebookImporter();
+        $importer->cleanOldTempFiles(300);
 
         if ($this->request->isAJAX()) {
             return $this->response->setJSON([
@@ -368,6 +392,8 @@ class Staff extends BaseController
         $item = $galleryModel->find($galId);
         if ($item) {
             @unlink(FCPATH . 'uploads/news/gallery/' . $item['gal_image']);
+            @unlink(FCPATH . 'uploads/news/temp/' . $item['gal_image']);
+            @unlink(WRITEPATH . 'uploads/temp/' . $item['gal_image']);
             $galleryModel->delete($galId);
         }
         return redirect()->back()->with('success', 'ลบรูปภาพเรียบร้อยแล้ว');
@@ -388,21 +414,183 @@ class Staff extends BaseController
             // Delete Cover
             if ($news['news_cover']) {
                 @unlink(FCPATH . 'uploads/news/covers/' . $news['news_cover']);
+                @unlink(FCPATH . 'uploads/news/temp/' . $news['news_cover']);
+                @unlink(WRITEPATH . 'uploads/temp/' . $news['news_cover']);
             }
 
             // Delete Gallery Images
             $gallery = $galleryModel->where('gal_news_id', $id)->findAll();
             foreach ($gallery as $item) {
                 @unlink(FCPATH . 'uploads/news/gallery/' . $item['gal_image']);
+                @unlink(FCPATH . 'uploads/news/temp/' . $item['gal_image']);
+                @unlink(WRITEPATH . 'uploads/temp/' . $item['gal_image']);
             }
             $galleryModel->where('gal_news_id', $id)->delete();
 
+            // Clean any leftover temporary files
+            $importer = new \App\Libraries\FacebookImporter();
+            $importer->cleanOldTempFiles(180); // 3 mins
+
             // Delete News record
             $newsModel->delete($id);
-            return redirect()->to(base_url('staff/news'))->with('success', 'ลบข่าวสารและแกลเลอรีเรียบร้อยแล้ว');
+            return redirect()->to(base_url('staff/news'))->with('success', 'ลบข่าวสารและไฟล์รูปภาพทั้งหมดเรียบร้อยแล้ว');
         }
         
         return redirect()->to(base_url('staff/news'))->with('error', 'ไม่สามารถลบข่าวสารได้');
+    }
+
+    public function fetchFacebookPost()
+    {
+        $userRoles = session()->get('u_role') ?? '';
+        if (strpos($userRoles, 'superadmin') === false && strpos($userRoles, 'news') === false) {
+            return $this->response->setJSON([
+                'status' => 'error',
+                'message' => 'คุณไม่มีสิทธิ์เข้าถึงระบบจัดการข่าวสาร'
+            ])->setStatusCode(403);
+        }
+
+        $url = $this->request->getPost('url') ?? $this->request->getJSON(true)['url'] ?? '';
+        if (empty($url)) {
+            return $this->response->setJSON([
+                'status' => 'error',
+                'message' => 'กรุณาระบุลิงก์โพสต์ Facebook'
+            ]);
+        }
+
+        $importer = new \App\Libraries\FacebookImporter();
+        $result = $importer->fetchPost($url);
+
+        if (!$result['success']) {
+            return $this->response->setJSON([
+                'status' => 'error',
+                'message' => $result['message'] ?? 'ไม่สามารถดึงข้อมูลโพสต์ได้ กรุณาตรวจสอบลิงก์หรือโพสต์อาจถูกตั้งเป็นส่วนตัว',
+                'data' => $result['data'] ?? null
+            ]);
+        }
+
+        return $this->response->setJSON([
+            'status' => 'success',
+            'message' => 'ดึงข้อมูลจาก Facebook สำเร็จ',
+            'data' => $result['data']
+        ]);
+    }
+
+    public function importFacebookPost()
+    {
+        $userRoles = session()->get('u_role') ?? '';
+        if (strpos($userRoles, 'superadmin') === false && strpos($userRoles, 'news') === false) {
+            return $this->response->setJSON([
+                'status' => 'error',
+                'message' => 'คุณไม่มีสิทธิ์เข้าถึงระบบจัดการข่าวสาร'
+            ])->setStatusCode(403);
+        }
+
+        $title = trim($this->request->getPost('title') ?? '');
+        $content = trim($this->request->getPost('content') ?? '');
+        $category = $this->request->getPost('category') ?? 'ข่าวประชาสัมพันธ์';
+        $status = $this->request->getPost('status') ?? 'published';
+        $coverUrl = $this->request->getPost('cover_url');
+        $galleryUrls = $this->request->getPost('gallery_urls');
+        $createdAt = $this->request->getPost('created_at') ?: date('Y-m-d H:i:s');
+        $userId = session()->get('u_id');
+
+        if (empty($title)) {
+            return $this->response->setJSON([
+                'status' => 'error',
+                'message' => 'กรุณาระบุหัวข้อข่าว'
+            ]);
+        }
+
+        $importer = new \App\Libraries\FacebookImporter();
+        $newsModel = new \App\Models\NewsModel();
+        $galleryModel = new \App\Models\NewsGalleryModel();
+
+        // Release session lock to prevent blocking
+        session_write_close();
+
+        // 1. Handle Cover Image (from Local Temp or Remote URL)
+        $coverFilename = null;
+        $coverLocal = $this->request->getPost('cover_local');
+
+        if (!empty($coverLocal) && file_exists(FCPATH . 'uploads/news/temp/' . $coverLocal)) {
+            $targetDir = FCPATH . 'uploads/news/covers/';
+            if (!is_dir($targetDir)) mkdir($targetDir, 0777, true);
+            rename(FCPATH . 'uploads/news/temp/' . $coverLocal, $targetDir . $coverLocal);
+            $coverFilename = $coverLocal;
+        } elseif (!empty($coverUrl) && filter_var($coverUrl, FILTER_VALIDATE_URL)) {
+            $coverFilename = $importer->downloadAndSaveImage($coverUrl, 'covers');
+        }
+
+        // 2. Insert Main News
+        try {
+            $slug = $newsModel->generateSlug($title);
+            $newsId = $newsModel->insert([
+                'news_title' => $title,
+                'news_slug' => $slug,
+                'news_content' => $content,
+                'news_category' => $category,
+                'news_cover' => $coverFilename,
+                'news_status' => $status,
+                'news_created_by' => $userId,
+                'news_created_at' => $createdAt
+            ]);
+        } catch (\Exception $e) {
+            return $this->response->setJSON([
+                'status' => 'error',
+                'message' => 'ไม่สามารถบันทึกข่าวสารได้: ' . $e->getMessage()
+            ]);
+        }
+
+        // 3. Handle Gallery Images (from Local Temp or Remote URLs)
+        $savedGalleryCount = 0;
+        $galleryLocals = $this->request->getPost('gallery_locals');
+        if (!empty($galleryLocals) && is_array($galleryLocals)) {
+            $targetDir = FCPATH . 'uploads/news/gallery/';
+            if (!is_dir($targetDir)) mkdir($targetDir, 0777, true);
+
+            foreach ($galleryLocals as $gLocal) {
+                $tempPath = FCPATH . 'uploads/news/temp/' . $gLocal;
+                if (file_exists($tempPath)) {
+                    rename($tempPath, $targetDir . $gLocal);
+                    $galleryModel->insert([
+                        'gal_news_id' => $newsId,
+                        'gal_image' => $gLocal
+                    ]);
+                    $savedGalleryCount++;
+                }
+            }
+        }
+
+        if (!empty($galleryUrls) && is_array($galleryUrls)) {
+            foreach ($galleryUrls as $gUrl) {
+                if (filter_var($gUrl, FILTER_VALIDATE_URL)) {
+                    $galFilename = $importer->downloadAndSaveImage($gUrl, 'gallery');
+                    if ($galFilename) {
+                        $galleryModel->insert([
+                            'gal_news_id' => $newsId,
+                            'gal_image' => $galFilename
+                        ]);
+                        $savedGalleryCount++;
+                    }
+                }
+            }
+        }
+
+        // 4. Clean all unused temporary files immediately
+        $importer->cleanOldTempFiles(0);
+
+        return $this->response->setJSON([
+            'status' => 'success',
+            'message' => "นำเข้าข่าวจาก Facebook สำเร็จเรียบร้อย!",
+            'redirect' => base_url('staff/news')
+        ]);
+    }
+
+    public function cleanNewsTemp()
+    {
+        $importer = new \App\Libraries\FacebookImporter();
+        $importer->cleanOldTempFiles(0);
+        return $this->response->setJSON(['status' => 'success']);
     }
 
     // ================================================================
@@ -499,7 +687,7 @@ class Staff extends BaseController
         }
 
         $title = $this->request->getPost('sch_title');
-        $slug = $this->generateSlug($title, 'Tb_Scholarships', 'sch_slug');
+        $slug = $schModel->generateSlug($title);
         
         session_write_close();
 

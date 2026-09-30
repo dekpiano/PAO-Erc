@@ -53,6 +53,9 @@ $routes->get('staff/news/delete/(:num)', 'Staff::newsDelete/$1');
 $routes->get('staff/news/deleteImage/(:num)', 'Staff::newsDeleteImage/$1');
 $routes->post('staff/news/uploadChunk', 'Staff::uploadChunk');
 $routes->get('staff/news/uploadChunk', 'Staff::uploadChunk');
+$routes->post('staff/news/fetch-facebook', 'Staff::fetchFacebookPost');
+$routes->post('staff/news/import-facebook', 'Staff::importFacebookPost');
+$routes->post('staff/news/clean-temp', 'Staff::cleanNewsTemp');
 
 // Admin Scholarship Management
 $routes->get('staff/scholarships', 'Staff::scholarships');

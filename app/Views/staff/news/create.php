@@ -13,14 +13,47 @@
         </div>
     </div>
 
+    <!-- Facebook Quick Import Banner -->
+    <div class="mb-8 p-6 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 rounded-[2rem] text-white shadow-xl shadow-blue-500/20" data-aos="fade-up">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3.5">
+                <div class="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center flex-shrink-0 text-white shadow-sm">
+                    <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24">
+                        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h4 class="text-base font-black">ดึงข้อมูลอัตโนมัติจาก Facebook Post</h4>
+                    <p class="text-xs text-blue-100 font-medium">วางลิงก์โพสต์ Facebook เพื่อให้ระบบกรอกหัวข้อ เนื้อหา และรูปภาพลงในฟอร์มทันที</p>
+                </div>
+            </div>
+            <div class="flex w-full md:w-auto items-center gap-2">
+                <div class="relative flex-1 md:w-80">
+                    <input type="url" id="fb-quick-url" placeholder="วางลิงก์โพสต์ Facebook ที่นี่..." class="w-full px-4 py-3 bg-white/15 border border-white/25 backdrop-blur-md rounded-xl text-xs font-bold text-white placeholder-blue-200 focus:outline-none focus:bg-white focus:text-slate-800 focus:placeholder-slate-400 transition-all">
+                </div>
+                <button type="button" id="btn-quick-fetch" onclick="quickFetchFacebook()" class="px-5 py-3 bg-white text-blue-600 rounded-xl font-black text-xs hover:bg-blue-50 transition-all shadow-md active:scale-95 flex items-center gap-2 flex-shrink-0">
+                    <span id="btn-quick-fetch-text">ดึงข้อมูล</span>
+                    <span id="btn-quick-fetch-spinner" class="hidden">
+                        <svg class="animate-spin w-3.5 h-3.5 text-blue-600" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                    </span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div class="lg:col-span-9" data-aos="fade-up" data-aos-delay="100">
             <form id="news-form" action="<?= base_url('staff/news/store') ?>" method="post" enctype="multipart/form-data">
+                <input type="hidden" name="fb_cover_url" id="fb_cover_url" value="">
+                <div id="fb-hidden-gallery-container"></div>
                 <div class="bg-white rounded-[2.5rem] border border-slate-200 shadow-xl shadow-slate-100 overflow-hidden p-10 space-y-8">
                     
                     <div>
                         <label class="block text-xs font-black uppercase tracking-widest text-slate-400 mb-3">หัวข้อข่าว</label>
-                        <input type="text" name="title" value="<?= old('title') ?>" placeholder="พิมพ์หัวข้อข่าวที่นี่..." class="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-slate-800 font-bold focus:outline-none focus:ring-4 focus:ring-blue-50 focus:border-blue-100 transition-all">
+                        <input type="text" name="title" id="news-title-input" value="<?= old('title') ?>" placeholder="พิมพ์หัวข้อข่าวที่นี่..." class="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-slate-800 font-bold focus:outline-none focus:ring-4 focus:ring-blue-50 focus:border-blue-100 transition-all">
                         <?php if(isset(session('errors')['title'])): ?>
                             <p class="text-[10px] text-rose-500 font-black mt-2 uppercase tracking-wide"><?= session('errors')['title'] ?></p>
                         <?php endif; ?>
@@ -62,7 +95,7 @@
                                 <span class="text-[10px] text-slate-400 font-medium uppercase tracking-tight">JPG, PNG, WEBP (Max 2MB)</span>
                             </label>
                             <div id="image-preview" class="mt-4 hidden p-2 bg-slate-50 border border-slate-100 rounded-2xl">
-                                <img src="" id="preview-src" class="w-full h-auto rounded-xl shadow-sm">
+                                <img src="" id="preview-src" referrerpolicy="no-referrer" class="w-full h-auto rounded-xl shadow-sm">
                             </div>
                         </div>
                         <?php if(isset(session('errors')['cover'])): ?>
@@ -71,7 +104,21 @@
                     </div>
 
                     <div>
-                        <label class="block text-xs font-black uppercase tracking-widest text-slate-400 mb-3">รูปภาพประกอบเพิ่มเติม (Gallery)</label>
+                        <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                            <label class="block text-xs font-black uppercase tracking-widest text-slate-400">รูปภาพประกอบเพิ่มเติม (Gallery)</label>
+                            <div id="fb-create-gallery-toolbar" class="hidden flex items-center gap-1.5 text-xs">
+                                <span class="text-blue-600 font-bold text-[11px] mr-1" id="fb-create-photo-count"></span>
+                                <button type="button" onclick="selectTopNCreateFbGallery(10)" class="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-[11px] font-bold transition-all active:scale-95 shadow-xs">
+                                    <i data-lucide="check-check" class="w-3.5 h-3.5 inline mr-0.5"></i>เลือก 10 รูปแรก
+                                </button>
+                                <button type="button" onclick="setAllCreateFbGallery(true)" class="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[11px] font-bold transition-all active:scale-95">
+                                    เลือกทั้งหมด
+                                </button>
+                                <button type="button" onclick="setAllCreateFbGallery(false)" class="px-2 py-1 bg-slate-100 hover:bg-rose-50 text-slate-500 hover:text-rose-600 rounded-lg text-[11px] font-bold transition-all active:scale-95">
+                                    ยกเลิกทั้งหมด
+                                </button>
+                            </div>
+                        </div>
                         <div class="relative">
                             <input type="file" name="gallery[]" id="gallery" class="hidden" multiple onchange="previewGallery(this)">
                             <label for="gallery" id="gallery-dropzone" class="w-full flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-2xl p-6 hover:bg-slate-50 transition-all cursor-pointer group">
@@ -81,7 +128,7 @@
                                 <span class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">ลากหลายไฟล์มาวางที่นี่ หรือคลิกเพื่อเลือก</span>
                                 <span class="text-[9px] text-slate-400 font-medium tracking-tight">สามารถลากไฟล์รูปภาพมาวางได้พร้อมกันหลายไฟล์</span>
                             </label>
-                            <div id="gallery-preview" class="mt-4 grid grid-cols-4 gap-3"></div>
+                            <div id="gallery-preview" class="mt-4 grid grid-cols-4 sm:grid-cols-6 gap-3"></div>
                         </div>
                         <?php if(isset(session('errors')['gallery.*'])): ?>
                             <p class="text-[10px] text-rose-500 font-black mt-2 uppercase tracking-wide"><?= session('errors')['gallery.*'] ?></p>
@@ -373,6 +420,274 @@
         function removeGalleryFile(index) {
             selectedGalleryFiles.splice(index, 1);
             renderGalleryPreview();
+        }
+
+        async function quickFetchFacebook() {
+            const urlInput = document.getElementById('fb-quick-url');
+            const url = urlInput.value.trim();
+            if (!url) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'กรุณาระบุ URL',
+                    text: 'โปรดวางลิงก์โพสต์ Facebook ก่อนกดดึงข้อมูล',
+                    customClass: { popup: 'rounded-[2rem]' }
+                });
+                return;
+            }
+
+            const btn = document.getElementById('btn-quick-fetch');
+            const btnText = document.getElementById('btn-quick-fetch-text');
+            const spinner = document.getElementById('btn-quick-fetch-spinner');
+
+            btn.disabled = true;
+            btnText.textContent = 'กำลังดึงข้อมูล...';
+            spinner.classList.remove('hidden');
+
+            try {
+                const formData = new FormData();
+                formData.append('url', url);
+
+                const response = await fetch('<?= base_url('staff/news/fetch-facebook') ?>', {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+
+                const result = await response.json();
+
+                if (result.status === 'success' && result.data) {
+                    const data = result.data;
+                    
+                    // Fill title
+                    if (data.title) {
+                        const titleEl = document.getElementById('news-title-input');
+                        if (titleEl) titleEl.value = data.title;
+                    }
+
+                    // Fill content (with links)
+                    if (data.content) {
+                        const contentEl = document.querySelector('textarea[name="content"]');
+                        if (contentEl) contentEl.value = data.content;
+                    }
+
+                    // Fill Date
+                    if (data.created_at) {
+                        const dateEl = document.querySelector('input[name="created_at"]');
+                        if (dateEl) dateEl.value = data.created_at;
+                    }
+
+                    // Collect all fetched images
+                    createFbImages = [];
+                    if (data.cover_local || data.cover_url) {
+                        createFbImages.push({
+                            remote: data.cover_url || '',
+                            local_file: data.cover_local || '',
+                            local_url: data.cover_local_url || data.cover_url || '',
+                            inGallery: false
+                        });
+                    }
+
+                    if (data.gallery_items && data.gallery_items.length > 0) {
+                        data.gallery_items.forEach((item, gIdx) => {
+                            createFbImages.push({
+                                remote: item.remote || '',
+                                local_file: item.local_file || '',
+                                local_url: item.local_url || item.remote || '',
+                                inGallery: (gIdx < 10)
+                            });
+                        });
+                    } else if (data.gallery_urls && data.gallery_urls.length > 0) {
+                        data.gallery_urls.forEach((u, gIdx) => {
+                            createFbImages.push({
+                                remote: u,
+                                local_file: '',
+                                local_url: u,
+                                inGallery: (gIdx < 10)
+                            });
+                        });
+                    }
+
+                    selectedCreateCoverIdx = 0;
+                    renderCreatePhotoGrid();
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'ดึงข้อมูลสำเร็จ!',
+                        text: 'นำเข้าข้อมูลและรูปภาพจาก Facebook เรียบร้อยแล้ว (ระบบเลือกไว้ 10 รูปแรก สามารถเลือกเพิ่มหรือเปลี่ยนหน้าปกได้)',
+                        timer: 2500,
+                        showConfirmButton: false,
+                        customClass: { popup: 'rounded-[2rem]' }
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'ดึงข้อมูลไม่สำเร็จ',
+                        text: result.message || 'ไม่สามารถดึงข้อมูลจากลิงก์นี้ได้ กรุณาตรวจสอบลิงก์อีกครั้ง',
+                        customClass: { popup: 'rounded-[2rem]' }
+                    });
+                }
+            } catch (err) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'เกิดข้อผิดพลาด',
+                    text: err.message,
+                    customClass: { popup: 'rounded-[2rem]' }
+                });
+            } finally {
+                btn.disabled = false;
+                btnText.textContent = 'ดึงข้อมูล';
+                spinner.classList.add('hidden');
+            }
+        }
+
+        let createFbImages = [];
+        let selectedCreateCoverIdx = 0;
+
+        function renderCreatePhotoGrid() {
+            const toolbar = document.getElementById('fb-create-gallery-toolbar');
+            if (createFbImages.length === 0) {
+                if (toolbar) toolbar.classList.add('hidden');
+                return;
+            }
+
+            if (toolbar) toolbar.classList.remove('hidden');
+
+            const activeCover = createFbImages[selectedCreateCoverIdx] || createFbImages[0];
+            const displayCover = activeCover.local_url || activeCover.remote;
+
+            // Update main cover preview box
+            const preview = document.getElementById('image-preview');
+            const previewSrc = document.getElementById('preview-src');
+            const fbCoverInput = document.getElementById('fb_cover_url');
+            if (preview && previewSrc) {
+                previewSrc.src = displayCover;
+                preview.classList.remove('hidden');
+            }
+            if (fbCoverInput) {
+                fbCoverInput.value = activeCover.local_file ? '' : (activeCover.remote || '');
+            }
+
+            // Update temp_cover input
+            let tempCoverInput = document.getElementById('fb_temp_cover');
+            if (!tempCoverInput) {
+                tempCoverInput = document.createElement('input');
+                tempCoverInput.type = 'hidden';
+                tempCoverInput.name = 'temp_cover';
+                tempCoverInput.id = 'fb_temp_cover';
+                document.getElementById('news-form').appendChild(tempCoverInput);
+            }
+            tempCoverInput.value = activeCover.local_file || '';
+
+            // Render Gallery grid with cover indicator & swap buttons
+            let galleryContainer = document.getElementById('fb-hidden-gallery-container');
+            if (!galleryContainer) {
+                galleryContainer = document.createElement('div');
+                galleryContainer.id = 'fb-hidden-gallery-container';
+                document.getElementById('news-form').appendChild(galleryContainer);
+            }
+            const galleryPreview = document.getElementById('gallery-preview');
+            if (galleryPreview) {
+                galleryContainer.innerHTML = '';
+                galleryPreview.innerHTML = '';
+
+                createFbImages.forEach((item, idx) => {
+                    const isCover = (idx === selectedCreateCoverIdx);
+
+                    // Add hidden gallery inputs for selected non-cover images
+                    if (!isCover && item.inGallery) {
+                        const hiddenInput = document.createElement('input');
+                        hiddenInput.type = 'hidden';
+                        if (item.local_file) {
+                            hiddenInput.name = 'temp_gallery[]';
+                            hiddenInput.value = item.local_file;
+                        } else {
+                            hiddenInput.name = 'fb_gallery_urls[]';
+                            hiddenInput.value = item.remote;
+                        }
+                        hiddenInput.id = `fb-gal-input-${idx}`;
+                        galleryContainer.appendChild(hiddenInput);
+                    }
+
+                    // Visual card
+                    const div = document.createElement('div');
+                    div.id = `fb-gal-preview-${idx}`;
+                    div.className = `relative aspect-square rounded-2xl overflow-hidden border-2 transition-all cursor-pointer group ${
+                        isCover ? 'border-blue-600 ring-4 ring-blue-100 shadow-md scale-95' : (item.inGallery ? 'border-blue-400 bg-blue-50/20' : 'border-slate-200 opacity-60 hover:opacity-100 hover:border-slate-400')
+                    }`;
+                    div.onclick = () => setCreateCoverImage(idx);
+
+                    div.innerHTML = `
+                        <img src="${item.local_url || item.remote}" referrerpolicy="no-referrer" class="w-full h-full object-cover">
+                        
+                        ${isCover ? `
+                            <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-blue-900/90 to-transparent p-1.5 text-center pointer-events-none">
+                                <span class="text-[10px] font-black text-white flex items-center justify-center gap-1">
+                                    <i data-lucide="star" class="w-3 h-3 fill-current"></i> รูปหน้าปก
+                                </span>
+                            </div>
+                        ` : `
+                            <div class="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center p-1 text-center">
+                                <span class="px-2 py-1 bg-white text-blue-600 rounded-lg text-[9px] font-black shadow-md flex items-center gap-1">
+                                    <i data-lucide="star" class="w-3 h-3"></i> ตั้งเป็นหน้าปก
+                                </span>
+                            </div>
+                        `}
+
+                        ${!isCover ? `
+                            <div class="absolute top-1.5 right-1.5 z-10" onclick="event.stopPropagation()">
+                                <input type="checkbox" ${item.inGallery ? 'checked' : ''} onchange="toggleCreateGalleryInclusion(${idx}, this.checked)" title="เลือกรูปนี้ลงแกลเลอรี" class="w-4 h-4 rounded text-blue-600 border-slate-300 focus:ring-blue-500 shadow-sm cursor-pointer accent-blue-600">
+                            </div>
+                        ` : ''}
+                    `;
+                    galleryPreview.appendChild(div);
+                });
+                updateCreateGalleryCountDisplay();
+                if (window.lucide) lucide.createIcons();
+            }
+        }
+
+        function setCreateCoverImage(index) {
+            selectedCreateCoverIdx = index;
+            renderCreatePhotoGrid();
+        }
+
+        function toggleCreateGalleryInclusion(index, checked) {
+            if (createFbImages[index]) {
+                createFbImages[index].inGallery = checked;
+                renderCreatePhotoGrid();
+            }
+        }
+
+        function updateCreateGalleryCountDisplay() {
+            const countEl = document.getElementById('fb-create-photo-count');
+            if (countEl) {
+                const checkedCount = createFbImages.filter((img, idx) => idx !== selectedCreateCoverIdx && img.inGallery).length;
+                countEl.textContent = `(ทั้งหมด ${createFbImages.length} รูป / เลือกแกลเลอรี ${checkedCount} รูป)`;
+            }
+        }
+
+        function selectTopNCreateFbGallery(n = 10) {
+            let count = 0;
+            createFbImages.forEach((img, idx) => {
+                if (idx === selectedCreateCoverIdx) {
+                    img.inGallery = false;
+                } else if (count < n) {
+                    img.inGallery = true;
+                    count++;
+                } else {
+                    img.inGallery = false;
+                }
+            });
+            renderCreatePhotoGrid();
+        }
+
+        function setAllCreateFbGallery(checked) {
+            createFbImages.forEach((img, idx) => {
+                if (idx !== selectedCreateCoverIdx) {
+                    img.inGallery = checked;
+                }
+            });
+            renderCreatePhotoGrid();
         }
     </script>
 <?= $this->endSection() ?>
