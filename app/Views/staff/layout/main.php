@@ -36,116 +36,160 @@
                     <p class="text-[9px] text-blue-600 font-bold uppercase tracking-widest mt-1">Nakhon Sawan PAO</p>
                 </div>
             </div>
-            <nav class="flex-1 overflow-y-auto p-6 space-y-2">
-                <!-- 1. บริการพนักงาน (Staff Services) -->
-                <div class="sidebar-category-text pt-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest px-4 mb-3">บริการพนักงาน</div>
-                <a href="<?= base_url('staff') ?>" class="sidebar-item <?= uri_string() == 'staff' ? 'active shadow-lg shadow-blue-100 bg-blue-50/50' : 'text-slate-500 hover:text-blue-600' ?> flex items-center gap-4 px-4 py-3 rounded-2xl font-bold text-sm">
-                    <i data-lucide="layout-grid" class="w-5 h-5"></i><span class="sidebar-text">หน้าแดชบอร์ด</span>
-                </a>
-                <!-- <a href="<?= base_url('staff/attendance') ?>" class="sidebar-item <?= uri_string() == 'staff/attendance' ? 'active shadow-lg shadow-blue-100 bg-blue-50/50' : 'text-slate-500 hover:text-blue-600' ?> flex items-center gap-4 px-4 py-3 rounded-2xl font-bold text-sm">
-                    <i data-lucide="map-pin" class="w-5 h-5"></i><span class="sidebar-text">ลงชื่อปฏิบัติงาน</span>
-                </a> -->
-                <a href="<?= base_url('staff/leave') ?>" class="sidebar-item <?= strpos(uri_string(), 'staff/leave') === 0 && strpos(uri_string(), 'staff/leave/admin') === false ? 'active shadow-lg shadow-blue-100 bg-blue-50/50' : 'text-slate-500 hover:text-blue-600' ?> flex items-center gap-4 px-4 py-3 rounded-2xl font-bold text-sm">
-                           <?php 
-                    $userRoles = session()->get('u_role') ?? ''; 
-                    $rolesArr  = array_filter(array_map('trim', explode(',', $userRoles)));
-                    $isSuper   = in_array('superadmin', $rolesArr) || strpos($userRoles, 'superadmin') !== false;
-                    $isAdmin   = $isSuper || in_array('admin', $rolesArr) || strpos($userRoles, 'admin') !== false;
+            <?php 
+                $userRoles = session()->get('u_role') ?? ''; 
+                $rolesArr  = array_filter(array_map('trim', explode(',', $userRoles)));
+                $isSuper   = in_array('superadmin', $rolesArr) || strpos($userRoles, 'superadmin') !== false;
+                $isAdmin   = $isSuper || in_array('admin', $rolesArr) || strpos($userRoles, 'admin') !== false;
 
-                    $hasRole = function($role) use ($isAdmin, $rolesArr, $userRoles) {
-                        if ($isAdmin) return true;
-                        if (in_array($role, $rolesArr)) return true;
-                        if (strpos($userRoles, $role) !== false) return true;
-                        return false;
-                    };
-                ?>
+                $hasRole = function($role) use ($isAdmin, $rolesArr, $userRoles) {
+                    if ($isAdmin) return true;
+                    if (in_array($role, $rolesArr)) return true;
+                    if (strpos($userRoles, $role) !== false) return true;
+                    return false;
+                };
+
+                $currentUri = uri_string();
+            ?>
+
+            <nav class="flex-1 overflow-y-auto px-4 py-6 space-y-6">
+                <!-- 1. บริการพนักงาน (Staff Services) -->
+                <div class="space-y-1">
+                    <div class="sidebar-category-text text-[10px] font-black text-slate-400 uppercase tracking-widest px-3 mb-2">บริการของฉัน</div>
+                    
+                    <a href="<?= base_url('staff') ?>" 
+                       class="sidebar-item <?= $currentUri === 'staff' ? 'active shadow-sm shadow-blue-200 bg-blue-50 text-blue-700 font-black' : 'text-slate-600 hover:text-blue-600 hover:bg-slate-50' ?> flex items-center gap-3.5 px-3.5 py-2.5 rounded-2xl font-bold text-xs transition-all">
+                        <i data-lucide="layout-grid" class="w-4 h-4 shrink-0 <?= $currentUri === 'staff' ? 'text-blue-600' : 'text-slate-400' ?>"></i>
+                        <span class="sidebar-text">หน้าแดชบอร์ด</span>
+                    </a>
+
+                    <a href="<?= base_url('staff/leave') ?>" 
+                       class="sidebar-item <?= (strpos($currentUri, 'staff/leave') === 0 && strpos($currentUri, 'staff/leave/admin') === false) ? 'active shadow-sm shadow-blue-200 bg-blue-50 text-blue-700 font-black' : 'text-slate-600 hover:text-blue-600 hover:bg-slate-50' ?> flex items-center gap-3.5 px-3.5 py-2.5 rounded-2xl font-bold text-xs transition-all">
+                        <i data-lucide="file-signature" class="w-4 h-4 shrink-0 <?= (strpos($currentUri, 'staff/leave') === 0 && strpos($currentUri, 'staff/leave/admin') === false) ? 'text-blue-600' : 'text-slate-400' ?>"></i>
+                        <span class="sidebar-text">ยื่นใบลา & ประวัติการลา</span>
+                    </a>
+                </div>
 
                 <!-- 2. บริการงานบุคคล (HR Management) -->
                 <?php if($isAdmin || $hasRole('personnel') || $hasRole('summary') || $hasRole('head')): ?>
-                    <div class="sidebar-category-text pt-6 text-[10px] font-bold text-indigo-400 uppercase tracking-widest px-4 mb-3">บริการงานบุคคล</div>
-                    
-                    <?php if($hasRole('summary')): ?>
-                        <a href="<?= base_url('staff/attendance-admin') ?>" class="sidebar-item <?= strpos(uri_string(), 'staff/attendance-admin') === 0 ? 'active shadow-lg shadow-indigo-100 bg-indigo-50/50' : 'text-slate-500 hover:text-indigo-600' ?> flex items-center gap-4 px-4 py-3 rounded-2xl font-bold text-sm">
-                            <i data-lucide="calendar-check" class="w-5 h-5"></i><span class="sidebar-text">จัดการเวลาเข้างาน</span>
-                        </a>
-                    <?php endif; ?>
+                    <div class="space-y-1">
+                        <div class="sidebar-category-text text-[10px] font-black text-indigo-500 uppercase tracking-widest px-3 mb-2">บริการงานบุคคล</div>
+                        
+                        <?php if($hasRole('summary')): ?>
+                            <a href="<?= base_url('staff/attendance-admin') ?>" 
+                               class="sidebar-item <?= strpos($currentUri, 'staff/attendance-admin') === 0 ? 'active shadow-sm shadow-indigo-200 bg-indigo-50 text-indigo-700 font-black' : 'text-slate-600 hover:text-indigo-600 hover:bg-slate-50' ?> flex items-center gap-3.5 px-3.5 py-2.5 rounded-2xl font-bold text-xs transition-all">
+                                <i data-lucide="calendar-check" class="w-4 h-4 shrink-0 <?= strpos($currentUri, 'staff/attendance-admin') === 0 ? 'text-indigo-600' : 'text-slate-400' ?>"></i>
+                                <span class="sidebar-text">จัดการเวลาเข้างาน</span>
+                            </a>
+                        <?php endif; ?>
 
-                    <?php if($hasRole('personnel')): ?>
-                        <a href="<?= base_url('staff/personnel') ?>" class="sidebar-item <?= strpos(uri_string(), 'staff/personnel') === 0 ? 'active shadow-lg shadow-indigo-100 bg-indigo-50/50' : 'text-slate-500 hover:text-indigo-600' ?> flex items-center gap-4 px-4 py-3 rounded-2xl font-bold text-sm">
-                            <i data-lucide="users" class="w-5 h-5"></i><span class="sidebar-text">จัดการบุคลากร</span>
-                        </a>
-                        <a href="<?= base_url('admin/position') ?>" class="sidebar-item <?= strpos(uri_string(), 'admin/position') === 0 ? 'active shadow-lg shadow-indigo-100 bg-indigo-50/50' : 'text-slate-500 hover:text-indigo-600' ?> flex items-center gap-4 px-4 py-3 rounded-2xl font-bold text-sm">
-                            <i data-lucide="award" class="w-5 h-5"></i><span class="sidebar-text">จัดการตำแหน่ง</span>
-                        </a>
-                    <?php endif; ?>
+                        <?php if($hasRole('personnel')): ?>
+                            <a href="<?= base_url('staff/personnel') ?>" 
+                               class="sidebar-item <?= strpos($currentUri, 'staff/personnel') === 0 ? 'active shadow-sm shadow-indigo-200 bg-indigo-50 text-indigo-700 font-black' : 'text-slate-600 hover:text-indigo-600 hover:bg-slate-50' ?> flex items-center gap-3.5 px-3.5 py-2.5 rounded-2xl font-bold text-xs transition-all">
+                                <i data-lucide="users" class="w-4 h-4 shrink-0 <?= strpos($currentUri, 'staff/personnel') === 0 ? 'text-indigo-600' : 'text-slate-400' ?>"></i>
+                                <span class="sidebar-text">จัดการบุคลากร</span>
+                            </a>
+                            <a href="<?= base_url('admin/position') ?>" 
+                               class="sidebar-item <?= strpos($currentUri, 'admin/position') === 0 ? 'active shadow-sm shadow-indigo-200 bg-indigo-50 text-indigo-700 font-black' : 'text-slate-600 hover:text-indigo-600 hover:bg-slate-50' ?> flex items-center gap-3.5 px-3.5 py-2.5 rounded-2xl font-bold text-xs transition-all">
+                                <i data-lucide="award" class="w-4 h-4 shrink-0 <?= strpos($currentUri, 'admin/position') === 0 ? 'text-indigo-600' : 'text-slate-400' ?>"></i>
+                                <span class="sidebar-text">จัดการตำแหน่ง</span>
+                            </a>
+                        <?php endif; ?>
 
-                    <?php if($isAdmin || $hasRole('head')): ?>
-                        <a href="<?= base_url('staff/leave/admin') ?>" class="sidebar-item <?= strpos(uri_string(), 'staff/leave/admin') === 0 ? 'active shadow-lg shadow-indigo-100 bg-indigo-50/50' : 'text-slate-500 hover:text-indigo-600' ?> flex items-center gap-4 px-4 py-3 rounded-2xl font-bold text-sm">
-                            <i data-lucide="clipboard-check" class="w-5 h-5"></i><span class="sidebar-text">จัดการการลางาน</span>
-                        </a>
-                    <?php endif; ?>
+                        <?php if($isAdmin || $hasRole('head')): ?>
+                            <a href="<?= base_url('staff/leave/admin') ?>" 
+                               class="sidebar-item <?= strpos($currentUri, 'staff/leave/admin') === 0 ? 'active shadow-sm shadow-indigo-200 bg-indigo-50 text-indigo-700 font-black' : 'text-slate-600 hover:text-indigo-600 hover:bg-slate-50' ?> flex items-center gap-3.5 px-3.5 py-2.5 rounded-2xl font-bold text-xs transition-all">
+                                <i data-lucide="clipboard-check" class="w-4 h-4 shrink-0 <?= strpos($currentUri, 'staff/leave/admin') === 0 ? 'text-indigo-600' : 'text-slate-400' ?>"></i>
+                                <span class="sidebar-text">จัดการการลางาน</span>
+                            </a>
+                        <?php endif; ?>
+                    </div>
                 <?php endif; ?>
 
                 <!-- 3. ประชาสัมพันธ์ & กิจกรรม & ทุน (Portal & Activity Services) -->
                 <?php if($isAdmin || $hasRole('news') || $hasRole('scholarships') || $hasRole('scholarship') || $hasRole('forms') || $hasRole('science_week') || $hasRole('sports') || $hasRole('it_support')): ?>
-                    <div class="sidebar-category-text pt-6 text-[10px] font-bold text-amber-500 uppercase tracking-widest px-4 mb-3">ประชาสัมพันธ์ & ทุน & กิจกรรม</div>
-                    
-                    <?php if($hasRole('news')): ?>
-                        <a href="<?= base_url('staff/news') ?>" class="sidebar-item <?= strpos(uri_string(), 'staff/news') === 0 ? 'active shadow-lg shadow-amber-100 bg-amber-50/50' : 'text-slate-500 hover:text-amber-600' ?> flex items-center gap-4 px-4 py-3 rounded-2xl font-bold text-sm">
-                            <i data-lucide="megaphone" class="w-5 h-5"></i><span class="sidebar-text">จัดการข่าวประชาสัมพันธ์</span>
-                        </a>
-                    <?php endif; ?>
+                    <div class="space-y-1">
+                        <div class="sidebar-category-text text-[10px] font-black text-amber-600 uppercase tracking-widest px-3 mb-2">ภารกิจ & กิจกรรม</div>
+                        
+                        <?php if($hasRole('news')): ?>
+                            <a href="<?= base_url('staff/news') ?>" 
+                               class="sidebar-item <?= strpos($currentUri, 'staff/news') === 0 ? 'active shadow-sm shadow-amber-200 bg-amber-50 text-amber-800 font-black' : 'text-slate-600 hover:text-amber-700 hover:bg-slate-50' ?> flex items-center gap-3.5 px-3.5 py-2.5 rounded-2xl font-bold text-xs transition-all">
+                                <i data-lucide="megaphone" class="w-4 h-4 shrink-0 <?= strpos($currentUri, 'staff/news') === 0 ? 'text-amber-600' : 'text-slate-400' ?>"></i>
+                                <span class="sidebar-text">จัดการข่าวประชาสัมพันธ์</span>
+                            </a>
+                        <?php endif; ?>
 
-                    <?php if($hasRole('scholarships') || $hasRole('scholarship')): ?>
-                        <a href="<?= base_url('staff/scholarships') ?>" class="sidebar-item <?= strpos(uri_string(), 'staff/scholarships') === 0 ? 'active shadow-lg shadow-amber-100 bg-amber-50/50' : 'text-slate-500 hover:text-amber-600' ?> flex items-center gap-4 px-4 py-3 rounded-2xl font-bold text-sm">
-                            <i data-lucide="graduation-cap" class="w-5 h-5"></i><span class="sidebar-text">จัดการทุนการศึกษา</span>
-                        </a>
-                    <?php endif; ?>
+                        <?php if($hasRole('scholarships') || $hasRole('scholarship')): ?>
+                            <a href="<?= base_url('staff/scholarships') ?>" 
+                               class="sidebar-item <?= strpos($currentUri, 'staff/scholarships') === 0 ? 'active shadow-sm shadow-amber-200 bg-amber-50 text-amber-800 font-black' : 'text-slate-600 hover:text-amber-700 hover:bg-slate-50' ?> flex items-center gap-3.5 px-3.5 py-2.5 rounded-2xl font-bold text-xs transition-all">
+                                <i data-lucide="graduation-cap" class="w-4 h-4 shrink-0 <?= strpos($currentUri, 'staff/scholarships') === 0 ? 'text-amber-600' : 'text-slate-400' ?>"></i>
+                                <span class="sidebar-text">จัดการทุนการศึกษา</span>
+                            </a>
+                        <?php endif; ?>
 
-                    <?php if($hasRole('forms')): ?>
-                        <a href="<?= base_url('staff/forms') ?>" class="sidebar-item <?= strpos(uri_string(), 'staff/forms') === 0 ? 'active shadow-lg shadow-indigo-100 bg-indigo-50/50 text-indigo-700' : 'text-slate-500 hover:text-indigo-600' ?> flex items-center gap-4 px-4 py-3 rounded-2xl font-bold text-sm">
-                            <i data-lucide="file-check-2" class="w-5 h-5 text-indigo-500"></i><span class="sidebar-text">ระบบแบบสอบถาม & เกียรติบัตร</span>
-                        </a>
-                    <?php endif; ?>
-                    
-                    <?php if($hasRole('science_week')): ?>
-                        <a href="<?= base_url('science-week/staff') ?>" class="sidebar-item <?= strpos(uri_string(), 'science-week/staff') === 0 ? 'active shadow-lg shadow-purple-100 bg-purple-50/50 text-purple-700' : 'text-slate-500 hover:text-purple-600' ?> flex items-center gap-4 px-4 py-3 rounded-2xl font-bold text-sm">
-                            <i data-lucide="orbit" class="w-5 h-5 text-purple-500"></i><span class="sidebar-text">จัดการสัปดาห์วิทยาศาสตร์</span>
-                        </a>
-                    <?php endif; ?>
+                        <?php if($hasRole('forms')): ?>
+                            <a href="<?= base_url('staff/forms') ?>" 
+                               class="sidebar-item <?= strpos($currentUri, 'staff/forms') === 0 ? 'active shadow-sm shadow-indigo-200 bg-indigo-50 text-indigo-800 font-black' : 'text-slate-600 hover:text-indigo-700 hover:bg-slate-50' ?> flex items-center gap-3.5 px-3.5 py-2.5 rounded-2xl font-bold text-xs transition-all">
+                                <i data-lucide="file-check-2" class="w-4 h-4 shrink-0 <?= strpos($currentUri, 'staff/forms') === 0 ? 'text-indigo-600' : 'text-slate-400' ?>"></i>
+                                <span class="sidebar-text">แบบสอบถาม & เกียรติบัตร</span>
+                            </a>
+                        <?php endif; ?>
+                        
+                        <?php if($hasRole('science_week')): ?>
+                            <a href="<?= base_url('science-week/staff') ?>" 
+                               class="sidebar-item <?= strpos($currentUri, 'science-week/staff') === 0 ? 'active shadow-sm shadow-purple-200 bg-purple-50 text-purple-800 font-black' : 'text-slate-600 hover:text-purple-700 hover:bg-slate-50' ?> flex items-center gap-3.5 px-3.5 py-2.5 rounded-2xl font-bold text-xs transition-all">
+                                <i data-lucide="orbit" class="w-4 h-4 shrink-0 <?= strpos($currentUri, 'science-week/staff') === 0 ? 'text-purple-600' : 'text-slate-400' ?>"></i>
+                                <span class="sidebar-text">สัปดาห์วิทยาศาสตร์</span>
+                            </a>
+                        <?php endif; ?>
 
-                    <?php if($hasRole('sports')): ?>
-                        <a href="<?= base_url('staff/sports') ?>" class="sidebar-item <?= strpos(uri_string(), 'staff/sports') === 0 ? 'active shadow-lg shadow-emerald-100 bg-emerald-50/50 text-emerald-700' : 'text-slate-500 hover:text-emerald-600' ?> flex items-center gap-4 px-4 py-3 rounded-2xl font-bold text-sm">
-                            <i data-lucide="trophy" class="w-5 h-5 text-emerald-500"></i><span class="sidebar-text">จัดการแข่งขันกีฬา อบจ.</span>
-                        </a>
-                    <?php endif; ?>
+                        <?php if($hasRole('sports')): ?>
+                            <a href="<?= base_url('staff/sports') ?>" 
+                               class="sidebar-item <?= strpos($currentUri, 'staff/sports') === 0 ? 'active shadow-sm shadow-emerald-200 bg-emerald-50 text-emerald-800 font-black' : 'text-slate-600 hover:text-emerald-700 hover:bg-slate-50' ?> flex items-center gap-3.5 px-3.5 py-2.5 rounded-2xl font-bold text-xs transition-all">
+                                <i data-lucide="trophy" class="w-4 h-4 shrink-0 <?= strpos($currentUri, 'staff/sports') === 0 ? 'text-emerald-600' : 'text-slate-400' ?>"></i>
+                                <span class="sidebar-text">การแข่งขันกีฬา อบจ.</span>
+                            </a>
+                        <?php endif; ?>
 
-                    <?php if($hasRole('it_support')): ?>
-                        <a href="<?= base_url('itsupport') ?>" class="sidebar-item <?= strpos(uri_string(), 'itsupport') === 0 ? 'active shadow-lg shadow-teal-100 bg-teal-50/50 text-teal-700' : 'text-slate-500 hover:text-teal-600' ?> flex items-center gap-4 px-4 py-3 rounded-2xl font-bold text-sm">
-                            <i data-lucide="wrench" class="w-5 h-5 text-teal-500"></i><span class="sidebar-text">จัดการ IT Support</span>
-                        </a>
-                    <?php endif; ?>
-
+                        <?php if($hasRole('it_support')): ?>
+                            <a href="<?= base_url('itsupport') ?>" 
+                               class="sidebar-item <?= strpos($currentUri, 'itsupport') === 0 ? 'active shadow-sm shadow-teal-200 bg-teal-50 text-teal-800 font-black' : 'text-slate-600 hover:text-teal-700 hover:bg-slate-50' ?> flex items-center gap-3.5 px-3.5 py-2.5 rounded-2xl font-bold text-xs transition-all">
+                                <i data-lucide="wrench" class="w-4 h-4 shrink-0 <?= strpos($currentUri, 'itsupport') === 0 ? 'text-teal-600' : 'text-slate-400' ?>"></i>
+                                <span class="sidebar-text">ระบบ IT Support</span>
+                            </a>
+                        <?php endif; ?>
+                    </div>
                 <?php endif; ?>
 
                 <!-- 4. ตั้งค่าระบบ (System Admin) -->
                 <?php if($isSuper || $isAdmin || $hasRole('settings')): ?>
-                    <div class="sidebar-category-text pt-6 text-[10px] font-bold text-rose-500 uppercase tracking-widest px-4 mb-3">ตั้งค่าระบบ</div>
-                    <?php if($isSuper || $isAdmin): ?>
-                        <a href="<?= base_url('staff/permissions') ?>" class="sidebar-item <?= uri_string() == 'staff/permissions' ? 'active shadow-lg shadow-rose-100 bg-rose-50/50' : 'text-slate-500 hover:text-rose-600' ?> flex items-center gap-4 px-4 py-3 rounded-2xl font-bold text-sm">
-                            <i data-lucide="key" class="w-5 h-5"></i><span class="sidebar-text">สิทธิ์การใช้งาน</span>
-                        </a>
-                    <?php endif; ?>
-                    <?php if($isSuper || $hasRole('settings')): ?>
-                        <a href="<?= base_url('staff/settings') ?>" class="sidebar-item <?= uri_string() == 'staff/settings' ? 'active shadow-lg shadow-rose-100 bg-rose-50/50' : 'text-slate-500 hover:text-rose-600' ?> flex items-center gap-4 px-4 py-3 rounded-2xl font-bold text-sm">
-                            <i data-lucide="settings" class="w-5 h-5"></i><span class="sidebar-text">ตั้งค่าระบบหลัก</span>
-                        </a>
-                    <?php endif; ?>
+                    <div class="space-y-1">
+                        <div class="sidebar-category-text text-[10px] font-black text-rose-500 uppercase tracking-widest px-3 mb-2">ตั้งค่าระบบ</div>
+                        
+                        <?php if($isSuper || $isAdmin): ?>
+                            <a href="<?= base_url('staff/permissions') ?>" 
+                               class="sidebar-item <?= $currentUri === 'staff/permissions' ? 'active shadow-sm shadow-rose-200 bg-rose-50 text-rose-800 font-black' : 'text-slate-600 hover:text-rose-600 hover:bg-slate-50' ?> flex items-center gap-3.5 px-3.5 py-2.5 rounded-2xl font-bold text-xs transition-all">
+                                <i data-lucide="key" class="w-4 h-4 shrink-0 <?= $currentUri === 'staff/permissions' ? 'text-rose-600' : 'text-slate-400' ?>"></i>
+                                <span class="sidebar-text">สิทธิ์การใช้งาน</span>
+                            </a>
+                        <?php endif; ?>
+
+                        <?php if($isSuper || $hasRole('settings')): ?>
+                            <a href="<?= base_url('staff/settings') ?>" 
+                               class="sidebar-item <?= $currentUri === 'staff/settings' ? 'active shadow-sm shadow-rose-200 bg-rose-50 text-rose-800 font-black' : 'text-slate-600 hover:text-rose-600 hover:bg-slate-50' ?> flex items-center gap-3.5 px-3.5 py-2.5 rounded-2xl font-bold text-xs transition-all">
+                                <i data-lucide="settings" class="w-4 h-4 shrink-0 <?= $currentUri === 'staff/settings' ? 'text-rose-600' : 'text-slate-400' ?>"></i>
+                                <span class="sidebar-text">ตั้งค่าระบบหลัก</span>
+                            </a>
+                        <?php endif; ?>
+                    </div>
                 <?php endif; ?>
             </nav>
-            <div class="p-6 border-t border-slate-100">
-                <a href="<?= base_url('auth/logout') ?>" class="sidebar-item flex items-center gap-4 px-4 py-3.5 rounded-2xl font-bold text-sm text-rose-500 hover:bg-rose-50 transition-colors">
-                    <i data-lucide="log-out" class="w-5 h-5"></i><span class="sidebar-text">ออกจากระบบ</span>
+
+            <!-- Sidebar Footer -->
+            <div class="p-4 border-t border-slate-100 shrink-0">
+                <a href="<?= base_url('auth/logout') ?>" class="sidebar-item flex items-center gap-3.5 px-3.5 py-3 rounded-2xl font-bold text-xs text-rose-600 hover:bg-rose-50 transition-colors">
+                    <i data-lucide="log-out" class="w-4 h-4 shrink-0"></i>
+                    <span class="sidebar-text">ออกจากระบบ</span>
                 </a>
             </div>
         </aside>

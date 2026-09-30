@@ -31,6 +31,12 @@ $navLinks = [
         'url'   => 'staff/sports/certificates',
         'exact' => false
     ],
+    [
+        'title' => 'ตั้งค่า & เปิด-ปิดระบบ',
+        'icon'  => 'sliders',
+        'url'   => 'staff/sports/settings',
+        'exact' => false
+    ],
 ];
 
 $activeCompYear  = isset($activeYear) ? (int)$activeYear : (int)(session()->get('sports_active_year') ?: 2569);
@@ -39,6 +45,17 @@ if (!in_array($activeCompYear, $availYears)) {
     $availYears[] = $activeCompYear;
     rsort($availYears);
 }
+
+$db = \Config\Database::connect();
+$sysStatus = 'open';
+try {
+    if ($db->tableExists('Tb_Sports_Settings')) {
+        $st = $db->table('Tb_Sports_Settings')->where('setting_key', 'system_status')->get()->getRow();
+        if ($st && !empty($st->setting_value)) {
+            $sysStatus = $st->setting_value;
+        }
+    }
+} catch (\Throwable $e) {}
 ?>
 
 <!-- Sports Admin Sub-Navigation Menu -->
@@ -58,13 +75,32 @@ if (!in_array($activeCompYear, $availYears)) {
         <?php endforeach; ?>
     </div>
 
-    <!-- Year Selector & Public Link -->
+    <!-- Year Selector & System Status & Public Link -->
     <div class="flex items-center gap-2 shrink-0 w-full lg:w-auto justify-between lg:justify-end pt-1 lg:pt-0 border-t lg:border-t-0 lg:border-l border-slate-100 lg:pl-3">
         
+        <!-- System Live Status Badge Link -->
+        <a href="<?= base_url('staff/sports/settings') ?>" 
+           class="px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl sm:rounded-2xl text-xs font-black flex items-center gap-1.5 transition-all border shrink-0 <?= $sysStatus === 'open' ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-200' : ($sysStatus === 'closed' ? 'bg-rose-50 hover:bg-rose-100 text-rose-800 border-rose-200' : 'bg-amber-50 hover:bg-amber-100 text-amber-800 border-amber-200') ?>" 
+           title="คลิกเพื่อตั้งค่าสถานะเปิด-ปิดระบบ">
+            <?php if ($sysStatus === 'open'): ?>
+                <span class="relative flex h-2 w-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-600"></span>
+                </span>
+                <span class="hidden sm:inline">ระบบเปิดรับสมัคร</span>
+            <?php elseif ($sysStatus === 'closed'): ?>
+                <span class="h-2 w-2 rounded-full bg-rose-600"></span>
+                <span class="hidden sm:inline">ระบบปิดรับสมัคร</span>
+            <?php else: ?>
+                <span class="h-2 w-2 rounded-full bg-amber-500"></span>
+                <span class="hidden sm:inline">ปิดปรับปรุงระบบ</span>
+            <?php endif; ?>
+        </a>
+
         <!-- Year Switcher Dropdown -->
         <div class="flex items-center gap-1.5 bg-slate-50 hover:bg-slate-100/80 px-2.5 sm:px-3 py-1.5 rounded-xl sm:rounded-2xl border border-slate-200/70 transition-colors">
             <i data-lucide="calendar" class="w-3.5 h-3.5 text-emerald-600 shrink-0"></i>
-            <span class="text-[11px] font-bold text-slate-500 hidden sm:inline">ดูข้อมูลปี:</span>
+            <span class="text-[11px] font-bold text-slate-500 hidden sm:inline">ปี:</span>
             <select onchange="window.location.href='<?= base_url('staff/sports/set-year/') ?>' + this.value" 
                     class="bg-transparent text-xs font-black text-slate-800 outline-none cursor-pointer pr-1">
                 <?php foreach ($availYears as $yr): ?>
@@ -75,20 +111,12 @@ if (!in_array($activeCompYear, $availYears)) {
             </select>
         </div>
 
-        <!-- Set System Default Year Button -->
-        <button type="button" onclick="openSystemYearModal()" 
-                class="px-2.5 sm:px-3 py-1.5 sm:py-2 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200/80 rounded-xl sm:rounded-2xl text-xs font-black flex items-center gap-1.5 transition-all shadow-xs cursor-pointer" 
-                title="ตั้งค่าปีการแข่งขันหลักที่จะแสดงบนหน้าเว็บสาธารณะ">
-            <i data-lucide="settings" class="w-3.5 h-3.5 text-amber-600"></i>
-            <span class="hidden sm:inline">ตั้งค่าปีหลัก</span>
-        </button>
-
         <!-- Public Portal Link -->
         <a href="<?= base_url('sports') ?>" target="_blank" 
            class="px-3 py-1.5 sm:py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl sm:rounded-2xl font-bold text-xs flex items-center gap-1.5 transition-colors shrink-0" 
            title="เปิดดูหน้าเว็บรับสมัครของบุคคลภายนอก">
             <i data-lucide="external-link" class="w-3.5 h-3.5 text-slate-500"></i>
-            <span class="text-xs">หน้าเว็บรับสมัคร</span>
+            <span class="text-xs hidden sm:inline">หน้าเว็บรับสมัคร</span>
         </a>
     </div>
 </div>

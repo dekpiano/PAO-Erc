@@ -34,18 +34,73 @@ class SportsPublicController extends BaseController
         return $code;
     }
 
-    public function getSystemActiveYear(): int
+    public function getSystemSettings(): array
     {
         $db = \Config\Database::connect();
+        $currentThaiYear = (int)date('Y') + 543;
+
+        $defaults = [
+            'active_comp_year'           => (string)$currentThaiYear,
+            'system_status'              => 'open', // 'open', 'closed', 'maintenance'
+            'system_status_mode'         => 'manual', // 'manual', 'schedule'
+            'system_reg_start_date'      => '',
+            'system_reg_end_date'        => '',
+            'system_closed_message'      => 'ระบบรับสมัครการแข่งขันกีฬา อบจ.นครสวรรค์ ปิดรับสมัครแล้ว ขอขอบคุณทุกโรงเรียนและสถานศึกษาที่ให้ความสนใจ',
+            'system_maintenance_message' => 'ระบบกำลังอยู่ระหว่างการปิดปรับปรุงและอัปเดตข้อมูลชั่วคราว ขออภัยในความไม่สะดวก',
+            'system_announcement'        => '',
+            'system_announcement_type'   => 'info',
+            'system_announcement_active' => '0',
+            'contact_name'               => '',
+            'contact_phone'              => '',
+            'contact_line'               => '',
+            'contact_email'              => '',
+        ];
+
         try {
             if ($db->tableExists('Tb_Sports_Settings')) {
-                $row = $db->table('Tb_Sports_Settings')->where('setting_key', 'active_comp_year')->get()->getRow();
-                if ($row && !empty($row->setting_value) && is_numeric($row->setting_value)) {
-                    return (int)$row->setting_value;
+                $rows = $db->table('Tb_Sports_Settings')->get()->getResultArray();
+                foreach ($rows as $row) {
+                    $defaults[$row['setting_key']] = $row['setting_value'];
                 }
             }
         } catch (\Throwable $e) {}
 
+        // Calculate effective status
+        if (($defaults['system_status_mode'] ?? 'manual') === 'schedule') {
+            $today = date('Y-m-d');
+            $start = $defaults['system_reg_start_date'] ?? '';
+            $end   = $defaults['system_reg_end_date'] ?? '';
+
+            if (!empty($start) && $today < $start) {
+                $defaults['effective_status'] = 'not_started';
+                $defaults['status_notice'] = 'ระบบยังไม่เปิดรับสมัคร (เปิดรับสมัครวันที่ ' . date('d/m/Y', strtotime($start)) . ')';
+            } elseif (!empty($end) && $today > $end) {
+                $defaults['effective_status'] = 'closed';
+                $defaults['status_notice'] = !empty($defaults['system_closed_message']) ? $defaults['system_closed_message'] : 'ระบบรับสมัครการแข่งขันกีฬาสิ้นสุดระยะเวลารับสมัครแล้ว';
+            } else {
+                $defaults['effective_status'] = $defaults['system_status'] ?? 'open';
+                $defaults['status_notice'] = $defaults['effective_status'] === 'maintenance' 
+                    ? ($defaults['system_maintenance_message'] ?: 'ระบบกำลังอยู่ระหว่างการปิดปรับปรุงชั่วคราว')
+                    : ($defaults['effective_status'] === 'closed' ? ($defaults['system_closed_message'] ?: 'ระบบปิดรับสมัครแล้ว') : '');
+            }
+        } else {
+            $defaults['effective_status'] = $defaults['system_status'] ?? 'open';
+            $defaults['status_notice'] = $defaults['effective_status'] === 'maintenance' 
+                ? ($defaults['system_maintenance_message'] ?: 'ระบบกำลังอยู่ระหว่างการปิดปรับปรุงชั่วคราว')
+                : ($defaults['effective_status'] === 'closed' ? ($defaults['system_closed_message'] ?: 'ระบบปิดรับสมัครแล้ว') : '');
+        }
+
+        return $defaults;
+    }
+
+    public function getSystemActiveYear(): int
+    {
+        $settings = $this->getSystemSettings();
+        if (!empty($settings['active_comp_year']) && is_numeric($settings['active_comp_year'])) {
+            return (int)$settings['active_comp_year'];
+        }
+
+        $db = \Config\Database::connect();
         try {
             if ($db->tableExists('Tb_Sports_Categories')) {
                 $latest = $db->table('Tb_Sports_Categories')->selectMax('comp_year')->get()->getRow();
@@ -93,6 +148,7 @@ class SportsPublicController extends BaseController
         $activeYear = $this->getActiveYear();
         $systemDefaultYear = $this->getSystemActiveYear();
         $availableYears = $this->getAllCompYears();
+        $systemSettings = $this->getSystemSettings();
 
         $builder = $db->table('Tb_Sports_Categories as c')
                       ->select('c.*, COUNT(t.team_id) as registered_teams')
@@ -114,7 +170,8 @@ class SportsPublicController extends BaseController
             'categories'        => $categories,
             'activeCompYear'    => $activeYear,
             'systemDefaultYear' => $systemDefaultYear,
-            'availableYears'    => $availableYears
+            'availableYears'    => $availableYears,
+            'systemSettings'    => $systemSettings,
         ];
 
         return view('sports/public/index', $data);
@@ -123,6 +180,12 @@ class SportsPublicController extends BaseController
     // Register Form
     public function register($categoryId)
     {
+        $systemSettings = $this->getSystemSettings();
+        if ($systemSettings['effective_status'] !== 'open') {
+            $msg = !empty($systemSettings['status_notice']) ? $systemSettings['status_notice'] : '❌ ขออภัย ระบบลงทะเบียนแข่งขันกีฬาปิดรับสมัครในขณะนี้';
+            return redirect()->to(base_url('sports'))->with('error', $msg);
+        }
+
         $category = $this->catModel->find($categoryId);
         if (!$category || $category['status'] !== 'open') {
             return redirect()->to(base_url('sports'))->with('error', 'รุ่นการแข่งขันนี้ปิดรับสมัครแล้ว หรือไม่พบข้อมูล');
@@ -155,9 +218,10 @@ class SportsPublicController extends BaseController
         }
 
         $data = [
-            'title'        => 'ลงทะเบียนแข่งขัน - ' . $category['sport_name'] . ' (' . $category['category_name'] . ')',
-            'category'     => $category,
-            'currentTeams' => $currentTeams
+            'title'          => 'ลงทะเบียนแข่งขัน - ' . $category['sport_name'] . ' (' . $category['category_name'] . ')',
+            'category'       => $category,
+            'currentTeams'   => $currentTeams,
+            'systemSettings' => $systemSettings,
         ];
 
         return view('sports/public/register', $data);
@@ -166,6 +230,12 @@ class SportsPublicController extends BaseController
     // Submit Registration
     public function submit()
     {
+        $systemSettings = $this->getSystemSettings();
+        if ($systemSettings['effective_status'] !== 'open') {
+            $msg = !empty($systemSettings['status_notice']) ? $systemSettings['status_notice'] : '❌ ขออภัย ระบบลงทะเบียนแข่งขันกีฬาปิดรับสมัครในขณะนี้';
+            return redirect()->to(base_url('sports'))->with('error', $msg);
+        }
+
         $categoryId = $this->request->getPost('category_id');
         $category   = $this->catModel->find($categoryId);
 

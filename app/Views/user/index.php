@@ -129,27 +129,85 @@
     </section>
 
     <!-- Featured Sports Banner Section -->
+    <?php
+    $spSet = isset($sportsSettings) && is_array($sportsSettings) ? $sportsSettings : [];
+    $showOnHome = ($spSet['show_on_homepage'] ?? '1') === '1';
+    $spYear = esc($spSet['active_comp_year'] ?? '2569');
+    $spStatus = $spSet['effective_status'] ?? 'open';
+    ?>
+    <?php if ($showOnHome): ?>
     <section class="bg-slate-50 py-8 relative -mt-10 z-20">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-700 rounded-3xl p-6 sm:p-8 text-white shadow-xl flex flex-col md:flex-row items-center justify-between gap-6" data-aos="fade-up">
+            <div class="rounded-3xl p-6 sm:p-8 text-white shadow-xl flex flex-col md:flex-row items-center justify-between gap-6 transition-all duration-300 <?= $spStatus === 'open' ? 'bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-700' : ($spStatus === 'closed' ? 'bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border border-slate-700/60' : ($spStatus === 'maintenance' ? 'bg-gradient-to-r from-amber-700 via-orange-800 to-slate-900' : 'bg-gradient-to-r from-sky-700 via-teal-700 to-emerald-800')) ?>" data-aos="fade-up">
+                
                 <div class="flex items-center gap-5">
                     <div class="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-amber-300 shrink-0 shadow-inner">
-                        <i data-lucide="trophy" class="w-8 h-8"></i>
+                        <i data-lucide="<?= $spStatus === 'open' ? 'trophy' : ($spStatus === 'closed' ? 'lock' : ($spStatus === 'maintenance' ? 'wrench' : 'calendar-clock')) ?>" class="w-8 h-8"></i>
                     </div>
-                    <div class="space-y-1">
-                        <div class="inline-flex items-center gap-2 px-3 py-0.5 bg-amber-400 text-slate-950 rounded-full text-[11px] font-black uppercase tracking-wider">
-                            <span>เปิดรับสมัครแล้ว</span>
+                    <div class="space-y-1.5">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <?php if ($spStatus === 'open'): ?>
+                                <span class="inline-flex items-center gap-1.5 px-3 py-0.5 bg-amber-400 text-slate-950 rounded-full text-[11px] font-black uppercase tracking-wider shadow-xs">
+                                    <span class="w-2 h-2 rounded-full bg-emerald-700 animate-ping"></span>
+                                    <span>เปิดรับสมัครแล้ว</span>
+                                </span>
+                            <?php elseif ($spStatus === 'closed'): ?>
+                                <span class="inline-flex items-center gap-1.5 px-3 py-0.5 bg-rose-500/90 text-white rounded-full text-[11px] font-black uppercase tracking-wider border border-rose-400/40">
+                                    <i data-lucide="lock" class="w-3 h-3"></i>
+                                    <span>ปิดรับสมัครแล้ว</span>
+                                </span>
+                            <?php elseif ($spStatus === 'maintenance'): ?>
+                                <span class="inline-flex items-center gap-1.5 px-3 py-0.5 bg-amber-400 text-slate-950 rounded-full text-[11px] font-black uppercase tracking-wider">
+                                    <i data-lucide="wrench" class="w-3 h-3"></i>
+                                    <span>ปิดปรับปรุงระบบ</span>
+                                </span>
+                            <?php else: ?>
+                                <span class="inline-flex items-center gap-1.5 px-3 py-0.5 bg-sky-400 text-slate-950 rounded-full text-[11px] font-black uppercase tracking-wider">
+                                    <i data-lucide="clock" class="w-3 h-3"></i>
+                                    <span>เปิดรับสมัครเร็วๆ นี้</span>
+                                </span>
+                            <?php endif; ?>
+
+                            <span class="text-xs font-bold text-white/80">กีฬา อบจ.นครสวรรค์ เกมส์</span>
                         </div>
-                        <h3 class="text-xl sm:text-2xl font-black tracking-tight">การแข่งขันกีฬา อบจ.นครสวรรค์ เกมส์ ประจำปี 2569</h3>
-                        <p class="text-emerald-100 text-xs sm:text-sm max-w-xl">ขอเชิญสถานศึกษาส่งทีมนักกีฬาเข้าร่วมการแข่งขัน พร้อมระบบตรวจสอบสถานะ ประกาศผล และดาวน์โหลดเกียรติบัตรออนไลน์</p>
+
+                        <h3 class="text-xl sm:text-2xl font-black tracking-tight leading-snug">
+                            การแข่งขันกีฬา อบจ.นครสวรรค์ เกมส์ ประจำปี <?= $spYear ?>
+                        </h3>
+                        
+                        <p class="text-white/90 text-xs sm:text-sm max-w-xl leading-relaxed">
+                            <?php if ($spStatus === 'open'): ?>
+                                ขอเชิญสถานศึกษาส่งทีมนักกีฬาเข้าร่วมการแข่งขัน พร้อมระบบตรวจสอบสถานะ ประกาศผล และดาวน์โหลดเกียรติบัตรออนไลน์
+                            <?php elseif ($spStatus === 'closed'): ?>
+                                ระบบสิ้นสุดระยะเวลารับสมัครแล้ว สถานศึกษาสามารถติดตามผลการแข่งขัน ตรวจสอบสถานะ และดาวน์โหลดเกียรติบัตรได้ที่นี่
+                            <?php elseif ($spStatus === 'maintenance'): ?>
+                                ระบบกำลังอยู่ระหว่างการปรับปรุงข้อมูลชั่วคราว ขออภัยในความไม่สะดวก
+                            <?php else: ?>
+                                เตรียมพร้อมสำหรับการแข่งขันกีฬา อบจ.นครสวรรค์ เกมส์ ติดตามกำหนดการรับสมัครเร็วๆ นี้
+                            <?php endif; ?>
+                        </p>
                     </div>
                 </div>
-                <div class="flex flex-wrap items-center gap-3 w-full md:w-auto justify-end">
-                    <a href="<?= base_url('sports') ?>" class="px-6 py-3.5 bg-amber-400 hover:bg-amber-500 text-slate-950 font-black rounded-2xl text-xs flex items-center gap-2 shadow-lg shadow-amber-400/20 transition-all hover:scale-105">
-                        <i data-lucide="user-plus" class="w-4 h-4"></i>
-                        <span>เข้าสู่ระบบแข่งขันกีฬา</span>
+
+                <div class="flex flex-wrap items-center gap-3 w-full md:w-auto justify-end shrink-0">
+                    <?php if ($spStatus === 'open'): ?>
+                        <a href="<?= base_url('sports') ?>" class="px-6 py-3.5 bg-amber-400 hover:bg-amber-500 text-slate-950 font-black rounded-2xl text-xs flex items-center gap-2 shadow-lg shadow-amber-400/20 transition-all hover:scale-105">
+                            <i data-lucide="user-plus" class="w-4 h-4"></i>
+                            <span>ลงทะเบียนแข่งขันกีฬา</span>
+                        </a>
+                    <?php else: ?>
+                        <a href="<?= base_url('sports') ?>" class="px-5 py-3.5 bg-white text-slate-900 hover:bg-slate-100 font-black rounded-2xl text-xs flex items-center gap-2 shadow-md transition-all hover:scale-105">
+                            <i data-lucide="layers" class="w-4 h-4 text-emerald-600"></i>
+                            <span>ดูรายการกีฬา</span>
+                        </a>
+                    <?php endif; ?>
+
+                    <a href="<?= base_url('sports/status') ?>" class="px-4 py-3.5 bg-white/10 hover:bg-white/20 border border-white/30 text-white font-bold rounded-2xl text-xs flex items-center gap-2 transition-all">
+                        <i data-lucide="search" class="w-4 h-4"></i>
+                        <span>ตรวจสอบสถานะ</span>
                     </a>
-                    <a href="<?= base_url('sports/results') ?>" class="px-5 py-3.5 bg-white/10 hover:bg-white/20 border border-white/30 text-white font-bold rounded-2xl text-xs flex items-center gap-2 transition-all">
+
+                    <a href="<?= base_url('sports/results') ?>" class="px-4 py-3.5 bg-white/10 hover:bg-white/20 border border-white/30 text-white font-bold rounded-2xl text-xs flex items-center gap-2 transition-all">
                         <i data-lucide="award" class="w-4 h-4 text-amber-300"></i>
                         <span>ผลการแข่งขัน</span>
                     </a>
@@ -157,6 +215,7 @@
             </div>
         </div>
     </section>
+    <?php endif; ?>
 
     <!-- News & PR Section (Magazine Style) -->
     <section id="news" class="py-24 bg-white">

@@ -25,6 +25,48 @@ class Home extends Controller
                                                ->orderBy('sch_created_at', 'DESC')
                                                ->limit(4)
                                                ->findAll();
+
+        // Fetch Sports System Settings
+        $currentThaiYear = (int)date('Y') + 543;
+        $sportsSettings = [
+            'active_comp_year'           => (string)$currentThaiYear,
+            'system_status'              => 'open', // 'open', 'closed', 'maintenance'
+            'system_status_mode'         => 'manual', // 'manual', 'schedule'
+            'system_reg_start_date'      => '',
+            'system_reg_end_date'        => '',
+            'system_closed_message'      => '',
+            'system_maintenance_message' => '',
+            'system_announcement'        => '',
+            'system_announcement_active' => '0',
+        ];
+
+        try {
+            $db = \Config\Database::connect();
+            if ($db->tableExists('Tb_Sports_Settings')) {
+                $rows = $db->table('Tb_Sports_Settings')->get()->getResultArray();
+                foreach ($rows as $row) {
+                    $sportsSettings[$row['setting_key']] = $row['setting_value'];
+                }
+            }
+        } catch (\Throwable $e) {}
+
+        // Calculate effective status
+        if (($sportsSettings['system_status_mode'] ?? 'manual') === 'schedule') {
+            $today = date('Y-m-d');
+            $start = $sportsSettings['system_reg_start_date'] ?? '';
+            $end   = $sportsSettings['system_reg_end_date'] ?? '';
+            if (!empty($start) && $today < $start) {
+                $sportsSettings['effective_status'] = 'not_started';
+            } elseif (!empty($end) && $today > $end) {
+                $sportsSettings['effective_status'] = 'closed';
+            } else {
+                $sportsSettings['effective_status'] = $sportsSettings['system_status'] ?? 'open';
+            }
+        } else {
+            $sportsSettings['effective_status'] = $sportsSettings['system_status'] ?? 'open';
+        }
+
+        $data['sportsSettings'] = $sportsSettings;
                                          
         return view('user/index', $data);
     }

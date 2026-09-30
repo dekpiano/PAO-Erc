@@ -282,6 +282,11 @@ $routes->group('staff/sports', function($routes) {
     $routes->get('set-year/(:num)', 'Sports\SportsAdminController::setYear/$1');
     $routes->post('set-system-year', 'Sports\SportsAdminController::setSystemYear');
     
+    // System Settings & Open/Close Control
+    $routes->get('settings', 'Sports\SportsAdminController::settings');
+    $routes->post('settings/save', 'Sports\SportsAdminController::settingsSave');
+    $routes->post('toggle-system-status', 'Sports\SportsAdminController::toggleSystemStatus');
+    
     // Categories CRUD
     $routes->get('categories', 'Sports\SportsAdminController::categories');
     $routes->post('categories/store', 'Sports\SportsAdminController::categoryStore');

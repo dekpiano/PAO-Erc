@@ -260,6 +260,61 @@ class SportsAdminController extends BaseController
         return redirect()->to($referer ?: base_url('staff/sports'));
     }
 
+    public function getSettings(): array
+    {
+        $db = \Config\Database::connect();
+        $this->initTables();
+        $currentThaiYear = (int)date('Y') + 543;
+
+        $defaults = [
+            'active_comp_year'           => (string)$currentThaiYear,
+            'system_status'              => 'open', // 'open', 'closed', 'maintenance'
+            'system_status_mode'         => 'manual', // 'manual', 'schedule'
+            'system_reg_start_date'      => '',
+            'system_reg_end_date'        => '',
+            'system_closed_message'      => 'ระบบรับสมัครการแข่งขันกีฬา อบจ.นครสวรรค์ ปิดรับสมัครแล้ว ขอขอบคุณทุกโรงเรียนและสถานศึกษาที่ให้ความสนใจ',
+            'system_maintenance_message' => 'ระบบกำลังอยู่ระหว่างการปิดปรับปรุงและอัปเดตข้อมูลชั่วคราว ขออภัยในความไม่สะดวก',
+            'system_announcement'        => '',
+            'system_announcement_type'   => 'info', // 'info', 'warning', 'success'
+            'system_announcement_active' => '0',
+            'show_on_homepage'           => '1', // '1' = แสดงผลบนหน้าแรก, '0' = ซ่อนจากหน้าแรก
+            'contact_name'               => '',
+            'contact_phone'              => '',
+            'contact_line'               => '',
+            'contact_email'              => '',
+        ];
+
+        try {
+            if ($db->tableExists('Tb_Sports_Settings')) {
+                $rows = $db->table('Tb_Sports_Settings')->get()->getResultArray();
+                foreach ($rows as $row) {
+                    $defaults[$row['setting_key']] = $row['setting_value'];
+                }
+            }
+        } catch (\Throwable $e) {}
+
+        return $defaults;
+    }
+
+    public function saveSettingValue(string $key, ?string $value)
+    {
+        $db = \Config\Database::connect();
+        $this->initTables();
+        $exists = $db->table('Tb_Sports_Settings')->where('setting_key', $key)->countAllResults();
+        if ($exists > 0) {
+            $db->table('Tb_Sports_Settings')->where('setting_key', $key)->update([
+                'setting_value' => $value,
+                'updated_at'    => date('Y-m-d H:i:s')
+            ]);
+        } else {
+            $db->table('Tb_Sports_Settings')->insert([
+                'setting_key'   => $key,
+                'setting_value' => $value,
+                'updated_at'    => date('Y-m-d H:i:s')
+            ]);
+        }
+    }
+
     // Set Global System Active Year (Applies to Public Portal & Defaults)
     public function setSystemYear()
     {
@@ -268,26 +323,98 @@ class SportsAdminController extends BaseController
 
         $year = (int)$this->request->getPost('active_comp_year');
         if ($year >= 2500 && $year <= 2650) {
-            $db = \Config\Database::connect();
-            $this->initTables();
-            $exists = $db->table('Tb_Sports_Settings')->where('setting_key', 'active_comp_year')->countAllResults();
-            if ($exists > 0) {
-                $db->table('Tb_Sports_Settings')->where('setting_key', 'active_comp_year')->update([
-                    'setting_value' => (string)$year,
-                    'updated_at'    => date('Y-m-d H:i:s')
-                ]);
-            } else {
-                $db->table('Tb_Sports_Settings')->insert([
-                    'setting_key'   => 'active_comp_year',
-                    'setting_value' => (string)$year,
-                    'updated_at'    => date('Y-m-d H:i:s')
-                ]);
-            }
+            $this->saveSettingValue('active_comp_year', (string)$year);
             session()->set('sports_active_year', $year);
             return redirect()->back()->with('success', '✅ ตั้งค่าปีการแข่งขันหลักของระบบเป็นปี ' . $year . ' สำเร็จ! หน้าเว็บรับสมัครและประกาศผลจะแสดงผลตามปีนี้โดยอัตโนมัติ');
         }
 
         return redirect()->back()->with('error', 'ปีการแข่งขันไม่ถูกต้อง');
+    }
+
+    // System Settings Page View
+    public function settings()
+    {
+        $chk = $this->checkAccess();
+        if ($chk instanceof \CodeIgniter\HTTP\ResponseInterface) return $chk;
+
+        $settings       = $this->getSettings();
+        $activeYear     = $this->getActiveYear();
+        $availableYears = $this->getAllCompYears();
+
+        $data = [
+            'title'          => 'ตั้งค่าระบบการแข่งขันกีฬา & เปิด-ปิดระบบ',
+            'settings'       => $settings,
+            'activeYear'     => $activeYear,
+            'availableYears' => $availableYears,
+        ];
+
+        return view('sports/admin/settings', $data);
+    }
+
+    // Save System Settings
+    public function settingsSave()
+    {
+        $chk = $this->checkAccess();
+        if ($chk instanceof \CodeIgniter\HTTP\ResponseInterface) return $chk;
+
+        $posts = $this->request->getPost();
+        
+        $keys = [
+            'system_status',
+            'system_status_mode',
+            'system_reg_start_date',
+            'system_reg_end_date',
+            'system_closed_message',
+            'system_maintenance_message',
+            'system_announcement',
+            'system_announcement_type',
+            'contact_name',
+            'contact_phone',
+            'contact_line',
+            'contact_email',
+        ];
+
+        foreach ($keys as $k) {
+            $val = isset($posts[$k]) ? trim($posts[$k]) : '';
+            $this->saveSettingValue($k, $val);
+        }
+
+        // Checkbox for announcement active
+        $this->saveSettingValue('system_announcement_active', isset($posts['system_announcement_active']) ? '1' : '0');
+
+        // Checkbox for show_on_homepage
+        $this->saveSettingValue('show_on_homepage', isset($posts['show_on_homepage']) ? '1' : '0');
+
+        // Main Competition Year
+        if (!empty($posts['active_comp_year']) && is_numeric($posts['active_comp_year'])) {
+            $year = (int)$posts['active_comp_year'];
+            if ($year >= 2500 && $year <= 2650) {
+                $this->saveSettingValue('active_comp_year', (string)$year);
+                session()->set('sports_active_year', $year);
+            }
+        }
+
+        return redirect()->back()->with('success', '✅ บันทึกการตั้งค่าระบบและสถานะเปิด-ปิดระบบเรียบร้อยแล้ว');
+    }
+
+    // Quick Toggle System Status
+    public function toggleSystemStatus()
+    {
+        $chk = $this->checkAccess();
+        if ($chk instanceof \CodeIgniter\HTTP\ResponseInterface) return $chk;
+
+        $status = $this->request->getPost('status');
+        if (in_array($status, ['open', 'closed', 'maintenance'])) {
+            $this->saveSettingValue('system_status', $status);
+            $labels = [
+                'open'        => 'เปิดรับสมัครตามปกติ (Open)',
+                'closed'      => 'ปิดระบบรับสมัคร (Closed)',
+                'maintenance' => 'ปิดปรับปรุงระบบชั่วคราว (Maintenance)'
+            ];
+            return redirect()->back()->with('success', '✅ เปลี่ยนสถานะระบบเป็น "' . ($labels[$status] ?? $status) . '" สำเร็จ');
+        }
+
+        return redirect()->back()->with('error', 'สถานะไม่ถูกต้อง');
     }
 
     private function checkAccess()
