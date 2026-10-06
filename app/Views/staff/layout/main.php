@@ -21,6 +21,10 @@
         .sidebar-item { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
         .sidebar-item:hover, .sidebar-item.active { background: rgba(37, 99, 235, 0.08); color: #2563eb; }
         .glass-card { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.4); box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.05); }
+        /* SweetAlert2 Always on Top */
+        .swal2-container { z-index: 9999999 !important; }
+        .swal2-popup { z-index: 10000000 !important; }
+        .swal2-backdrop-show { z-index: 9999999 !important; }
     </style>
 </head>
 <body class="antialiased text-slate-700">

@@ -92,6 +92,11 @@
             transform: translateY(-2px);
             box-shadow: 0 12px 20px -5px rgba(37, 99, 235, 0.3);
         }
+
+        /* SweetAlert2 Always on Top */
+        .swal2-container { z-index: 9999999 !important; }
+        .swal2-popup { z-index: 10000000 !important; }
+        .swal2-backdrop-show { z-index: 9999999 !important; }
     </style>
 </head>
 

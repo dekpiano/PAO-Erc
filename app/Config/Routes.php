@@ -347,3 +347,32 @@ $routes->get('itsupport/self-report', 'ITSupport::selfReport');
 $routes->get('itsupport/self-report/(:segment)', 'ITSupport::selfReport/$1');
 $routes->get('self-report-export', 'ITSupport::exportSelfReportDocx');
 $routes->get('itsupport/self-report-export', 'ITSupport::exportSelfReportDocx');
+
+// --------------------------------------------------------------------
+// 🌐 IT Support REST API Routes (Protected with API Key & CORS)
+// --------------------------------------------------------------------
+$routes->options('api/(:any)', function() {
+    return service('response')
+        ->setHeader('Access-Control-Allow-Origin', '*')
+        ->setHeader('Access-Control-Allow-Headers', 'X-API-KEY, Authorization, Content-Type, Accept, X-Requested-With, Origin')
+        ->setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, HEAD')
+        ->setHeader('Access-Control-Max-Age', '86400')
+        ->setStatusCode(200);
+});
+
+$routes->group('api/itsupport', ['filter' => 'api-key'], function($routes) {
+    $routes->options('(:any)', function() {
+        return service('response')
+            ->setHeader('Access-Control-Allow-Origin', '*')
+            ->setHeader('Access-Control-Allow-Headers', 'X-API-KEY, Authorization, Content-Type, Accept, X-Requested-With, Origin')
+            ->setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, HEAD')
+            ->setHeader('Access-Control-Max-Age', '86400')
+            ->setStatusCode(200);
+    });
+    $routes->get('/', 'Api\ITSupportApiController::index');
+    $routes->get('stats', 'Api\ITSupportApiController::stats');
+    $routes->get('categories', 'Api\ITSupportApiController::categories');
+    $routes->get('ticket/(:segment)', 'Api\ITSupportApiController::show/$1');
+    $routes->get('(:any)', 'Api\ITSupportApiController::show/$1');
+});
+
